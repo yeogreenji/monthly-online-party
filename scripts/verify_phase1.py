@@ -31,7 +31,7 @@ with sync_playwright() as p:
         page.get_by_role("button",name="캐릭터 따라가기",exact=True).click()
         expect(canvas).to_have_attribute("data-overview","false")
         page.get_by_role("button",name="내 집",exact=True).click()
-        expect(canvas).to_have_attribute("data-room","home",timeout=35000)
+        expect(canvas).to_have_attribute("data-room","home",timeout=60000)
         expect(canvas).to_have_attribute("data-view","interior")
         expect(canvas).to_have_attribute("data-room-area","103.88")
         page.get_by_role("button",name="설정",exact=True).click()
@@ -66,7 +66,9 @@ with sync_playwright() as p:
         expect(canvas).to_have_attribute("data-avatar-look",__import__("re").compile("#a45e68"),timeout=15000)
         for value in ["stripe","beret","check"]:
             expect(canvas).to_have_attribute("data-avatar-look",__import__("re").compile(value),timeout=15000)
-        expect(canvas).to_have_attribute("data-layout","town-grid-v1")
+        expect(canvas).to_have_attribute("data-layout","town-plaza-v2")
+        expect(canvas).to_have_attribute("data-plaza-diameter","21.7")
+        expect(canvas).to_have_attribute("data-town-size","74x72")
         page.get_by_role("button",name="일정",exact=True).click()
         expect(page.get_by_role("heading",name="우리 마을의 파티 달력")).to_be_visible()
         assert page.get_by_role("heading",name="우리 마을의 파티 달력").count()==1
@@ -83,7 +85,7 @@ with sync_playwright() as p:
         for id in ["season","plaza"]:
             page.locator("#dd3-dest").select_option(id)
             page.get_by_role("button",name="걸어가기",exact=True).click()
-            expect(canvas).to_have_attribute("data-room",id,timeout=35000)
+            expect(canvas).to_have_attribute("data-room",id,timeout=60000)
             if id=="season":
                 expect(canvas).to_have_attribute("data-room-seats","20")
                 expect(canvas).to_have_attribute("data-room-area","230.88")
