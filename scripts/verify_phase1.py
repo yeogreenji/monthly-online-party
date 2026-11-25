@@ -129,7 +129,12 @@ with sync_playwright() as p:
                 expect(canvas).to_have_attribute("data-room-area","230.88")
                 page.get_by_role("button",name="파티 테이블",exact=True).click()
                 expect(canvas).to_have_attribute("data-last-prop","season-banquet",timeout=15000)
-            page.get_by_role("button",name="채팅 펼치기",exact=True).click()
+            # Arrival opens the lobby, not a default chat room.
+            expect(page.get_by_role("textbox",name="모임 검색")).to_be_visible(timeout=5000)
+            page.get_by_role("textbox",name="모임 검색").fill("없는 모임 테스트")
+            expect(page.get_by_text("조건에 맞는 모임이 없어요.",exact=False)).to_be_visible()
+            page.get_by_role("textbox",name="모임 검색").fill("")
+            page.locator(".dd-room-join").first.click()
             page.get_by_role("button",name="채팅 접기",exact=True).click()
             page.get_by_role("button",name="채팅 펼치기",exact=True).click()
             expect(page.get_by_role("textbox",name="메시지",exact=True)).to_be_visible(timeout=5000)
@@ -176,7 +181,8 @@ with sync_playwright() as p:
         expect(page.locator(".dd3-fallback")).to_be_visible()
         page.locator("#dd3-dest").select_option("season")
         page.get_by_role("button",name="걸어가기",exact=True).click()
-        page.get_by_role("button",name="채팅 펼치기",exact=True).click()
+        expect(page.get_by_role("textbox",name="모임 검색")).to_be_visible(timeout=5000)
+        page.locator(".dd-room-join").first.click()
         expect(page.get_by_role("textbox",name="메시지",exact=True)).to_be_visible(timeout=5000)
         assert not errors,errors
         print(f"PASS {width}x{height}: wardrobe persistence, 3D rooms, lock, prop movement, photo, place save, sitting, hub return, decor toggle, chat collapse, fallback")

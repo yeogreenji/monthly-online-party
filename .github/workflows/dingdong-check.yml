@@ -7,6 +7,7 @@ on:
       - 'develop/dingdong-3d'
       - 'develop/dingdong-hybrid'
       - 'loren/dingdong-phase1'
+      - 'loren/dingdong-phase2-review'
   workflow_dispatch:
 permissions:
   contents: read
@@ -62,7 +63,7 @@ jobs:
           path: artifacts/*.png
           if-no-files-found: warn
       - name: Phase 1 smoke tests
-        if: github.ref_name == 'loren/dingdong-phase1'
+        if: (github.ref_name == 'loren/dingdong-phase1' || github.ref_name == 'loren/dingdong-phase2-review')
         run: |
           python3 -m pip install playwright
           python3 -m playwright install --with-deps chromium
@@ -70,7 +71,7 @@ jobs:
           for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4173 >/dev/null && break; sleep 1; done
           python3 scripts/verify_phase1.py
       - name: Phase 1 screenshots
-        if: always() && github.ref_name == 'loren/dingdong-phase1'
+        if: always() && (github.ref_name == 'loren/dingdong-phase1' || github.ref_name == 'loren/dingdong-phase2-review')
         uses: actions/upload-artifact@v4
         with:
           name: dingdong-phase1-screenshots

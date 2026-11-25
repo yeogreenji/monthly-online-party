@@ -92,9 +92,13 @@ export function demoReply(spaceId: string, kind: TopicKind, serial: number): { b
   return { by: useResident ? RESIDENTS[spaceId].name : NEIGHBORS[serial % NEIGHBORS.length], text: pool[serial % pool.length] }
 }
 
+export function seoulDate(date = new Date()): string {
+  const parts = new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date)
+  return ['year','month','day'].map(k=>parts.find(p=>p.type===k)?.value??'').join('-')
+}
 export function todayPick<T>(list: T[], date = new Date()): T {
-  const day = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86_400_000)
-  return list[day % list.length]
+  const day = Math.floor(Date.parse(seoulDate(date)+'T00:00:00Z') / 86_400_000)
+  return list[((day % list.length)+list.length)%list.length]
 }
 
 export function whoName(who: string): string {
@@ -104,6 +108,7 @@ export function whoName(who: string): string {
 const N = NEIGHBORS
 
 export const SPACE_WORLD: Record<string, SpaceWorld> = {
+  home: {story:'나의 취향과 추억을 모으는 작은 집이에요. 단추가 인테리어를 안내하지만 집은 기본적으로 나만의 공간입니다.',rules:['내 집 사진과 소개는 기본 비공개예요.','친구 초대와 편지는 실제 계정 연결 후 제공돼요.'],today:[{title:'오늘의 집 꾸미기',question:'오늘 마음에 드는 색과 가구를 골라 보세요.',kind:'photo'}],topics:[]},
   plaza: {
     story:
       '초인종이 울리면 동네가 깨어납니다. 중앙 광장은 처음 온 사람도 어색하지 않게 인사를 나누는 곳이고, 벨이 그날의 소식을 한 줄 알려 줘요. 음악지기 도레는 매주 새 노래 이야기를 가져옵니다.',
@@ -254,6 +259,7 @@ export const SPACE_WORLD: Record<string, SpaceWorld> = {
       { title: '뜨개질 모임', blurb: '코를 세는 시간', kind: 'talk', seed: [{ who: 'hobby', text: '목도리를 뜨는 분 계신가요? 실 고르는 팁을 나눠 봐요.' }] },
       { title: '책 추천', blurb: '이번 주 추천 도서', kind: 'share', seed: [{ who: 'hobby', text: '누군가에게 선물하고 싶은 책을 한 권 추천해 주세요.' }] },
       { title: '사진 이야기', blurb: '찍고 고르는 이야기', kind: 'photo', seed: [{ who: 'hobby', text: '요즘 찍은 사진 중 가장 마음에 드는 한 장은요?' }] },
+      {title:'음악·팬덤 이야기',blurb:'좋아하는 가수, 컴백, 앨범, 공연 후기와 공식 링크를 공유하는 방',kind:'share',seed:[{who:'hobby',text:'오늘 듣고 있는 음악이나 좋아하는 아티스트를 소개해 주세요. 그룹별 모임도 자유롭게 만들어 보세요.'}]},
     ],
   },
   cinema: {
