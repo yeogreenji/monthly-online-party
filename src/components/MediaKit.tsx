@@ -59,7 +59,7 @@ export function MediaKit({
     }
     onInquiry(inquiry)
     const summary = [
-      `[월간살롱 협찬 문의] ${id}`,
+      `[딩동 협찬 문의] ${id}`,
       `브랜드: ${inquiry.company}`,
       `담당자: ${inquiry.person}`,
       `회신: ${inquiry.email}`,
@@ -67,7 +67,7 @@ export function MediaKit({
       `관심 패키지: ${packages.join(', ')}`,
       `캠페인 목표: ${inquiry.goal || '미작성'}`,
     ].join('\n')
-    const mailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`[월간살롱 협찬 문의] ${inquiry.company} · ${id}`)}&body=${encodeURIComponent(summary)}`
+    const mailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`[딩동 협찬 문의] ${inquiry.company} · ${id}`)}&body=${encodeURIComponent(summary)}`
     setSubmitted({ id, mailto, summary })
     setError('')
     onToast('문의서가 준비됐어요. 복사하거나 메일로 보내주세요.', 'success')
@@ -98,7 +98,7 @@ export function MediaKit({
                 그날 밤의 일부로.
               </h1>
               <p className="mt-5 max-w-[46ch] text-[13px] leading-[1.95]" style={{ color: 'var(--ink-soft)' }}>
-                월간살롱은 매월 한 번의 큰 파티와 매일 밤 네 개의 취향방이 열리는 온라인 살롱입니다. 브랜드는 배너 한 칸이 아니라, 상차림과 건배와 선물의 자리에 자연스럽게 놓입니다.
+                딩동은 매월 한 번의 큰 파티와 매일 밤 네 개의 취향방이 열리는 온라인 살롱입니다. 브랜드는 배너 한 칸이 아니라, 상차림과 건배와 선물의 자리에 자연스럽게 놓입니다.
               </p>
               <div className="mt-7 flex flex-wrap gap-2">
                 <a href="#packages" className="btn btn-primary">
@@ -441,7 +441,7 @@ export function MediaKit({
 
       <div className="px-5 pb-14 sm:px-8">
         <div className="mx-auto max-w-[1100px] border-t pt-5 text-[9.5px] leading-relaxed" style={{ borderColor: 'var(--line)', color: 'var(--muted)' }}>
-          월간살롱은 오픈 전 프리뷰 단계입니다. 본 미디어킷의 오디언스 수치는 목표치이며, 스폰서 예시는 실제 계약과 무관한 시연입니다. 주류 관련 협찬은 19세 이상 확인 및 건전 음주 문구를 포함합니다.
+          딩동은 오픈 전 프리뷰 단계입니다. 본 미디어킷의 오디언스 수치는 목표치이며, 스폰서 예시는 실제 계약과 무관한 시연입니다. 주류 관련 협찬은 19세 이상 확인 및 건전 음주 문구를 포함합니다.
         </div>
       </div>
     </div>

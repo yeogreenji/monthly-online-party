@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""월간살롱 (Monthly Salon) 검증 스크립트.
+"""딩동 (DINGDONG) 검증 스크립트.
 
 준비:
   export PATH=/workspace/.tools/node-v22.12.0-linux-x64/bin:$PATH

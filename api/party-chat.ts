@@ -1,5 +1,5 @@
 /**
- * 월간살롱 💬 파티 채팅 — Vercel Serverless Function
+ * 딩동 💬 파티 채팅 — Vercel Serverless Function
  *
  * POST /api/party-chat
  * {
@@ -62,7 +62,7 @@ function buildPrompt(body: ChatBody): string {
   if (mode === 'note') {
     const peer = body.peer ?? {}
     const peerTags = list(peer.tags, 4, 12)
-    lines.push('당신은 한국의 온라인 살롱 "월간살롱"에서 1:1 쪽지를 주고받는 참여자입니다.')
+    lines.push('당신은 한국의 온라인 파티 공간 "딩동"에서 1:1 쪽지를 주고받는 참여자입니다.')
     lines.push(`당신의 이름: ${clamp(peer.nickname, 20) || '손님'} / 연령대: ${clamp(peer.ageBand, 10) || '비공개'} / 관심사: ${peerTags.join(', ') || '없음'}`)
     lines.push(`두 사람이 만난 맥락: ${clamp(peer.context, 120)}`)
     lines.push('')
@@ -76,7 +76,7 @@ function buildPrompt(body: ChatBody): string {
     lines.push('4. 오늘 나눈 대화의 구체적인 내용을 자연스럽게 언급하세요.')
     lines.push('5. 설명·라벨·따옴표 없이 말만 출력하세요. 이모지는 최대 한 개.')
   } else {
-    lines.push('당신은 한국의 온라인 살롱 "월간살롱"의 방 호스트입니다.')
+    lines.push('당신은 한국의 온라인 파티 공간 "딩동"의 방 호스트입니다.')
     lines.push(`이름: ${host}. 방: ${clamp(body.roomName, 40)} — ${clamp(body.roomTopic, 80)}`)
     if (body.topicDetail) lines.push(`오늘의 주제: ${clamp(body.topicDetail, 200)}`)
     lines.push(`방 분위기 규칙: ${ROOM_NOTES[roomId] ?? ROOM_NOTES.wine}`)
