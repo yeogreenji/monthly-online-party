@@ -72,6 +72,12 @@ with sync_playwright() as p:
             page.get_by_role("button",name="채팅 접기",exact=True).click()
             page.get_by_role("button",name="채팅 펼치기",exact=True).click()
             expect(page.get_by_role("textbox",name="메시지",exact=True)).to_be_visible(timeout=5000)
+            expect(page.get_by_role("log",name="대화 기록")).to_be_visible()
+            assert page.get_by_role("textbox",name="메시지",exact=True).evaluate("(el)=>{const r=el.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight}")
+            page.get_by_role("textbox",name="메시지",exact=True).fill("메신저 테스트")
+            page.get_by_role("button",name="전송",exact=True).click()
+            expect(page.get_by_text("메신저 테스트",exact=True)).to_be_visible()
+            page.screenshot(path=f"artifacts/messenger-{id}-{width}.png")
             if id=="season":
                 page.get_by_role("button",name="설정",exact=True).click()
                 page.get_by_role("button",name="겨울 포토존",exact=True).click()
