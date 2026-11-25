@@ -201,6 +201,13 @@ export function createWorld(host,opts){
   for(const x of [-5.1,5.1])for(const z of [-3.6,1.8]){const g=group(p,x,0,z);cyl(g,0xe9b06d,0,.28,0,.13,.56);cyl(g,0xfff1d9,0,.70,0,1.05,.18);cyl(g,0xdd4e77,0,.79,0,.92,.025);for(let n=0;n<5;n++){const a=n*Math.PI*2/5,xx=Math.cos(a)*1.48,zz=Math.sin(a)*1.48;const tableIndex=(x<0?0:2)+(z<0?1:2);install(p,'season-seat-'+tableIndex+'-'+(n+1),seat=>chair(seat,0,0,[0xe95078,0x29a98c,0x8e73cb,0x4b8ed7][n%4]));cyl(g,0xffeac5,Math.cos(a)*.65,.83,Math.sin(a)*.65,.14,.035);ball(g,0xffdb8b,Math.cos(a)*.65,.91,Math.sin(a)*.65,.07,.08,.07)}cyl(g,0xf2c46e,0,.88,0,.15,.22);for(let n=0;n<5;n++)ball(g,FESTIVAL_COLORS[n],Math.cos(n*1.26)*.19,1.10,Math.sin(n*1.26)*.19,.12,.13,.12)}
   for(const x of [-5.7,5.7]){tree(p,x,5.65);gift(p,x-.8,5.2);gift(p,x+.7,5.45);lamp(p,x,-6.2)}
   for(const x of [-7.1,7.1])for(let j=0;j<9;j++)ball(p,FESTIVAL_COLORS[j%9],x,2.15,-6+j*1.5,.13,.13,.13);
+  {const tr=group(p,0,0,6.0);cyl(tr,0x7a5238,0,.2,0,.22,.4);cone(tr,0x2f8f5b,0,1.0,0,1.35,1.5);cone(tr,0x37a064,0,1.85,0,1.05,1.3);cone(tr,0x42b573,0,2.6,0,.72,1.1);ball(tr,0xffd45c,0,3.28,0,.2,.2,.2);for(let n=0;n<14;n++){const a=n*2.1,h=.55+(n%5)*.5,r=1.15-h*.28;ball(tr,FESTIVAL_COLORS[n%9],Math.cos(a)*r,h+.35,Math.sin(a)*r,.1,.1,.1)}
+   for(const [x,z] of [[-.95,.9],[.95,1.0],[.1,1.3],[-.35,1.35]])gift(p,x,6.0+z-.4)}
+  box(p,0xb88a6a,-2.9,.7,6.95,1.7,1.4,.5);box(p,0x2a1e1c,-2.9,.5,6.72,.9,.8,.06);ball(p,0xff8a3c,-2.9,.45,6.68,.26,.22,.04);ball(p,0xffd45c,-2.9,.42,6.66,.14,.14,.03);box(p,0xe6cfae,-2.9,1.44,6.85,1.9,.1,.7);
+  for(const [dx,c] of [[-.55,0xd94a5c],[0,0x3f9a6f],[.55,0xd94a5c]]){box(p,c,-2.9+dx,1.2,6.66,.18,.34,.04);box(p,0xffffff,-2.9+dx,1.38,6.66,.2,.06,.045)}
+  box(p,0xd13d4f,2.9,.55,6.9,.62,1.1,.5);box(p,0xffffff,2.9,1.12,6.9,.68,.08,.56);box(p,0x2a1e1c,2.9,.85,6.64,.34,.05,.03);box(p,0xfff1d6,2.9,.55,6.64,.36,.22,.02);
+  for(const x of [-6.7,6.7]){const sn=group(p,x,0,3.6);ball(sn,0xffffff,0,.4,0,.44,.4,.44);ball(sn,0xffffff,0,.95,0,.32,.3,.32);ball(sn,0xffffff,0,1.35,0,.22,.2,.22);cone(sn,0xff9142,0,1.36,.22,.05,.22).rotation.x=Math.PI/2;for(const dx of [-.07,.07])ball(sn,0x222233,dx,1.42,.17,.025,.025,.02);box(sn,0xd13d4f,0,1.14,0,.4,.07,.4)}
+  for(let n=0;n<15;n++)ball(p,n%2?0xffffff:0xffe9a8,-7+n,2.05+Math.sin(n*1.3)*.06,7.12,.07,.07,.07);
   largeRooms.set('season',p);
  }
 
@@ -214,6 +221,11 @@ export function createWorld(host,opts){
  // Permanent festival decorations: flower beds, lantern garlands and a small open-air stage.
  for(const [x,z] of [[-7.8,-3.1],[7.8,-3.1],[-6.8,6.1],[6.8,6.1]]){const g=group(plaza.parent,x,0,z);cyl(g,0xe7bb90,0,.16,0,.78,.32);cyl(g,0x6c9271,0,.33,0,.68,.06);for(let n=0;n<12;n++){const a=n*2.4,r=.22+(n%3)*.15;const px=Math.cos(a)*r,pz=Math.sin(a)*r;ball(g,0x399f72,px,.43,pz,.14,.15,.14);ball(g,FESTIVAL_COLORS[n%9],px,.57,pz,.11,.10,.11)}outdoorObstacles.push([x,z,.83])}
  const stage=group(plaza.parent,0,0,8.6);cyl(stage,0xc393a7,0,.18,0,1.55,.32);cyl(stage,0xfbe7cc,0,.36,0,1.48,.08);for(const x of [-1.2,1.2]){cyl(stage,0xaf7e65,x,1.22,.2,.065,1.8);ball(stage,0xffd47c,x,2.18,.2,.14,.14,.14)}for(let n=0;n<9;n++){const x=-1.18+n*.295,y=2.04-.23*(1-(x/1.2)**2);const flag=cone(stage,FESTIVAL_COLORS[n],x,y,.2,.12,.25);flag.rotation.z=Math.PI}outdoorObstacles.push([0,8.6,1.6]);
+ {const bl=group(plaza.parent,-6.6,0,1.3);box(bl,0xe85d8e,0,.05,0,1.9,.03,1.5);box(bl,0xfff1d6,0,.052,0,1.5,.03,1.1);cyl(bl,0xb98a62,.3,.2,-.1,.24,.22);ball(bl,0xf2c14e,.3,.38,-.1,.2,.1,.2);ball(bl,0xe85d8e,-.4,.12,.3,.1,.1,.1)}
+ {const ct=group(plaza.parent,6.9,0,1.2);box(ct,0xe7b48c,0,.4,0,1.5,.5,.8);box(ct,0xd9566f,0,.9,-.2,1.7,.12,1.2);box(ct,0xfff1d6,0,1.02,-.2,1.5,.06,1.0);for(let n=0;n<6;n++)ball(ct,FESTIVAL_COLORS[(n+1)%9],-.55+n*.22,.72,.3,.1,.1,.1);cyl(ct,0x8b6a4f,-.75,.7,-.7,.04,1.4);cyl(ct,0x8b6a4f,.75,.7,-.7,.04,1.4);outdoorObstacles.push([6.9,1.2,.9])}
+ for(const [x,c] of [[-2.1,0xe85d8e],[-1.9,0xf2c14e],[2.0,0x4fa7d9],[2.2,0x7fc48c]]){const bn=group(plaza.parent,x,0,8.2);cyl(bn,0xf4f0e2,0,.9,0,.012,1.7);ball(bn,c,0,1.95,0,.2,.25,.2)}
+ {const sp=group(plaza.parent,-3.4,0,-6.2);cyl(sp,0x8b6a4f,0,.9,0,.06,1.8);for(const [y,c,r] of [[1.65,0xe85d8e,.2],[1.35,0x4fa7d9,-.15],[1.05,0xf2c14e,.1]]){const b=box(sp,c,.3,y,0,.7,.22,.05);b.rotation.y=r}outdoorObstacles.push([-3.4,-6.2,.5])}
+
  function bouquet(p){const stem=group(p);cyl(stem,0x4ea77b,0,.18,0,.045,.32);cone(stem,0xe9a0c0,0,.18,0,.17,.33).rotation.z=Math.PI;for(let n=0;n<5;n++){const a=n*Math.PI*2/5;ball(stem,FESTIVAL_COLORS[(n+2)%9],Math.cos(a)*.12,.40+Math.sin(n)*.035,Math.sin(a)*.12,.10,.105,.10)}return stem}
  install(plaza.parent,'plaza-bouquet',g=>{cyl(g,0xd5a67e,0,.25,0,.32,.50);const b=bouquet(g);b.position.y=.50});
  const hub=group(scene,0,0,0);hub.userData.dynamic=true
