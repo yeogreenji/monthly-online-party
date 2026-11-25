@@ -1,4 +1,4 @@
-import {ChevronUp,ChevronDown,ChevronLeft,ChevronRight,Footprints,RotateCcw,RotateCw,ZoomIn,ZoomOut,Settings2} from 'lucide-react'
+import {ChevronUp,ChevronDown,ChevronLeft,ChevronRight,Footprints,RotateCcw,RotateCw,ZoomIn,ZoomOut,Settings2,House,Map as MapIcon} from 'lucide-react'
 import PHASE_PROPS from '../data/phase1Props.json'
 import { access, accessLabel } from '../data/phase1'
 import type { Look } from '../data/avatarLook'
@@ -15,10 +15,13 @@ import type { WorldController } from '../lib/mansion3d.js'
 export function Mansion3D({profile,look,active,request,toolsOpen,onToolsChange,onEnter,onLeave,onCapture,onMenu,favorites,onFavorite,onlyFavorites}:{profile:Profile;look:Look;active:Space|null;request:{id:string;serial:number}|null;toolsOpen:boolean;onToolsChange:(v:boolean)=>void;onEnter:(s:Space)=>void;onLeave:()=>void;onCapture:(image:string)=>void;onMenu:(id:string)=>void;favorites:string[];onFavorite:(id:string)=>void;onlyFavorites:boolean}){
  const host=useRef<HTMLDivElement>(null),world=useRef<WorldController|null>(null),callbacks=useRef({onEnter,onLeave,onMenu});callbacks.current={onEnter,onLeave,onMenu}
  const [status,setStatus]=useState('중앙 축제광장'),[error,setError]=useState(false),[low,setLow]=useState(false),[destination,setDestination]=useState(''),[story,setStory]=useState(false),[night,setNight]=useState(false),[sound,setSound]=useState(false),[festive,setFestive]=useState(false)
+ const [roofsOpen,setRoofsOpen]=useState(true),[overview,setOverview]=useState(false)
  const soundRef=useRef(sound);soundRef.current=sound
  useEffect(()=>{if(low||!host.current)return;try{const w=createWorld(host.current,{spaces:SPACES,residents:RESIDENTS,avatar:profile.avatar,look,access,onMenu:id=>callbacks.current.onMenu(id),onEnter:id=>{const s=SPACES.find(v=>v.id===id);if(s)callbacks.current.onEnter(s)},onLeave:()=>callbacks.current.onLeave(),onStatus:s=>{setStatus(s);if(soundRef.current&&s.includes('문 열림')){try{salonAudio.chime()}catch{/* optional */}}}});world.current=w;return()=>{w.dispose();world.current=null}}catch(e){console.error('3D 초기화 실패',e);setError(true)}},[low])
  useEffect(()=>{world.current?.setAvatar(profile.avatar,look)},[profile.avatar,look,low])
  useEffect(()=>{world.current?.setFestive(festive)},[festive,low])
+ useEffect(()=>{world.current?.setRoofs(roofsOpen)},[roofsOpen,low])
+ useEffect(()=>{if(active)setOverview(false)},[active])
  useEffect(()=>{if(!active)world.current?.exit();if(active?.id!=='cafe'){setNight(false);world.current?.setNight(false)}},[active])
  function visit(id:string){if(access(id)!=='open'){setStatus(accessLabel(id));return}if(error||low){const s=SPACES.find(x=>x.id===id);if(s){callbacks.current.onLeave();callbacks.current.onEnter(s);setStatus(s.name+' · 2D 접근성 대체 모드')}}else world.current?.visit(id)}
  useEffect(()=>{if(request)visit(request.id)},[request])
@@ -28,7 +31,8 @@ export function Mansion3D({profile,look,active,request,toolsOpen,onToolsChange,o
   <div ref={host} className="dd3-canvas" data-testid="mansion-3d" hidden={error||low}/>
   {(error||low)&&<div className="dd3-fallback"><RoomArtwork space={active??SPACES.find(s=>s.id==='plaza')!}/><AvatarPreview avatar={profile.avatar} look={look}/><p>2D 대체 모드 · 공간 이동은 목적지 안내로 체험합니다.</p></div>}
   <div className="dd-game-control"><div className="dd-dpad" aria-label="거리 이동">{([{Icon:ChevronUp,n:'앞으로',x:0,z:-1,s:'up'},{Icon:ChevronLeft,n:'왼쪽',x:-1,z:0,s:'left'},{Icon:ChevronRight,n:'오른쪽',x:1,z:0,s:'right'},{Icon:ChevronDown,n:'뒤로',x:0,z:1,s:'down'}]).map(({Icon,n,x,z,s})=><button key={s} data-slot={s} disabled={error||low} aria-label={n+' 거리 이동'} onClick={()=>world.current?.move(x*2,z*2)}><Icon size={24} strokeWidth={3}/></button>)}<span><Footprints size={20}/></span></div></div>
-  <div className="dd-camera-control">{[{I:RotateCcw,n:'왼쪽 회전',f:()=>world.current?.orbit(-Math.PI/4)},{I:RotateCw,n:'오른쪽 회전',f:()=>world.current?.orbit(Math.PI/4)},{I:ZoomIn,n:'화면 확대',f:()=>world.current?.zoom(-.2)},{I:ZoomOut,n:'화면 축소',f:()=>world.current?.zoom(.2)}].map(({I,n,f})=><button key={n} disabled={error||low} aria-label={n} onClick={f}><I size={19}/></button>)}</div>
+  {!active&&<div className="dd-map-views"><button aria-pressed={overview} onClick={()=>{setOverview(v=>!v);world.current?.setOverview(!overview)}}><MapIcon size={19}/>{overview?"캐릭터 따라가기":"마을 전체 보기"}</button><button aria-pressed={roofsOpen} onClick={()=>setRoofsOpen(v=>!v)}><House size={19}/>{roofsOpen?"지붕 닫기":"지붕 열기"}</button></div>}
+  <div className="dd-camera-control">{[{I:RotateCcw,n:'왼쪽 회전',f:()=>world.current?.orbit(-Math.PI/4)},{I:RotateCw,n:'오른쪽 회전',f:()=>world.current?.orbit(Math.PI/4)},{I:ZoomIn,n:'화면 확대',f:()=>{setOverview(false);world.current?.zoom(-.25)}},{I:ZoomOut,n:'화면 축소',f:()=>{setOverview(false);world.current?.zoom(.35)}}].map(({I,n,f})=><button key={n} disabled={error||low} aria-label={n} onClick={f}><I size={19}/><small>{n.replace('화면 ','')}</small></button>)}</div>
   <details className="dd3-access-menu" open={toolsOpen} onToggle={e=>{if(e.currentTarget.open!==toolsOpen)onToolsChange(e.currentTarget.open)}}><summary><Settings2 size={17}/> 이동·공간 메뉴</summary>
   <button type="button" className="dd3-btn dd3-mode" onClick={()=>{callbacks.current.onLeave();setError(false);setLow(v=>!v)}}>{low?'3D 모드로':'가벼운 2D 모드'}</button>
   {!active&&!error&&!low&&<div className="dd3-season-welcome"><span>오늘의 시즌 이벤트</span><button className="dd3-btn" type="button" onClick={()=>visit('season')}>🎄 파티하우스로 걸어가기</button></div>}
