@@ -124,7 +124,7 @@ with sync_playwright() as p:
         expect(page.get_by_role("button",name="초인종 찾아가기",exact=True)).to_be_visible()
         page.get_by_role("button",name="초인종 찾아가기",exact=True).click()
         expect(canvas).to_have_attribute("data-last-prop","hub-bell",timeout=5000)
-        expect(page.get_by_role("status",name="초인종 축하 효과")).to_be_visible()
+        expect(page.locator(".dd-bell-burst span")).to_be_visible(timeout=3000)
         expect(page.get_by_role("status").filter(has_text="새로운 방문객")).to_be_visible()
         for id in ["season","plaza"]:
             page.locator("#dd3-dest").select_option(id)
@@ -155,6 +155,8 @@ with sync_playwright() as p:
             expect(page.locator(".dd-room-join")).to_have_count(1)
             page.get_by_role("button",name="전체",exact=True).click()
             page.locator(".dd-room-join").first.click()
+            expect(page.get_by_role("button",name="첨부 메뉴",exact=True)).to_be_visible()
+            expect(page.get_by_role("button",name="주민과 대화 연습",exact=True)).to_be_visible()
             page.get_by_role("textbox",name="메시지",exact=True).fill("작성 중인 초안")
             page.get_by_role("button",name="모임 목록",exact=True).click()
             page.locator(".dd-room-join").nth(1).click()
@@ -197,11 +199,13 @@ with sync_playwright() as p:
                 expect(page.get_by_alt_text("첨부 미리보기")).to_be_visible()
                 page.get_by_role("button",name="전송",exact=True).click()
                 expect(page.get_by_alt_text("내가 올린 사진")).to_be_visible()
+                page.get_by_role("button",name="첨부 메뉴",exact=True).click()
                 page.get_by_role("button",name="장소 추천 첨부",exact=True).click()
                 page.get_by_label("장소 이름",exact=True).fill("시연 장소")
                 page.get_by_label("장소 링크",exact=True).fill("https://example.com/")
                 page.get_by_role("button",name="전송",exact=True).click()
                 page.get_by_role("button",name="장소 저장",exact=True).click()
+                page.get_by_role("button",name="첨부 메뉴",exact=True).click()
                 expect(page.get_by_text("저장한 장소 (1)",exact=True)).to_be_visible()
             page.get_by_role("button",name="설정",exact=True).click()
             if id=="season":
@@ -222,6 +226,16 @@ with sync_playwright() as p:
         expect(canvas).to_have_attribute("data-festive","true",timeout=15000)
         page.get_by_role("button",name="시즌 장식 숨기기",exact=True).click()
         expect(canvas).to_have_attribute("data-festive","false",timeout=15000)
+        for target_id in ["cafe","hobby","travel","cinema","women","men","games","season","home","plaza","jazz","single"]:
+            page.get_by_role("button",name="설정",exact=True).click() if not page.locator("#dd3-dest").is_visible() else None
+            page.locator("#dd3-dest").select_option(target_id)
+            page.get_by_role("button",name="공간 구경" if target_id in ["jazz","single"] else "바로 입장",exact=True).click()
+            expect(canvas).to_have_attribute("data-room",target_id,timeout=10000)
+            if target_id in ["jazz","single"]:
+                expect(canvas).to_have_attribute("data-room-mode","preview")
+                expect(page.locator(".dd-messenger")).to_have_count(0)
+            else: expect(canvas).to_have_attribute("data-room-mode","open")
+        if not page.locator("#dd3-dest").is_visible(): page.get_by_role("button",name="설정",exact=True).click()
         page.get_by_role("button",name="가벼운 2D 모드",exact=True).click()
         expect(page.locator(".dd3-fallback")).to_be_visible()
         page.locator("#dd3-dest").select_option("season")
