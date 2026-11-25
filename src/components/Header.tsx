@@ -6,8 +6,8 @@ import { Avatar } from './Avatar'
 export type SalonView = 'home' | 'mediakit'
 
 const NAV = [
+  { id: 'rooms', label: '저택 둘러보기' },
   { id: 'party', label: '이번 달 파티' },
-  { id: 'rooms', label: '12개 공간' },
   { id: 'wall', label: '포토월' },
   { id: 'calendar', label: '파티 캘린더' },
 ]

@@ -1,3 +1,5 @@
+import { RoomArtwork } from './MansionArt'
+import { SPACES } from '../data/dingdong'
 import { CalendarPlus, Check, ChevronRight, Clock3, MapPin, Sparkles } from 'lucide-react'
 import type { PartyEvent, Profile } from '../types'
 import { countdownTo, pad } from '../lib/dates'
@@ -172,12 +174,7 @@ export function Hero({
           <div className="relative animate-fade-up">
             <div className="relative overflow-hidden" style={{ borderRadius: 2, boxShadow: 'var(--shadow)' }}>
               <div className="absolute inset-0 z-10" style={{ background: 'linear-gradient(180deg, rgba(20,26,22,0) 45%, rgba(20,26,22,0.55) 100%)' }} />
-              <img
-                src={party.heroImg}
-                alt={party.heroAlt}
-                className="animate-slow-zoom aspect-[4/5] w-full object-cover sm:aspect-[5/5.4] lg:aspect-[4/4.7]"
-                loading="eager"
-              />
+              <div className="aspect-[4/5] flex items-center justify-center bg-[#e5d6c3] sm:aspect-[5/5.4] lg:aspect-[4/4.7]"><RoomArtwork space={SPACES.find(s=>s.id===(party.id==='dec'?'season':party.id==='feb'?'cinema':'plaza'))!} className="w-full" /></div>
               <div className="absolute left-4 top-4 z-20 flex items-center gap-2 rounded-full px-3 py-1.5 text-[10px] tracking-[0.14em] uppercase" style={{ background: 'rgba(20,26,22,0.55)', color: '#F7F1E6', backdropFilter: 'blur(6px)' }}>
                 <span className="live-dot" style={{ background: '#E3C98F' }} />
                 {party.monthLabel}의 밤

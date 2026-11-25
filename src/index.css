@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './mansion.css';
 
 @theme {
   --color-cream: #faf7f2;

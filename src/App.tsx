@@ -23,7 +23,7 @@ import { NotesOverlay } from './components/NotesOverlay'
 import { ToastStack, useReveal } from './components/ui'
 
 const COMMERCIAL_PREVIEW = false
-const SECTION_IDS = ['party', 'program', 'rooms', 'wall', 'calendar', 'brand', 'etiquette']
+const SECTION_IDS = ['rooms', 'party', 'program', 'wall', 'calendar', 'brand', 'etiquette']
 
 function initialChats(): Record<RoomId, ChatMessage[]> {
   return {
@@ -46,7 +46,7 @@ export default function App() {
   const [chats, setChats] = usePersistentState<Record<RoomId, ChatMessage[]>>('ms.chats.v1', initialChats())
 
   const [view, setView] = useState<SalonView>('home')
-  const [section, setSection] = useState('party')
+  const [section, setSection] = useState('rooms')
   const [editing, setEditing] = useState(false)
   const [roomId, setRoomId] = useState<RoomId | null>(null)
   const [notesOpen, setNotesOpen] = useState(false)
@@ -305,6 +305,7 @@ export default function App() {
 
       {(view === 'home' || !COMMERCIAL_PREVIEW) ? (
         <main>
+          <DingdongSpaces profile={profile ?? { nickname: '손님', avatar: 'fox', ageBand: '비공개', tags: [], joinedAt: '' }} key={profile?.joinedAt ?? 'guest'} onLegacy={openRoom} onParty={() => navigate('party')} onEditProfile={() => setEditing(true)} />
           <Hero
             party={party}
             now={now}
@@ -318,7 +319,6 @@ export default function App() {
             showCommercial={COMMERCIAL_PREVIEW}
           />
           <Program party={party} />
-          <DingdongSpaces profile={profile ?? { nickname: '손님', avatar: 'fox', ageBand: '비공개', tags: [], joinedAt: '' }} key={profile?.joinedAt ?? 'guest'} onLegacy={openRoom} onParty={() => navigate('party')} onEditProfile={() => setEditing(true)} />
           <PhotoWall
             feed={feed}
             profile={profile ?? { nickname: '손님', avatar: 'fox', ageBand: '비공개', tags: [], joinedAt: '' }}
