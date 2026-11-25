@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Profile, RoomId } from '../types'
-import { MONTHLY_IDEAS } from '../data/dingdong'
+import { MONTHLY_IDEAS, SPACES, CURRENT_SEASON, defaultTopicId } from '../data/dingdong'
+import { SPACE_CATALOG } from '../data/spaceCatalog'
 import type { Space } from '../data/dingdong'
 import { usePersistentState } from '../lib/storage'
 import { Avatar } from './Avatar'
@@ -40,7 +41,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile }: { 
   const [age, setAge] = useState('성인 전체')
   const [saveHistory, setSaveHistory] = useState(false)
   const [visibility, setVisibility] = useState<Visibility>('private')
-  useEffect(()=>{if(!space || !autoChat || space.id==='home')return;const first=space.topics[0];if(!first)return;const timer=window.setTimeout(()=>{setTopic({id:space.id+'-0',space:space.id,title:first,description:'자유롭게 이야기를 나누는 시연 모임',date:'',capacity:20,age:'성인 전체'});setAutoChat(false)},window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:680);return()=>window.clearTimeout(timer)},[space,autoChat])
+  useEffect(()=>{if(!space || !autoChat || space.id==='home')return;const first=space.topics[0];if(!first)return;const timer=window.setTimeout(()=>{setTopic({id:defaultTopicId(space.id,0),space:space.id,title:first,description:'자유롭게 이야기를 나누는 시연 모임',date:'',capacity:20,age:'성인 전체'});setAutoChat(false)},window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:680);return()=>window.clearTimeout(timer)},[space,autoChat])
   function openSpace(next: Space) { setSpace(next); setTopic(null); setShowCreate(false); setNotice(''); setAutoChat(next.id!=='home'); setDraft(''); setPicture(''); setSaveHistory(false); setVisibility('private') }
   function enter(next: Topic) { setAutoChat(false); setTopic(next); setDraft(''); setPicture(''); setNotice(''); setSaveHistory(false); setVisibility('private') }
   function leave() {
@@ -55,16 +56,17 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile }: { 
   }
   return <section id="rooms" className="px-5 py-14 sm:px-8" style={{background:'var(--bg-deep)'}}>
     <div className="mx-auto max-w-[1280px]">
-      <SectionHead kicker="DINGDONG · OPEN THE DOOR" title="오늘은 어느 문을 열어볼까요?" description="차 한 잔도, 책 한 권도, 소소한 이야기 하나도 파티가 됩니다. 12개의 공간을 둘러보세요. 현재는 성인용 로컬 개발 체험판입니다." action={<button type="button" className="btn btn-outline" aria-pressed={onlyFavorites} onClick={()=>setOnlyFavorites(v=>!v)}>{onlyFavorites?'전체 공간':'★ 즐겨찾기만'}</button>}/>
+      <SectionHead kicker="DINGDONG · OPEN THE DOOR" title="오늘은 어느 문을 열어볼까요?" description="차 한 잔도, 책 한 권도, 소소한 이야기 하나도 파티가 됩니다. 365일 상설 공간과 이번 달 시즌 파티홀을 둘러보세요. 현재는 성인용 로컬 개발 체험판입니다." action={<button type="button" className="btn btn-outline" aria-pressed={onlyFavorites} onClick={()=>setOnlyFavorites(v=>!v)}>{onlyFavorites?'전체 공간':'★ 즐겨찾기만'}</button>}/>
       <div className="mb-5 rounded-xl border p-4 text-xs leading-relaxed" style={{borderColor:'var(--line)',background:'var(--surface)'}}>개발 체험판 · 실제 접속자, 다중 사용자 채팅, 연령 인증 및 서버 정원 검증은 아직 연결되지 않았습니다. 입력 내용은 이 브라우저에만 저장됩니다.</div>
       <div className={'dd3-layout'+(space?' dd3-with-chat':'')}>
         <Mansion3D profile={profile} active={space} onEnter={openSpace} onLeave={()=>{leave();setSpace(null)}} favorites={favorites} onlyFavorites={onlyFavorites} onFavorite={id=>setFavorites(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id])}/>
         {space&&<aside role="region" aria-label={space.name} className="dd3-chat dd-chat-reveal">
       <div className="p-4 sm:p-5">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3"><div><h2 className="serif text-2xl">{space.name}</h2><p className="text-xs" style={{color:'var(--muted)'}}>{space.subtitle}</p></div><button type="button" className="btn btn-outline btn-sm" onClick={()=>{leave();setSpace(null)}}>복도로 나가기</button></div>
+        {SPACE_CATALOG[space.id]&&<details className="dd3-space-guide"><summary>{space.id==='season'?'이번 달 시즌 행사장':'365일 상설 공간'} · {SPACE_CATALOG[space.id].district}</summary><p>{SPACE_CATALOG[space.id].story}</p><p><strong>인테리어 기획:</strong> {SPACE_CATALOG[space.id].interior}</p><p><strong>모임:</strong> {SPACE_CATALOG[space.id].activities}</p><small>공간 구성 및 스토리 안내 · 개별 가구 상호작용은 개발 예정</small></details>}
         {RESIDENTS[space.id]&&<div className="dd3-npc"><strong>{RESIDENTS[space.id].name} · 안내용 NPC</strong><p>{RESIDENTS[space.id].greeting}</p></div>}
         {autoChat && <p role="status" className="text-sm py-3">공간에 도착했어요. 대화창을 준비합니다…</p>}
-        {space.id==='season' && <button className="btn btn-outline mb-3" onClick={()=>{leave();setSpace(null);onParty()}}>크리스마스 파티 일정 보기</button>}
+        {space.id==='season' && <button className="btn btn-outline mb-3" onClick={()=>{leave();setSpace(null);onParty()}}>기존 파티 일정 보기</button>}
         {space.id==='home' ? <div className="space-y-4">
           <div className="rounded-2xl p-5 text-center" style={{background:home.wallpaper,color:'#48382e'}}><div className="flex justify-center"><Avatar name={profile.avatar} size={75}/></div><p className="mt-1 text-lg">{home.accessory} {profile.nickname}</p><div className="mt-6 flex justify-center gap-6 text-5xl">{home.furniture} {home.pet}</div><p className="mt-4 text-sm">{home.intro||'나의 작은 집에 오신 것을 환영해요.'}</p></div>
           <button className="btn btn-outline" onClick={()=>{leave();setSpace(null);onEditProfile()}}>캐릭터·닉네임·취향 수정</button>
@@ -100,13 +102,13 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile }: { 
             <div className="grid grid-cols-2 gap-2"><label className="text-sm">목표 인원<input type="number" min={1} max={20} required className={FIELD} value={capacity} onChange={e=>setCapacity(Number(e.target.value))}/></label><label className="text-sm">연령 그룹<select className={FIELD} value={age} onChange={e=>setAge(e.target.value)}>{['성인 전체','20대','30대','40대','50대 이상'].map(v=><option key={v}>{v}</option>)}</select></label></div>
             <button className="btn btn-primary">로컬 모임 만들기</button>
           </form>}
-          {[...topics.filter(t=>t.space===space.id),...space.topics.map((t,i)=>({id:space.id+'-'+i,space:space.id,title:t,description:'자유롭게 이야기를 나누는 시연 모임',date:'',capacity:20,age:'성인 전체'}))].map(t=><button key={t.id} className="card flex w-full flex-wrap items-center justify-between gap-2 p-4 text-left" onClick={()=>enter(t)}><span><strong className="text-sm">{t.title}</strong><span className="block text-xs" style={{color:'var(--muted)'}}>{t.date.replace('T',' ')} · {t.age} · 목표 {t.capacity}명</span></span><span className="text-xs">체험 입장 →</span></button>)}
+          {[...topics.filter(t=>t.space===space.id),...space.topics.map((t,i)=>({id:defaultTopicId(space.id,i),space:space.id,title:t,description:'자유롭게 이야기를 나누는 시연 모임',date:'',capacity:20,age:'성인 전체'}))].map(t=><button key={t.id} className="card flex w-full flex-wrap items-center justify-between gap-2 p-4 text-left" onClick={()=>enter(t)}><span><strong className="text-sm">{t.title}</strong><span className="block text-xs" style={{color:'var(--muted)'}}>{t.date.replace('T',' ')} · {t.age} · 목표 {t.capacity}명</span></span><span className="text-xs">체험 입장 →</span></button>)}
           {space.legacy?.map(id=><button key={id} className="card flex w-full justify-between gap-2 p-4 text-left" onClick={()=>{leave();setSpace(null);onLegacy(id)}}><span>{ROOMS.find(r=>r.id===id)?.name}</span><span className="text-xs">기존 시연방 →</span></button>)}
         </div>}
       </div>
         </aside>}
       </div>
-      <div className="mt-10"><h3 className="serif text-xl">365일, 작은 파티의 계절</h3><p className="my-2 text-xs" style={{color:'var(--muted)'}}>연간 테마 기획 · 음력 명절의 정확한 날짜와 매일 모임 자동 편성은 추후 연결합니다.</p><div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">{MONTHLY_IDEAS.map((idea,i)=><div className="card p-3" key={i}><strong className="text-sm">{i+1}월</strong><p className="mt-1 text-xs leading-relaxed">{idea}</p></div>)}</div></div>
+      <div className="mt-10"><h3 className="serif text-xl">365일, 작은 파티의 계절</h3><p className="mt-2 text-sm">{SPACES.length-1}개 상설 공간 · 시즌 파티홀 1개 · 현재 월간 장식: {CURRENT_SEASON.title}. 월간 테마는 행사 날짜 확정 또는 실제 운영을 뜻하지 않습니다.</p><p className="my-2 text-xs" style={{color:'var(--muted)'}}>연간 테마 기획 · 음력 명절의 정확한 날짜와 매일 모임 자동 편성은 추후 연결합니다.</p><div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">{MONTHLY_IDEAS.map((idea,i)=><div className="card p-3" key={i}><strong className="text-sm">{i+1}월</strong><p className="mt-1 text-xs leading-relaxed">{idea}</p></div>)}</div></div>
     </div>
   </section>
 }
