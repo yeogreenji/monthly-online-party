@@ -266,6 +266,14 @@ with sync_playwright() as p:
         expect(picture_game.get_by_role("status")).to_have_text("정답이에요!")
         picture_game.get_by_role("button",name="다음 그림",exact=True).click()
         expect(picture_game.get_by_text("2/3 · 정답 1개",exact=True)).to_be_visible()
+        page.get_by_role("button",name="틱택토",exact=True).click()
+        board=page.get_by_role("region",name="틱택토",exact=True)
+        for cell in (1,4,2,5,3):
+            board.get_by_role("button",name=f"{cell}번 칸 비어 있음",exact=True).click()
+        expect(board.get_by_role("status")).to_have_text("X 승리!")
+        expect(board.get_by_role("button",name="6번 칸 비어 있음",exact=True)).to_be_disabled()
+        board.get_by_role("button",name="틱택토 새 판").click()
+        expect(board.get_by_role("status")).to_have_text("X 차례")
         # Delay reading until after the room changes to reproduce the attachment race.
         page.evaluate("""() => {
             const read = FileReader.prototype.readAsDataURL;
