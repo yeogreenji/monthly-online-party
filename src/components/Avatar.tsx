@@ -10,6 +10,12 @@ export const AVATARS: { key: AvatarKey; label: string; hint: string }[] = [
   { key: 'owl', label: '부엉이', hint: '밤의 독서' },
   { key: 'squirrel', label: '다람쥐', hint: '수집하는 마음' },
   { key: 'penguin', label: '펭귄', hint: '겨울이 편한' },
+  { key: 'dog', label: '강아지', hint: '다정한 인사' },
+  { key: 'hamster', label: '햄스터', hint: '작은 취향' },
+  { key: 'otter', label: '수달', hint: '음악과 수다' },
+  { key: 'raccoon', label: '너구리', hint: '호기심 가득' },
+  { key: 'deer', label: '사슴', hint: '계절의 초대장' },
+  { key: 'panda', label: '판다', hint: '느긋한 영화' },
 ]
 
 const TONE: Record<AvatarKey, { bg: string; fur: string; light: string; deep: string }> = {
@@ -21,6 +27,12 @@ const TONE: Record<AvatarKey, { bg: string; fur: string; light: string; deep: st
   owl: { bg: '#EDE6D6', fur: '#9B7A54', light: '#F1E5CE', deep: '#63492C' },
   squirrel: { bg: '#F0E2D2', fur: '#AA7448', light: '#F5E5CE', deep: '#744A28' },
   penguin: { bg: '#E3E8E6', fur: '#2F3D42', light: '#F8F2E7', deep: '#1B2428' },
+  dog: { bg: '#EFE2CF', fur: '#D1A478', light: '#F7E8D4', deep: '#76553C' },
+  hamster: { bg: '#F1E3D7', fur: '#E0B88C', light: '#FFF2DE', deep: '#96704C' },
+  otter: { bg: '#E1D9CE', fur: '#9B765C', light: '#E7D2B7', deep: '#644939' },
+  raccoon: { bg: '#E2E1DB', fur: '#A9A29B', light: '#F2ECE0', deep: '#4B4845' },
+  deer: { bg: '#EDE1D0', fur: '#BC8B62', light: '#F4E1C5', deep: '#75543F' },
+  panda: { bg: '#E1E6DF', fur: '#F0E9DE', light: '#FFFAF0', deep: '#494846' },
 }
 
 interface AvatarProps {
@@ -113,6 +125,9 @@ export function Avatar({ name, size = 44, ring = false, className = '', title }:
         </>
       )}
 
+      {['hamster','otter','panda','raccoon'].includes(name) && <><circle cx="28" cy="32" r="10" fill={name==='panda'?tone.deep:tone.fur}/><circle cx="72" cy="32" r="10" fill={name==='panda'?tone.deep:tone.fur}/></>}
+      {name==='dog' && <><ellipse cx="24" cy="43" rx="10" ry="20" transform="rotate(16 24 43)" fill={tone.deep}/><ellipse cx="76" cy="43" rx="10" ry="20" transform="rotate(-16 76 43)" fill={tone.deep}/></>}
+      {name==='deer' && <><path d="M31 36L17 17Q30 15 42 31M69 36L83 17Q70 15 58 31" fill={tone.fur}/><path d="M39 28L34 10M34 16L26 9M61 28L66 10M66 16L74 9" stroke={tone.deep} strokeWidth="4" fill="none" strokeLinecap="round"/></>}
       {/* 얼굴 */}
       <ellipse cx="50" cy="55" rx="31" ry="30" fill={tone.fur} />
       <ellipse cx="50" cy="55" rx="31" ry="30" fill={`url(#${shadeId})`} />
@@ -143,6 +158,8 @@ export function Avatar({ name, size = 44, ring = false, className = '', title }:
         </>
       )}
 
+      {['panda','raccoon'].includes(name) && <><ellipse cx="39" cy="57" rx="10" ry="8" fill={tone.deep}/><ellipse cx="61" cy="57" rx="10" ry="8" fill={tone.deep}/></>}
+      {['dog','hamster','otter','deer','panda','raccoon'].includes(name) && <ellipse cx="50" cy="70" rx="15" ry="11" fill={tone.light}/>}
       {/* 눈 */}
       {name === 'owl' ? (
         <>

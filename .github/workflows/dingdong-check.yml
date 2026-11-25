@@ -4,6 +4,7 @@ on:
     branches:
       - 'develop/dingdong'
       - 'develop/dingdong-mansion'
+      - 'develop/dingdong-3d'
   workflow_dispatch:
 permissions:
   contents: read
@@ -28,3 +29,11 @@ jobs:
           npm run dev -- --host 127.0.0.1 --port 4173 --strictPort > /tmp/dingdong-server.log 2>&1 &
           for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4173 >/dev/null && break; sleep 1; done
           python3 scripts/verify_mansion.py
+      - name: 3D smoke tests
+        if: github.ref_name == 'develop/dingdong-3d'
+        run: |
+          python3 -m pip install playwright
+          python3 -m playwright install --with-deps chromium
+          npm run dev -- --host 127.0.0.1 --port 4173 --strictPort > /tmp/dingdong-server.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4173 >/dev/null && break; sleep 1; done
+          python3 scripts/verify_3d.py
