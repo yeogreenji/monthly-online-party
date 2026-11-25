@@ -5,7 +5,7 @@ import {PartyPopper,CalendarDays,Map,Home,Settings,Shirt,UserRound,Mail,Bell,Cam
 import { access } from '../data/phase1'
 import { DEFAULT_LOOK, normalizeLook } from '../data/avatarLook'
 import { AvatarWardrobe, AvatarPreview } from './AvatarWardrobe'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import type { Profile, RoomId } from '../types'
 import { MONTHLY_IDEAS, SPACES } from '../data/dingdong'
 import type { Space } from '../data/dingdong'
@@ -48,7 +48,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   const [messages, setMessages] = usePersistentState<Record<string, Message[]>>('dd.messages.v1', {})
   const [history, setHistory] = usePersistentState<History[]>('dd.history.v1', [])
   const [storedHome, setHome] = usePersistentState('dd.home.v1', INITIAL_HOME)
-  const home=normalizeHome(storedHome)
+  const home=useMemo(()=>normalizeHome(storedHome),[storedHome])
   const [onlyFavorites, setOnlyFavorites] = useState(false)
   const [draft, setDraft] = useState('')
   const [picture, setPicture] = useState('')

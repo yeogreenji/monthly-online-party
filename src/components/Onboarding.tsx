@@ -67,7 +67,7 @@ export function Onboarding({
     <div ref={host} className="dd-entry-world" data-testid="avatar-gallery"/>
     {fallback&&<div className="dd-entry-fallback"><Avatar name={avatar} size={110}/><p>WebGL 미지원 · 2D 접근성 대체</p></div>}
     <header className="dd-entry-title"><span className="dd-entry-eyebrow">✦ 오늘도 만나서 반가워요 ✦</span><h1>딩동 <span>DINGDONG</span></h1><p>{editMode?'캐릭터 의상실':'친구와 만나는 작은 온라인 파티'}</p>{editMode&&<button className="dd3-btn" onClick={onClose}>닫기</button>}</header>
-    <div className="dd-entry-controls">
+    <div className="dd-entry-controls"><p className="dd-entry-intro">오늘의 작은 파티를 찾아 동네를 산책해요.</p>
       <div className="dd-entry-pick"><button className="dd3-btn" aria-label="이전 캐릭터" onClick={()=>choose(-1)}>‹</button><div><label htmlFor="dd-entry-avatar">내 캐릭터</label><select id="dd-entry-avatar" value={avatar} onChange={e=>setAvatar(e.target.value as AvatarKey)}>{AVATARS.map(a=><option key={a.key} value={a.key}>{a.label}</option>)}</select></div><button className="dd3-btn" aria-label="다음 캐릭터" onClick={()=>choose(1)}>›</button></div>
       <p className="dd-entry-tip">마음에 드는 동물 친구를 골라 보세요. 드래그하면 돌아봐요.</p>
       <div className="dd-entry-name"><label htmlFor="nickname">닉네임</label><input id="nickname" className="input" placeholder={suggestion} value={nickname} maxLength={12} onChange={e=>{setNickname(e.target.value);setError('')}} onKeyDown={e=>{if(e.key==='Enter')submit()}}/><button className="dd3-btn" onClick={()=>{setNickname(suggestName());setError('')}} aria-label="닉네임 제안"><Shuffle size={15}/></button></div>

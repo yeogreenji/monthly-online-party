@@ -5,7 +5,7 @@ const colors={cat:[0xe6a051,0xffedc9],bear:[0xb67842,0xffdbab],fox:[0xf07827,0xf
 const coat=[0xe52f59,0x19a86f,0x2467eb,0x913bcc,0xf5ad21,0x09adbb,0xff5b91]
 export function createAvatarGallery(host,avatars,onSelect){
  const scene=new T.Scene(),sky=makeTownSky(),factory=createModelFactory();scene.background=sky.texture;scene.fog=new T.Fog(0xc9e8f5,23,45)
- const renderer=new T.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.outputColorSpace=T.SRGBColorSpace;renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.domElement.dataset.design='sunlit-garden';renderer.domElement.setAttribute('aria-label','3D 캐릭터 선택실');renderer.domElement.tabIndex=0;host.appendChild(renderer.domElement)
+ const renderer=new T.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.domElement.dataset.design='sunlit-garden';renderer.domElement.setAttribute('aria-label','3D 캐릭터 선택실');renderer.domElement.tabIndex=0;host.appendChild(renderer.domElement)
  const camera=new T.PerspectiveCamera(42,1,.1,60);scene.add(new T.HemisphereLight(0xfff8eb,0xc3b6d0,1.65));const key=new T.DirectionalLight(0xffe5c5,2.2);key.position.set(4,8,6);key.castShadow=true;key.shadow.mapSize.set(1024,1024);Object.assign(key.shadow.camera,{left:-10,right:10,top:9,bottom:-9,near:.5,far:30});key.shadow.bias=-.0005;scene.add(key);const fill=new T.DirectionalLight(0xe1f5ff,.7);fill.position.set(-5,4,-4);scene.add(fill)
  const sphere=new T.SphereGeometry(1,24,16),box=new T.BoxGeometry(1,1,1),cylinder=new T.CylinderGeometry(1,1,1,32),cone=new T.ConeGeometry(1,1,24),materials=new Map()
  function mat(c){if(!materials.has(c))materials.set(c,new T.MeshStandardMaterial({color:c,roughness:.7,metalness:0}));return materials.get(c)}
@@ -38,7 +38,7 @@ export function createAvatarGallery(host,avatars,onSelect){
  if(id==='santacat'){mesh(g,cone,0xe72942,0,2.23,0,.36,.52,.35);ell(g,0xffffff,0,2.5,0,.09,.09,.09);ell(g,0xffffff,0,2.02,0,.37,.09,.35)}
  for(const y of [.79,.98])ell(g,0xffd54a,0,y,.36,.045,.045,.03);return g}
  function refresh(index){selected=(index+avatars.length)%avatars.length;rotation=0;for(let i=0;i<3;i++){models[i]?.dispose();const n=(selected+i-1+avatars.length)%avatars.length,model=factory.create(stands[i],avatars[n],coat[n%coat.length]);const g=model.g;g.userData.index=n;g.position.y=.40;g.scale.setScalar(i===1?1.48:1.1);groups[i]=g;models[i]=model}renderer.domElement.dataset.selected=avatars[selected]}
- function resize(){const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);renderer.setSize(w,h,false);camera.aspect=w/h;const d=camera.aspect<.8?12:9.8;camera.position.set(0,4.2,d);camera.lookAt(0,1.42,0);camera.updateProjectionMatrix()}
+ function resize(){const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);renderer.setSize(w,h,false);camera.aspect=w/h;const d=camera.aspect<.8?10.8:9.2;camera.position.set(0,3.5,d);camera.lookAt(0,1.30,0);camera.updateProjectionMatrix()}
  const observer=new ResizeObserver(resize);observer.observe(host);resize()
  function down(e){drag={x:e.clientX,y:e.clientY,r:rotation};renderer.domElement.setPointerCapture?.(e.pointerId)}
  function move(e){if(drag)rotation=drag.r+(e.clientX-drag.x)*.013}

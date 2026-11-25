@@ -13,13 +13,17 @@ export function createModelFactory(){
  function create(parent,key,coat='#718675',look=null){const L=look||{},base=skins[key]||skins.cat,fur=L.fur&&L.fur!=='natural'?L.fur:base[0],cream=base[1],color=L.coat||coat,trim=shade(color,.72),light=shade(color,1.22),shoe=L.shoes||'#6c574b',style=L.style||'coat';
  const g=group(parent);g.userData.dynamic=true;const pose=group(g);pose.scale.setScalar(.66);const trunk=group(pose);const legs=[],arms=[],owned=[];
  // Seamless overlapping neck, torso and head. Original rounded animal proportions.
- ell(trunk,fur,0,1.18,0,.30,.28,.27);ell(trunk,color,0,.88,0,.47,.49,.37);
- if(style==='dress'||style==='skirt'){const skirt=cone(trunk,color,0,.64,0,.57,.54,.43);skirt.rotation.z=Math.PI;ell(trunk,light,0,.40,0,.56,.07,.43);ell(trunk,trim,0,.90,0,.43,.075,.37)}
+ ell(trunk,fur,0,1.20,0,.37,.34,.31);ell(trunk,color,0,.88,0,.48,.53,.39);function garment(profile,paint,depth=.82){const geometry=new T.LatheGeometry(profile.map(([r,y])=>new T.Vector2(r,y)),40);const mesh=new T.Mesh(geometry,material(paint));mesh.scale.z=depth;mesh.castShadow=true;mesh.receiveShadow=true;trunk.add(mesh);owned.push(geometry);return mesh}function hem(y,r,paint){ell(trunk,paint,0,y,0,r,.055,r*.83)}
+ if(style==='dress'||style==='skirt'){garment([[.63,.34],[.61,.43],[.49,.71],[.34,.93]],color);hem(.35,.62,light);hem(.92,.37,trim);for(let i=0;i<12;i++){const a=i*Math.PI/6;ell(trunk,light,Math.sin(a)*.51,.48,Math.cos(a)*.42,.035,.14,.035)}if(style==='dress'){for(const x of [-.24,.24])ell(trunk,cream,x,1.14,.28,.16,.12,.08);ell(trunk,0xffd68b,0,.91,.40,.08,.065,.035)}}
  else if(style==='overalls'){ell(trunk,cream,0,1.05,.18,.35,.26,.19);ell(trunk,color,0,.73,.24,.32,.30,.17);for(const x of [-.22,.22]){box(trunk,color,x,1.05,.28,.12,.42,.10);ell(trunk,0xf5c264,x,.96,.385,.047,.047,.026)}}
- else if(style==='hoodie'){ell(trunk,trim,0,1.16,-.23,.38,.29,.18);ell(trunk,light,0,.67,.34,.28,.12,.07);for(const x of [-.10,.10])box(trunk,cream,x,1.02,.36,.027,.22,.03)}
+ else if(style==='hoodie'){ell(trunk,trim,0,1.16,-.25,.44,.34,.25);ell(trunk,light,0,.65,.36,.31,.14,.08);hem(.46,.42,trim);for(const x of [-.10,.10]){box(trunk,cream,x,1.02,.38,.027,.22,.03);ell(trunk,0xffdaa0,x,.89,.40,.028,.05,.022)}}
  else if(style==='vest'){ell(trunk,cream,0,.96,.33,.19,.34,.11);for(const x of [-.20,.20])ell(trunk,color,x,.88,.29,.20,.39,.11)}
  else if(style==='tux'){ell(trunk,cream,0,.98,.34,.19,.32,.07);for(const x of [-.12,.12])ell(trunk,trim,x,1.00,.38,.11,.05,.04);ell(trunk,0xf2c7a6,0,1.02,.42,.055,.065,.03)}
- else if(style==='knit'){for(let i=0;i<5;i++)ell(trunk,light,0,.59+i*.13,.345,.31,.025,.047)}
+ else if(style==='knit'){hem(.47,.43,trim);hem(1.18,.36,cream);for(let i=0;i<5;i++)for(const x of [-.22,-.075,.075,.22])ell(trunk,i%2?trim:light,x,.59+i*.12,.36,.035,.065,.032).rotation.z=(i%2?1:-1)*.42}
+ else if(style==='denim'){garment([[.48,.39],[.49,.57],[.46,.94],[.39,1.18]],color);for(const x of [-.21,.21]){box(trunk,light,x,.90,.38,.17,.16,.045);box(trunk,0xe6c194,x,.97,.42,.18,.025,.025);ell(trunk,0xffd37f,x,.92,.415,.028,.028,.016)}box(trunk,trim,0,.79,.41,.045,.69,.03);hem(.4,.47,trim)}
+ else if(style==='sailor'){ell(trunk,cream,0,1.05,.27,.37,.23,.13);for(const x of [-.20,.20])box(trunk,color,x,1.07,.39,.22,.31,.045).rotation.z=x*.9;ell(trunk,0xe35870,0,1.01,.43,.14,.07,.045);hem(.46,.45,cream);hem(.55,.44,trim)}
+ else if(style==='puffer'){for(let i=0;i<4;i++)ell(trunk,i%2?color:light,0,.52+i*.18,0,.52,.13,.43);box(trunk,trim,0,.83,.44,.06,.64,.035);ell(trunk,trim,0,1.17,0,.41,.14,.34)}
+ else if(style==='cape'){garment([[.66,.48],[.58,.68],[.46,1.06],[.29,1.25]],color);hem(1.19,.32,cream);for(const x of [-.10,.10])ell(trunk,0xffd57a,x,1.03,.42,.055,.055,.035)}
  else{for(const x of [-.15,.15])ell(trunk,light,x,1.09,.33,.13,.16,.06);for(const y of [.68,.86,1.03])ell(trunk,0xffd37f,0,y,.38,.043,.045,.026)}
  if(L.fabric==='dots')for(let i=0;i<3;i++)for(let j=0;j<3;j++)ell(trunk,cream,-.19+j*.19,.66+i*.18,.37-Math.abs(j-1)*.025,.035,.035,.018);
  if(L.fabric==='check'){for(let i=0;i<3;i++){box(trunk,light,0,.65+i*.18,.374,.44,.032,.018);box(trunk,trim,-.16+i*.16,.84,.38,.032,.42,.018)}}
@@ -27,17 +31,17 @@ export function createModelFactory(){
  if(L.fabric==='stars')for(const [x,y] of [[-.20,.71],[.15,.82],[0,1.01]]){ell(trunk,0xffdc87,x,y,.38,.05,.05,.018);box(trunk,0xffdc87,x,y,.39,.12,.022,.018)}
  for(const x of [-1,1]){const leg=group(pose,x*.23,.47,0);ell(leg,style==='dress'||style==='skirt'?fur:trim,0,-.12,0,.17,.26,.20);ell(leg,shoe,0,-.32,.11,.19,.14,.26);ell(leg,shade(shoe,1.18),0,-.38,.13,.19,.045,.24);legs.push(leg);const arm=group(pose,x*.42,1.03,0);ell(arm,color,x*.07,-.15,0,.15,.26,.16).rotation.z=x*.22;ell(arm,fur,x*.11,-.34,.04,.14,.14,.15);arms.push(arm)}
  if(['cat','santacat','fox','squirrel','raccoon','otter','dog'].includes(key)){ell(trunk,fur,.40,.70,-.35,.23,.40,.20).rotation.z=-.8;if(key==='fox'||key==='squirrel')ell(trunk,cream,.58,.89,-.43,.18,.19,.15)}
- const head=group(trunk,0,1.57,0);ell(head,fur,0,0,0,.68,.59,.52);
+ const head=group(trunk,0,1.49,0);ell(head,fur,0,0,0,.72,.62,.58);ell(head,fur,0,-.36,0,.47,.30,.42);
  for(const side of [-1,1]){if(['cat','santacat','fox','squirrel'].includes(key)){const ear=cone(head,fur,side*.42,.57,-.02,.25,.56,.20);ear.rotation.z=-side*.20;ell(head,0xe99ab2,side*.42,.57,.12,.12,.18,.055)}
  else if(key==='rabbit'){ell(head,fur,side*.24,.72,-.02,.16,.55,.15).rotation.z=-side*.11;ell(head,0xf3a6c4,side*.24,.74,.105,.08,.39,.04)}
  else if(key==='dog')ell(head,shade(fur,.73),side*.55,.02,-.015,.20,.40,.20).rotation.z=side*.20
  else if(key!=='penguin'){ell(head,key==='panda'?accent:fur,side*.46,.43,-.01,.24,.25,.19);ell(head,cream,side*.46,.43,.15,.12,.13,.04)}
  if(key==='deer'){ell(head,0x966039,side*.34,.69,0,.06,.33,.06).rotation.z=-side*.2;ell(head,0x966039,side*.46,.76,0,.05,.16,.05).rotation.z=-side*.6}
- if(key==='panda'||key==='raccoon')ell(head,accent,side*.22,.04,.45,.17,.18,.055);const sleepy=L.eyes==='sleepy',smile=L.eyes==='smile';ell(head,accent,side*.22,.08,.494,.083,sleepy?.035:smile?.045:.105,.043);if(!sleepy&&!smile)ell(head,0xffffff,side*.22-.021,.118,.527,.025,.027,.012);ell(head,0xef9ba9,side*.37,-.08,.424,.103,.052,.035)}
- ell(head,cream,0,-.17,.395,.29,.18,.14);ell(head,key==='penguin'||key==='owl'?0xf2ad54:accent,0,-.10,.53,.079,.055,.048);for(const x of [-1,1])ell(head,0x966575,x*.047,-.19,.521,.05,.014,.018).rotation.z=x*.18
- if(L.pattern==='stripe')for(const x of [-.18,0,.18])ell(head,shade(fur,.67),x,.33,.43,.047,.11,.035);
- if(L.pattern==='blaze')ell(head,cream,0,.31,.46,.13,.19,.035);
- if(L.pattern==='spot')ell(head,shade(fur,.64),.17,.32,.43,.14,.11,.04);
+ if(key==='panda'||key==='raccoon')ell(head,accent,side*.22,.04,.45,.17,.18,.055);const sleepy=L.eyes==='sleepy',smile=L.eyes==='smile';ell(head,accent,side*.22,.08,.554,.090,sleepy?.035:smile?.045:.115,.048);if(!sleepy&&!smile)ell(head,0xffffff,side*.22-.021,.118,.596,.025,.027,.012);ell(head,0xef9ba9,side*.39,-.08,.487,.103,.052,.035)}
+ ell(head,cream,0,-.17,.465,.30,.18,.15);ell(head,key==='penguin'||key==='owl'?0xf2ad54:accent,0,-.10,.607,.079,.055,.048);for(const x of [-1,1])ell(head,0x966575,x*.047,-.19,.602,.05,.014,.018).rotation.z=x*.18
+ if(L.pattern==='stripe')for(const x of [-.18,0,.18])ell(head,shade(fur,.67),x,.33,.49,.047,.11,.035);
+ if(L.pattern==='blaze')ell(head,cream,0,.31,.51,.13,.19,.035);
+ if(L.pattern==='spot')ell(head,shade(fur,.64),.17,.32,.49,.14,.11,.04);
  const hat=L.hat||(key==='santacat'?'beanie':'none');
  if(hat==='beret'){ell(head,color,.06,.57,.01,.50,.15,.37).rotation.z=-.16;ell(head,trim,.10,.72,.02,.045,.09,.05)}
  if(hat==='beanie'){ell(head,color,0,.52,-.04,.51,.27,.42);ell(head,light,0,.43,.01,.53,.10,.43);ell(head,cream,0,.79,-.04,.12,.12,.12)}
@@ -50,6 +54,8 @@ export function createModelFactory(){
  if(L.accessory==='bag'){ell(trunk,0xe6a365,.43,.67,.27,.20,.24,.13);box(trunk,0xf6db9a,.19,.94,.38,.06,.62,.035).rotation.z=.55;ell(trunk,0xffefd1,.43,.72,.40,.09,.06,.027)}
  if(L.accessory==='headphones'){for(const x of [-.59,.59])ell(head,0x8f77cc,x,.02,0,.14,.21,.17);const arch=mesh(head,'torus',0x8f77cc,0,.08,0,.59,.59,.11);arch.rotation.z=Math.PI}
  if(L.accessory==='camera'){box(trunk,0x688fbd,0,.81,.40,.42,.28,.14);cyl(trunk,0x503f68,0,.81,.52,.12,.14).rotation.x=Math.PI/2;ell(trunk,0xb5e5ed,0,.81,.60,.085,.085,.025)}
+ if(L.accessory==='tote'){box(trunk,0xf7d9a9,.48,.60,.20,.35,.42,.18);mesh(trunk,'torus',0xb68063,.48,.88,.21,.15,.17,.055);ell(trunk,0xec83a9,.48,.60,.31,.08,.09,.03)}
+ if(L.accessory==='flowerbag'){ell(trunk,0x84bb9b,.48,.69,.26,.21,.24,.14);for(let i=0;i<5;i++){const a=i*1.26;ell(trunk,0xf7afc9,.48+Math.sin(a)*.10,.69+Math.cos(a)*.10,.39,.078,.078,.03)}ell(trunk,0xffd77a,.48,.69,.42,.05,.05,.025)}
  if(L.accessory==='necklace'){for(let i=0;i<7;i++){const a=i*Math.PI/6;ell(trunk,0xffd97f,Math.cos(a)*.27,1.12-Math.sin(a)*.15,.35,.045,.045,.028)}}
  // Batch static pieces per articulated joint, while keeping legs/arms independent.
  combine(trunk,owned);legs.forEach(p=>combine(p,owned));arms.forEach(p=>combine(p,owned));
@@ -59,4 +65,4 @@ export function createModelFactory(){
 }
 // One off-screen renderer for real 3D wardrobe thumbnails; no WebGL context per item.
 let preview=null;
-export function renderModelPreview(canvas,key,look,direction='front'){try{if(!preview){const renderer=new T.WebGLRenderer({alpha:true,antialias:true,preserveDrawingBuffer:true});renderer.setSize(256,320,false);renderer.outputColorSpace=T.SRGBColorSpace;const scene=new T.Scene();scene.add(new T.HemisphereLight(0xfff5e6,0xbca8d1,2));const light=new T.DirectionalLight(0xffedd6,2.8);light.position.set(3,5,5);scene.add(light);const fill=new T.DirectionalLight(0xc9e7ff,.65);fill.position.set(-3,2,-2);scene.add(fill);const camera=new T.PerspectiveCamera(32,.8,.1,20);camera.position.set(0,1.16,4.6);camera.lookAt(0,.77,0);preview={renderer,scene,camera,factory:createModelFactory()}}const {renderer,scene,camera,factory}=preview;const model=factory.create(scene,key,look.coat,look);const a={front:0,right:Math.PI/2,back:Math.PI,left:-Math.PI/2}[direction]||0;model.update(a,false,0,0,true);renderer.render(scene,camera);const ctx=canvas.getContext('2d');if(!ctx){model.dispose();return false}ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(renderer.domElement,0,0,canvas.width,canvas.height);canvas.dataset.renderMode='3d-model';model.dispose();return true}catch{return false}}
+export function renderModelPreview(canvas,key,look,direction='front'){try{if(!preview){const renderer=new T.WebGLRenderer({alpha:true,antialias:true,preserveDrawingBuffer:true});renderer.setSize(256,320,false);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;const scene=new T.Scene();scene.add(new T.HemisphereLight(0xfff5e6,0xbca8d1,1.5));const light=new T.DirectionalLight(0xffedd6,2.2);light.position.set(3,5,5);scene.add(light);const fill=new T.DirectionalLight(0xc9e7ff,.65);fill.position.set(-3,2,-2);scene.add(fill);const camera=new T.PerspectiveCamera(32,.8,.1,20);camera.position.set(0,1.16,4.6);camera.lookAt(0,.77,0);preview={renderer,scene,camera,factory:createModelFactory()}}const {renderer,scene,camera,factory}=preview;const model=factory.create(scene,key,look.coat,look);const a={front:0,right:Math.PI/2,back:Math.PI,left:-Math.PI/2}[direction]||0;model.update(a,false,0,0,true);renderer.render(scene,camera);const ctx=canvas.getContext('2d');if(!ctx){model.dispose();return false}ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(renderer.domElement,0,0,canvas.width,canvas.height);canvas.dataset.renderMode='3d-model';model.dispose();return true}catch{return false}}
