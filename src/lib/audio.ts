@@ -133,6 +133,9 @@ export class SalonAudio {
     osc.stop(at + 0.5)
   }
 
+  /** Two-note doorbell, started directly by a user gesture. */
+  doorbell(): void {const ctx=this.ensure();if(!ctx||!this.master)return;for(const [i,hz] of [880,659.25].entries()){const at=ctx.currentTime+.012+i*.18,osc=ctx.createOscillator();osc.type='sine';osc.frequency.value=hz;const gain=this.env(osc,at,.008,.36,.18);gain.connect(this.master);osc.start(at);osc.stop(at+.42)}}
+
   private noiseBurst(duration: number): AudioBufferSourceNode | null {
     const ctx = this.ctx
     if (!ctx) return null
