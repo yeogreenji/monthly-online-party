@@ -1,5 +1,5 @@
 import {useState} from 'react'
-import {Check,Save,RotateCw,Armchair,PaintRoller,Layers,Flower2} from 'lucide-react'
+import {Check,Save,RotateCw,Armchair,PaintRoller,Flower2} from 'lucide-react'
 import {WALLS,FLOORS,FABRICS,FURNITURE,HOME_DEFAULT,type HomeDecor} from '../data/homeDecor'
 import {saveJSON,loadJSON} from '../lib/storage'
 function Swatches({title,options,value,onChange}:{title:string;options:string[][];value:string;onChange:(v:string)=>void}){return <section><h4>{title}</h4><div className="dd-home-swatches">{options.map(([c,n])=><button key={c} title={n} aria-label={title+' '+n} aria-pressed={value===c} onClick={()=>onChange(c)}><span style={{background:c}}>{value===c&&<Check size={16}/>}</span><small>{n}</small></button>)}</div></section>}
