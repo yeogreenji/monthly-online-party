@@ -1,5 +1,5 @@
 import {ResidentConversation} from './ResidentConversation'
-import {RotateCcw,RotateCw,ZoomIn,ZoomOut,Settings2,House,Map as MapIcon} from 'lucide-react'
+import {RotateCcw,RotateCw,ZoomIn,ZoomOut,Settings2,House,Map as MapIcon,BellRing} from 'lucide-react'
 import PHASE_PROPS from '../data/phase1Props.json'
 import { access, accessLabel } from '../data/phase1'
 import type { Look } from '../data/avatarLook'
@@ -19,7 +19,7 @@ export function Mansion3D({profile,look,home,active,request,toolsOpen,onToolsCha
  const [roofsOpen,setRoofsOpen]=useState(true),[overview,setOverview]=useState(false)
  const [resident,setResident]=useState<string|null>(null);
  const soundRef=useRef(sound);soundRef.current=sound
- useEffect(()=>{if(low||!host.current)return;try{const w=createWorld(host.current,{spaces:SPACES,residents:RESIDENTS,avatar:profile.avatar,look,access,onResident:id=>setResident(id),onMenu:id=>callbacks.current.onMenu(id),onEnter:id=>{const s=SPACES.find(v=>v.id===id);if(s)callbacks.current.onEnter(s)},onLeave:()=>callbacks.current.onLeave(),onStatus:s=>{setStatus(s);if(soundRef.current&&s.includes('문 열림')){try{salonAudio.chime()}catch{/* optional */}}}});world.current=w;return()=>{w.dispose();world.current=null}}catch(e){console.error('3D 초기화 실패',e);setError(true)}},[low])
+ useEffect(()=>{if(low||!host.current)return;try{const w=createWorld(host.current,{spaces:SPACES,residents:RESIDENTS,avatar:profile.avatar,look,access,onResident:id=>setResident(id),onMenu:id=>callbacks.current.onMenu(id),onEnter:id=>{const s=SPACES.find(v=>v.id===id);if(s)callbacks.current.onEnter(s)},onLeave:()=>callbacks.current.onLeave(),onStatus:s=>{setStatus(s);if(soundRef.current&&(s.includes('문 열림')||s.includes('새로운 방문객'))){try{salonAudio.chime()}catch{/* optional */}}}});world.current=w;return()=>{w.dispose();world.current=null}}catch(e){console.error('3D 초기화 실패',e);setError(true)}},[low])
  useEffect(()=>{world.current?.setAvatar(profile.avatar,look)},[profile.avatar,look,low])
  useEffect(()=>{world.current?.setFestive(festive)},[festive,low])
  useEffect(()=>{world.current?.setRoofs(roofsOpen)},[roofsOpen,low])
@@ -36,6 +36,7 @@ export function Mansion3D({profile,look,home,active,request,toolsOpen,onToolsCha
   <div ref={host} className="dd3-canvas" data-testid="mansion-3d" hidden={error||low}/>
   {(error||low)&&<div className="dd3-fallback"><RoomArtwork space={active??SPACES.find(s=>s.id==='plaza')!}/><AvatarPreview avatar={profile.avatar} look={look}/><p>2D 대체 모드 · 공간 이동은 목적지 안내로 체험합니다.</p></div>}
   {!active&&<div className="dd-map-views"><button aria-pressed={overview} onClick={()=>{setOverview(v=>!v);world.current?.setOverview(!overview)}}><MapIcon size={19}/>{overview?"캐릭터 따라가기":"마을 전체 보기"}</button><button aria-pressed={roofsOpen} onClick={()=>setRoofsOpen(v=>!v)}><House size={19}/>{roofsOpen?"지붕 닫기":"지붕 열기"}</button></div>}
+  {(!active||active.id==='plaza')&&!error&&!low&&<button className="dd-bell-shortcut" type="button" aria-label="초인종 찾아가기" onClick={()=>world.current?.interact('hub-bell')}><BellRing size={19}/><span>초인종 누르기</span><small>광장 분수 오른편</small></button>}
   <div className="dd-camera-control">{[{I:RotateCcw,n:'왼쪽 회전',f:()=>world.current?.orbit(-Math.PI/4)},{I:RotateCw,n:'오른쪽 회전',f:()=>world.current?.orbit(Math.PI/4)},{I:ZoomIn,n:'화면 확대',f:()=>{setOverview(false);world.current?.zoom(-.25)}},{I:ZoomOut,n:'화면 축소',f:()=>{setOverview(false);world.current?.zoom(.35)}}].map(({I,n,f})=><button key={n} disabled={error||low} aria-label={n} onClick={f}><I size={19}/><small>{n.replace('화면 ','')}</small></button>)}</div>
   <details className="dd3-access-menu" open={toolsOpen} ><summary onClick={e=>{e.preventDefault();onToolsChange(!toolsOpen)}}><Settings2 size={17}/> 이동·공간 메뉴</summary>
   <button type="button" className="dd3-btn dd3-mode" onClick={()=>{callbacks.current.onLeave();setError(false);setLow(v=>!v)}}>{low?'3D 모드로':'가벼운 2D 모드'}</button>
