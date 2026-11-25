@@ -15,7 +15,9 @@ import { RESIDENTS } from '../data/world'
 
 type Visibility = 'private' | 'friends' | 'public'
 type Topic = { id: string; space: string; title: string; description: string; date: string; capacity: number; age: string }
-type Message = { id: string; text: string; image?: string; at: string }
+type Place = {name:string;url:string}
+type Message = { id: string; text: string; image?: string; place?:Place; at: string }
+function safePlaceUrl(value:string){try{const u=new URL(value.trim());return ['https:','http:'].includes(u.protocol)&&!u.username&&!u.password?u.href:''}catch{return ''}}
 type History = { id: string; title: string; at: string; visibility: Visibility }
 const VISIBILITY = { private: '비공개', friends: '친구 공개(설정만)', public: '전체 공개(설정만)' }
 const INITIAL_HOME = { intro: '', wallpaper: '#f3dfc8', furniture: '🛋️', pet: '🐈', accessory: '🎀', visibility: 'private' as Visibility }
@@ -36,6 +38,11 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile }: { 
   const [onlyFavorites, setOnlyFavorites] = useState(false)
   const [draft, setDraft] = useState('')
   const [picture, setPicture] = useState('')
+  const [placeName,setPlaceName]=useState('')
+  const [placeUrl,setPlaceUrl]=useState('')
+  const [showPlace,setShowPlace]=useState(false)
+  const [savedPlaces,setSavedPlaces]=usePersistentState<Place[]>('dd.places.v1',[])
+  function clearPlace(){setPlaceName('');setPlaceUrl('');setShowPlace(false)}
   const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
@@ -47,17 +54,20 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile }: { 
   const [saveHistory, setSaveHistory] = useState(false)
   const [visibility, setVisibility] = useState<Visibility>('private')
   useEffect(()=>{if(!space || !autoChat || space.id==='home')return;const first=space.topics[0];if(!first)return;const timer=window.setTimeout(()=>{setTopic({id:space.id+'-0',space:space.id,title:first,description:'자유롭게 이야기를 나누는 시연 모임',date:'',capacity:20,age:'성인 전체'});setAutoChat(false)},window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:680);return()=>window.clearTimeout(timer)},[space,autoChat])
-  function openSpace(next: Space) { if(access(next.id)!=='open')return;setChatCollapsed(false);setSpace(next); setTopic(null); setShowCreate(false); setNotice(''); setAutoChat(next.id!=='home'); setDraft(''); setPicture(''); setSaveHistory(false); setVisibility('private') }
-  function enter(next: Topic) { setAutoChat(false); setTopic(next); setDraft(''); setPicture(''); setNotice(''); setSaveHistory(false); setVisibility('private') }
+  function openSpace(next: Space) { if(access(next.id)!=='open')return;setChatCollapsed(false);setSpace(next); setTopic(null); setShowCreate(false); setNotice(''); setAutoChat(next.id!=='home'); setDraft(''); setPicture(''); clearPlace(); setSaveHistory(false); setVisibility('private') }
+  function enter(next: Topic) { setAutoChat(false); setTopic(next); setDraft(''); setPicture(''); clearPlace(); setNotice(''); setSaveHistory(false); setVisibility('private') }
   function leave() {
     if (topic && saveHistory) setHistory(prev => [{id: uuid(), title: topic.title, at: new Date().toISOString(), visibility}, ...prev].slice(0,100))
-    setAutoChat(false); setTopic(null); setDraft(''); setPicture(''); setNotice('')
+    setAutoChat(false); setTopic(null); setDraft(''); setPicture(''); clearPlace(); setNotice('')
   }
   function send() {
-    if (!topic || (!draft.trim() && !picture)) return
-    const item = {id: uuid(), text: draft.trim().slice(0,1000), image: picture || undefined, at: new Date().toISOString()}
+    if (!topic || (!draft.trim() && !picture && !placeName.trim())) return
+    const url=safePlaceUrl(placeUrl)
+    if((placeName.trim()||placeUrl.trim())&&(!placeName.trim()||!url)){setNotice('장소 이름과 올바른 http 또는 https 링크를 입력해 주세요.');return}
+    const place=placeName.trim()?{name:placeName.trim().slice(0,100),url}:undefined
+    const item = {id: uuid(), text: draft.trim().slice(0,1000), image: picture || undefined, place, at: new Date().toISOString()}
     setMessages(prev => ({...prev, [topic.id]: [...(prev[topic.id] ?? []), item].slice(-50)}))
-    setDraft(''); setPicture('')
+    setDraft(''); setPicture('');clearPlace();setNotice('')
   }
   return <section id="rooms" className="px-5 py-14 sm:px-8" style={{background:'var(--bg-deep)'}}>
     <div className="mx-auto max-w-[1280px]">
@@ -65,7 +75,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile }: { 
       <div className="mb-5 rounded-xl border p-4 text-xs leading-relaxed" style={{borderColor:'var(--line)',background:'var(--surface)'}}>개발 체험판 · 실제 접속자, 다중 사용자 채팅, 연령 인증 및 서버 정원 검증은 아직 연결되지 않았습니다. 입력 내용은 이 브라우저에만 저장됩니다.</div>
       <AvatarWardrobe avatar={profile.avatar} look={look} onChange={setLook}/>
       <div className={'dd3-layout'+(space?' dd3-with-chat':'')}>
-        <Mansion3D profile={profile} look={look} active={space} onEnter={openSpace} onLeave={()=>{leave();setSpace(null)}} favorites={favorites} onlyFavorites={onlyFavorites} onFavorite={id=>setFavorites(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id])}/>
+        <Mansion3D profile={profile} look={look} active={space} onEnter={openSpace} onLeave={()=>{leave();setSpace(null)}} onCapture={image=>{if(!topic){setNotice('모임에 입장한 뒤 촬영해 주세요.');return}setPicture(image);setChatCollapsed(false);setNotice('사진 첨부 완료 · 전송을 누르면 로컬 채팅에 저장됩니다.')}} favorites={favorites} onlyFavorites={onlyFavorites} onFavorite={id=>setFavorites(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id])}/>
         {space&&<aside role="region" aria-label={space.name} className="dd3-chat dd-chat-reveal">
       <button type="button" className="dd3-collapse" aria-expanded={!chatCollapsed} onClick={()=>setChatCollapsed(v=>!v)}>{chatCollapsed?'채팅 펼치기':'채팅 접기'}</button>
       <div className="p-4 sm:p-5" hidden={chatCollapsed}>
@@ -89,11 +99,14 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile }: { 
         </div> : autoChat ? null : topic ? <div className="space-y-3 dd-chat-reveal">
           <div className="flex flex-wrap items-center justify-between gap-2"><button className="btn btn-ghost" onClick={leave}>← 모임 목록</button><span className="text-xs">로컬 체험 · 목표 정원 {topic.capacity}명</span></div>
           <h3 className="serif text-xl">{topic.title}</h3><p className="text-sm">{topic.description}</p>
-          <div className="max-h-80 min-h-40 space-y-3 overflow-auto rounded-xl p-3" style={{background:'var(--bg-deep)'}}><p className="text-xs" style={{color:'var(--muted)'}}>시연 안내: 다른 실제 이용자는 연결되지 않습니다. 메시지와 사진을 저장하는 체험입니다.</p>{(messages[topic.id]??[]).map(m=><div key={m.id} className="ml-auto max-w-[85%] rounded-xl p-3" style={{background:'var(--surface)'}}><p className="text-xs">{profile.nickname}</p><p className="whitespace-pre-wrap break-all text-sm">{m.text}</p>{m.image && <img src={m.image} alt="내가 올린 사진" className="mt-2 max-h-48 rounded-lg"/>}<button className="mt-1 text-xs underline" onClick={()=>setMessages(p=>({...p,[topic.id]:(p[topic.id]??[]).filter(x=>x.id!==m.id)}))}>삭제</button></div>)}</div>
+          <div className="max-h-80 min-h-40 space-y-3 overflow-auto rounded-xl p-3" style={{background:'var(--bg-deep)'}}><p className="text-xs" style={{color:'var(--muted)'}}>시연 안내: 다른 실제 이용자는 연결되지 않습니다. 메시지와 사진을 저장하는 체험입니다.</p>{(messages[topic.id]??[]).map(m=><div key={m.id} className="ml-auto max-w-[85%] rounded-xl p-3" style={{background:'var(--surface)'}}><p className="text-xs">{profile.nickname}</p><p className="whitespace-pre-wrap break-all text-sm">{m.text}</p>{m.image && <img src={m.image} alt="내가 올린 사진" className="mt-2 max-h-48 rounded-lg"/>}{m.place&&safePlaceUrl(m.place.url)&&<div className="dd-place-card"><strong>{m.place.name}</strong><a href={safePlaceUrl(m.place.url)} target="_blank" rel="noopener noreferrer">장소 링크 열기</a><button type="button" className="btn btn-ghost btn-sm" onClick={()=>{const place=m.place!;setSavedPlaces(p=>p.some(x=>x.url===place.url&&x.name===place.name)?p:[place,...p].slice(0,100))}}>장소 저장</button></div>}<button className="mt-1 text-xs underline" onClick={()=>setMessages(p=>({...p,[topic.id]:(p[topic.id]??[]).filter(x=>x.id!==m.id)}))}>삭제</button></div>)}</div>
           {picture&&<div className="flex items-center gap-2"><img src={picture} alt="첨부 미리보기" className="h-16 rounded"/><button className="btn btn-ghost btn-sm" onClick={()=>setPicture('')}>첨부 제거</button></div>}
           <div className="flex flex-wrap gap-2">{['😊','💛','🎄','☕','👏'].map(e=><button key={e} className="btn btn-ghost btn-sm" onClick={()=>setDraft(p=>(p+e).slice(0,1000))}>{e}</button>)}</div>
-          <form className="flex gap-2" onSubmit={e=>{e.preventDefault();send()}}><input className={FIELD+' min-w-0 flex-1'} aria-label="메시지" maxLength={1000} value={draft} placeholder="이야기를 나눠보세요" onChange={e=>setDraft(e.target.value)}/><button className="btn btn-primary" disabled={loading||(!draft.trim()&&!picture)}>전송</button></form>
+          <form className="flex gap-2" onSubmit={e=>{e.preventDefault();send()}}><input className={FIELD+' min-w-0 flex-1'} aria-label="메시지" maxLength={1000} value={draft} placeholder="이야기를 나눠보세요" onChange={e=>setDraft(e.target.value)}/><button className="btn btn-primary" disabled={loading||(!draft.trim()&&!picture&&!placeName.trim())}>전송</button></form>
           <label className="block text-xs">사진 첨부(로컬, JPEG/PNG/WebP)<input type="file" accept="image/jpeg,image/png,image/webp" disabled={loading} className="block max-w-full text-xs" onChange={async e=>{const file=e.target.files?.[0];e.target.value='';if(!file)return;if(file.size>5_000_000){setNotice('5MB 이하 사진만 첨부할 수 있어요.');return}setLoading(true);try{const image=await resizeImageFile(file,320,0.5);if(image.length>90000||!image.startsWith('data:image/jpeg'))throw Error('image');setPicture(image);setNotice('')}catch{setNotice('사진을 처리할 수 없어요. 작은 사진을 선택해 주세요.')}finally{setLoading(false)}}}/></label>
+          <button type="button" className="btn btn-outline btn-sm" onClick={()=>setShowPlace(v=>!v)}>{showPlace?'장소 추천 입력 접기':'장소 추천 첨부'}</button>
+          {showPlace&&<div className="space-y-2"><label className="block text-xs">장소 이름<input aria-label="장소 이름" className={FIELD} value={placeName} maxLength={100} onChange={e=>setPlaceName(e.target.value)}/></label><label className="block text-xs">장소 링크<input aria-label="장소 링크" className={FIELD} value={placeUrl} maxLength={2000} onChange={e=>setPlaceUrl(e.target.value)}/></label><p className="text-xs">장소를 직접 추천하는 로컬 체험입니다. 운영 여부는 검증하지 않습니다.</p></div>}
+          <details className="dd-place-card"><summary>저장한 장소 ({savedPlaces.length})</summary>{savedPlaces.filter(p=>safePlaceUrl(p.url)).map(p=><div key={p.name+p.url}><a href={safePlaceUrl(p.url)} target="_blank" rel="noopener noreferrer">{p.name}</a><button type="button" className="btn btn-ghost btn-sm" onClick={()=>setSavedPlaces(list=>list.filter(v=>v.url!==p.url||v.name!==p.name))}>삭제</button></div>)}</details>
           {notice&&<p role="status" className="text-xs">{notice}</p>}
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={saveHistory} onChange={e=>setSaveHistory(e.target.checked)}/> 나갈 때 참여 기록 저장</label>
           {saveHistory&&<select className={FIELD} aria-label="참여 기록 공개 범위" value={visibility} onChange={e=>setVisibility(e.target.value as Visibility)}>{Object.entries(VISIBILITY).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select>}

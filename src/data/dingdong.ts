@@ -32,4 +32,4 @@ export const MONTHLY_IDEAS = [
   '가을 달빛 · 추석(해당 시기)', '한글날 · 핼러윈 · 가면무도회', '북페어 · 빼빼로데이 · 수험생 응원', '크리스마스 · 비밀 산타 · 송년회',
 ]
 
-export const DINGDONG_STORAGE = ['dd.favorites.v1','dd.topics.v1','dd.messages.v1','dd.history.v1','dd.home.v1','dd.avatar.look.v1'] as const
+export const DINGDONG_STORAGE = ['dd.favorites.v1','dd.topics.v1','dd.messages.v1','dd.history.v1','dd.home.v1','dd.avatar.look.v1','dd.places.v1'] as const
