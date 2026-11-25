@@ -103,7 +103,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
           <button className="btn btn-outline" onClick={()=>{leave();setSpace(null);onEditProfile()}}>캐릭터·닉네임·취향 수정</button>
           <label className="block text-sm">미니홈피 소개<textarea className={FIELD} maxLength={160} value={home.intro} onChange={e=>setHome(p=>({...p,intro:e.target.value}))}/></label>
           <div className="grid grid-cols-2 gap-3">
-            <label className="text-sm">벽지<select className={FIELD} value={home.wallpaper} onChange={e=>setHome(p=>({...p,wallpaper:e.target.value}))}>{[['#f3dfc8','크림'],['#d7e4ca','숲'],['#ead1de','분홍'],['#cddbe9','하늘']].map(([v,n])=><option key={v} value={v}>{n}</option>)}</select></label>
+            <label className="text-sm">벽지<select aria-label="벽지" className={FIELD} value={home.wallpaper} onChange={e=>setHome(p=>({...p,wallpaper:e.target.value}))}>{[['#f3dfc8','크림'],['#d7e4ca','숲'],['#ead1de','분홍'],['#cddbe9','하늘']].map(([v,n])=><option key={v} value={v}>{n}</option>)}</select></label>
             <label className="text-sm">가구<select className={FIELD} value={home.furniture} onChange={e=>setHome(p=>({...p,furniture:e.target.value}))}>{['🛋️','🛏️','🪑','📚'].map(v=><option key={v}>{v}</option>)}</select></label>
             <label className="text-sm">반려동물<select className={FIELD} value={home.pet} onChange={e=>setHome(p=>({...p,pet:e.target.value}))}>{['🐈','🐕','🐇','🐹','없음'].map(v=><option key={v}>{v}</option>)}</select></label>
             <label className="text-sm">소품<select className={FIELD} value={home.accessory} onChange={e=>setHome(p=>({...p,accessory:e.target.value}))}>{['🎀','🎩','🧣','🌷','없음'].map(v=><option key={v}>{v}</option>)}</select></label>

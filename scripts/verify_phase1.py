@@ -17,7 +17,7 @@ with sync_playwright() as p:
         page.locator("#nickname").fill("딩동테스트")
         page.get_by_role("button",name="딩동 입장하기",exact=True).click()
         canvas=page.locator(".dd3-canvas canvas")
-        expect(canvas).to_have_attribute("data-avatar-mode","2d-billboard",timeout=15000)
+        expect(canvas).to_have_attribute("data-avatar-mode","3d-model",timeout=15000)
         assert page.locator("body").evaluate("(el)=>el.scrollHeight<=window.innerHeight+2")
         assert canvas.evaluate("(el)=>el.getBoundingClientRect().height>=window.innerHeight-3")
         expect(canvas).to_have_attribute("data-festive","false")
@@ -61,6 +61,7 @@ with sync_playwright() as p:
         expect(canvas).to_have_attribute("data-avatar-look",__import__("re").compile("#a45e68"),timeout=20000)
         page.wait_for_function("JSON.parse(localStorage.getItem(\'dd.avatar.look.v1\')||\'{}\').coat===\'#a45e68\'",timeout=20000)
         preview=page.locator(".dd-dress-stage .dd-wardrobe-preview")
+        expect(preview).to_have_attribute("data-render-mode","3d-model")
         for label,value in [("털 무늬","stripe"),("머리 장식","beret"),("옷 무늬","check")]:
             before=preview.evaluate("(c)=>c.toDataURL()")
             page.get_by_label(label,exact=True).select_option(value)
@@ -68,6 +69,8 @@ with sync_playwright() as p:
             assert preview.evaluate("(c)=>c.toDataURL()")!=before, label+" did not change rendered avatar"
         page.wait_for_function("JSON.parse(localStorage.getItem('dd.avatar.look.v1')||'{}').fabric==='check'",timeout=20000)
         page.get_by_role("button",name="코디 저장",exact=True).click()
+        expect(page.get_by_text("코디와 현재 외형을 저장했어요.",exact=True)).to_be_visible()
+        page.wait_for_function("JSON.parse(localStorage.getItem('dd.outfits.v1')||'[]').length>0")
         page.get_by_role("button",name="코디",exact=True).click()
         expect(page.get_by_role("img",name="저장한 코디")).to_be_visible()
         page.get_by_role("button",name="옷장 닫기",exact=True).click()
