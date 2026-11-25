@@ -49,7 +49,7 @@ export function Mansion3D({profile,look,home,active,request,toolsOpen,onToolsCha
   {!error&&!low&&<div className="dd3-props"><button type="button" className="dd3-btn" onClick={()=>world.current?.stand()}>의자에서 일어나기</button><button type="button" className="dd3-btn" aria-pressed={festive} onClick={()=>setFestive(v=>!v)}>{festive?'시즌 장식 숨기기':'시즌 장식 보이기'}</button><span>크리스마스 장식 체험 · 기본 가구 유지</span></div>}
   <p className="dd3-hint">의자·소파를 직접 터치해 앉기 · 다시 터치하거나 이동해 일어나기 · 바닥 터치로 걷기 · 문 또는 간판을 터치해 입장 · 한 손가락 드래그로 걷기 · 회전 버튼으로 시점 변경 · 방향키/WASD 이동. 목적지 안내도 실제 캐릭터 이동 경로를 따라갑니다.</p>
   </details>
-  {active&&!error&&!low&&<div className="dd-room-actions"><button onClick={()=>world.current?.exit()}>거리로 나가기</button><button onClick={()=>world.current?.stand()}>일어나기</button></div>}
+  {active&&!error&&!low&&<div className="dd-room-actions"><button onClick={()=>world.current?.exit()}>거리로 나가기</button><button onClick={()=>world.current?.stand()}>일어나기</button><button onClick={()=>world.current?.releaseItem()}>소품 놓기</button></div>}
   <div className="dd3-world-hint">바닥을 터치해 걷기 · 문과 안내판을 터치 · 드래그로 걷기 · 주민을 클릭해 대화</div>
  </div>
 }
