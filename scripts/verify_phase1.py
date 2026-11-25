@@ -10,6 +10,7 @@ with sync_playwright() as p:
         page.goto("http://127.0.0.1:4173")
         gallery=page.locator(".dd-entry-world canvas")
         expect(gallery).to_be_visible(timeout=20000)
+        expect(gallery).to_have_attribute("data-design","sunlit-garden")
         page.get_by_label("내 캐릭터",exact=True).select_option("otter")
         expect(gallery).to_have_attribute("data-selected","otter",timeout=15000)
         page.screenshot(path=f"artifacts/entry-3d-{width}.png")
