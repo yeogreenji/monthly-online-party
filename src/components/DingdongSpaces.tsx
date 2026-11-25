@@ -123,7 +123,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
       {space?.id==='home'&&<div className="dd-home-actions"><button onClick={()=>{closePanels();setChatCollapsed(false)}}><Paintbrush size={19}/>집 꾸미기 열기</button><button onClick={()=>showPanel('wardrobe')}><Shirt size={19}/>옷장</button><button onClick={onEditProfile}><UserRound size={19}/>프로필</button><button onClick={()=>showPanel('mail')}><Mail size={19}/>우편함</button></div>}
       {(wardrobe||yearbook||mapOpen||mailOpen)&&<div aria-hidden="true" data-testid="dd-pop-backdrop" onClick={closePanels} style={{position:'fixed',inset:0,zIndex:22,background:'#211a4333'}}/>}
       {wardrobe&&<div className="dd-world-pop dd-world-wardrobe" role="dialog" aria-label="나의 옷장"><div className="dd-pop-title"><strong>나의 작은 옷장</strong><button className="dd3-btn" onClick={()=>setWardrobe(false)}>옷장 닫기</button></div><AvatarWardrobe avatar={profile.avatar} look={look} onChange={v=>{setLook(v);saveJSON('dd.avatar.look.v1',v)}} onDone={()=>setWardrobe(false)}/></div>}
-      {yearbook&&<div className="dd-world-pop" role="dialog" aria-label="연간 이벤트"><div className="dd-pop-title"><strong>딩동의 12개월 파티</strong><button className="dd3-btn" onClick={()=>setYearbook(false)}>닫기</button></div><p>월별 이벤트 기획 · 실제 날짜는 일정에서 확인</p><div className="dd-event-grid">{MONTHLY_IDEAS.map((idea,i)=><button key={i} onClick={()=>i===11?visit('season'):externalMenu('calendar')} style={{'--event-color':['#d6c5f8','#ffc8dc','#c6efdb','#f6cde1','#ffe2a6','#c5d8f6','#bde9ed','#e3caf5','#ffe0aa','#d8c2f1','#cee8d9','#f7c4d2'][i]} as React.CSSProperties}><FestivalArt month={i}/><strong>{i+1}월</strong><small>{idea}</small><span>{i===11?'시즌홀 입장':'일정 보기'}</span></button>)}</div></div>}
+      {yearbook&&<div className="dd-world-pop" role="dialog" aria-label="연간 이벤트"><div className="dd-pop-title"><strong>딩동의 12개월 파티</strong><button className="dd3-btn" onClick={()=>setYearbook(false)}>닫기</button></div><p>월별 이벤트 기획 · 실제 날짜는 일정에서 확인</p><DailyFestival onVisit={id=>visit(id,true)}/><div className="dd-event-grid">{MONTHLY_IDEAS.map((idea,i)=><button key={i} onClick={()=>i===11?visit('season'):externalMenu('calendar')} style={{'--event-color':['#d6c5f8','#ffc8dc','#c6efdb','#f6cde1','#ffe2a6','#c5d8f6','#bde9ed','#e3caf5','#ffe0aa','#d8c2f1','#cee8d9','#f7c4d2'][i]} as React.CSSProperties}><FestivalArt month={i}/><strong>{i+1}월</strong><small>{idea}</small><span>{i===11?'시즌홀 입장':'일정 보기'}</span></button>)}</div></div>}
       {mapOpen&&<div className="dd-world-pop" role="dialog" aria-label="마을 지도"><div className="dd-pop-title"><strong>우리 동네 지도</strong><button className="dd3-btn" onClick={()=>setMapOpen(false)}>닫기</button></div><p>가게를 선택하면 바로 입장합니다. 잠긴 공간은 내부 구경만 가능합니다.</p><div className="dd-map-grid">{SPACES.map(s=><button key={s.id} onClick={()=>visit(s.id,true,access(s.id)==='locked')}><span>{s.icon}</span><strong>{s.name}</strong><small>{access(s.id)==='open'?'입장':access(s.id)==='locked'?'구경만 가능':'준비 중'}</small></button>)}</div><button className="dd3-btn" onClick={()=>setOnlyFavorites(v=>!v)}>{onlyFavorites?'전체 목적지':'즐겨찾기 목적지'}</button></div>}
       {mailOpen&&<div className="dd-world-pop" role="dialog" aria-label="나의 우편함"><div className="dd-pop-title"><strong>나의 우편함</strong><button className="dd3-btn" onClick={()=>setMailOpen(false)}>닫기</button></div><div className="dd-mail-empty"><Mail size={42}/><h3>친구의 편지가 도착하는 곳</h3><p>현재는 로컬 체험입니다. 친구 방문·편지 송수신은 실제 계정 및 권한 연결 후 제공합니다.</p></div></div>}
       <div className={'dd3-layout'+(space?' dd3-with-chat':'')+(space&&space.id!=='home'&&!chatCollapsed?' dd-chat-open':'')+(chatFull&&!chatCollapsed&&space?.id!=='home'?' dd-chat-full':'')}>
@@ -177,4 +177,30 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
         </aside>}
       </div>
   </section>
+}
+
+const dailyThemes=[
+ ['새해 작은 약속','겨울 창가 사진','따뜻한 차','올해 읽을 책','새해 엽서'],
+ ['마음 한 줄','좋아하는 색','친구에게 감사','겨울 간식','작은 응원'],
+ ['봄 산책','새로운 취미','꽃 사진','봄 플레이리스트','새 출발'],
+ ['꽃길 엽서','봄 소풍','창가 독서','비 오는 날','초록빛 사진'],
+ ['감사 편지','가족 추억','동물 친구','나들이 계획','작은 선물'],
+ ['초여름 산책','시원한 음료','여름 책','초록 정원','여행 준비'],
+ ['여름 바다','아이스티','밤 산책','여름 영화','여행 사진'],
+ ['여름 추억','별빛 이야기','휴가 엽서','시원한 간식','실내 취미'],
+ ['가을 첫날','책갈피','가을 음악','산책 사진','추억의 간식'],
+ ['단풍 엽서','가을 영화','따뜻한 차','작은 그림','가을 여행'],
+ ['겨울 준비','올해의 책','감사 한 줄','따뜻한 방','추억 사진'],
+ ['겨울 편지','올해의 추억','따뜻한 음료','연말 영화','새해 소망']
+]
+const dailyActions=['한 줄 소개','사진으로 기록','추천 하나','나만의 팁','추억 나누기','작은 계획','오늘의 선택']
+const dailySpaces=['plaza','hobby','cafe','cinema','travel']
+function DailyFestival({onVisit}:{onVisit:(id:string)=>void}){
+ const today=seoulDate(),[selected,setSelected]=useState(today)
+ const [notes,setNotes]=usePersistentState<Record<string,string>>('dd.dailyFestival.v1',{})
+ const [draft,setDraft]=useState(notes[today]??''),[feedback,setFeedback]=useState('')
+ const date=new Date(selected+'T00:00:00Z'),month=date.getUTCMonth(),day=date.getUTCDate(),index=day-1
+ const theme=dailyThemes[month][index%dailyThemes[month].length],action=dailyActions[Math.floor(index/5)%dailyActions.length]
+ function change(delta:number){const next=new Date(date);next.setUTCDate(next.getUTCDate()+delta);const key=next.toISOString().slice(0,10);setSelected(key);setDraft(notes[key]??'');setFeedback('')}
+ return <section className="card space-y-3 p-4" aria-label="매일의 딩동 이벤트"><strong>365일 작은 축제</strong><p>서울 날짜 기준 · 윤년에는 366일 · 실제 공휴일 일정과 별개인 로컬 콘텐츠</p><div className="flex items-center justify-between"><button type="button" aria-label="전날 이벤트" onClick={()=>change(-1)}>‹</button><span>{selected}{selected===today?' · 오늘':''}</span><button type="button" aria-label="다음 날 이벤트" onClick={()=>change(1)}>›</button></div><h3>{theme} · {action}</h3><p>오늘의 주제를 나만의 기록으로 남겨 보세요.</p><textarea aria-label="오늘의 축제 기록" className={FIELD} maxLength={500} value={draft} onChange={e=>{setDraft(e.target.value);setFeedback('')}}/><button type="button" className="dd3-btn" onClick={()=>{const next={...notes,[selected]:draft.trim()};if(saveJSON('dd.dailyFestival.v1',next)){setNotes(next);setFeedback('이 기기에 저장했어요.')}else setFeedback('저장하지 못했어요. 다시 시도해 주세요.')}}>기록 저장</button><p role="status">{feedback}</p><button type="button" className="dd3-btn" onClick={()=>onVisit(dailySpaces[index%dailySpaces.length])}>관련 공간 방문</button></section>
 }
