@@ -181,6 +181,13 @@ with sync_playwright() as p:
             page.get_by_role("textbox",name="메시지",exact=True).fill("메신저 테스트")
             page.get_by_role("button",name="전송",exact=True).click()
             expect(page.get_by_text("메신저 테스트",exact=True)).to_be_visible()
+            page.get_by_role("button",name="채팅 설정",exact=True).click()
+            page.locator(".dd-memory-details summary").click()
+            page.get_by_role("textbox",name="모임 후기").fill("오늘의 추억 테스트")
+            page.get_by_role("button",name="추억 저장",exact=True).click()
+            expect(page.get_by_text("내 사진첩에 저장했어요.",exact=True)).to_be_visible()
+            page.wait_for_function("JSON.parse(localStorage.getItem('dd.memories.v1')||'[]').some(v=>v.note==='오늘의 추억 테스트')")
+            page.get_by_role("button",name="채팅 설정",exact=True).click()
             page.screenshot(path=f"artifacts/messenger-{id}-{width}.png")
             if id=="season":
                 page.get_by_role("button",name="설정",exact=True).click()
