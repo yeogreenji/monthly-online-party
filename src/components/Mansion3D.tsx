@@ -30,7 +30,7 @@ export function Mansion3D({profile,look,home,active,request,toolsOpen,onToolsCha
  function visit(id:string){if(access(id)!=='open'){setStatus(accessLabel(id));return}if(error||low){const s=SPACES.find(x=>x.id===id);if(s){callbacks.current.onLeave();callbacks.current.onEnter(s);setStatus(s.name+' · 2D 접근성 대체 모드')}}else world.current?.visit(id)}
  useEffect(()=>{if(request)visit(request.id)},[request])
  return <div className="dd3-shell">
-  <div className="dd3-title"><div><p>DINGDONG · 로컬 체험</p><h3>{active?.name??'딩동 · 온라인 파티'}</h3><span role="status">{status}</span></div><button type="button" onClick={()=>setStory(v=>!v)} className="dd3-btn">초대장 {story?'닫기':'열기'}</button></div>
+  <div className="dd3-title"><div><p>DINGDONG · 로컬 체험</p><h3>{active?.name??'딩동 · 온라인 파티'}</h3>{status!==active?.name&&<span role="status">{status}</span>}</div><button type="button" onClick={()=>setStory(v=>!v)} className="dd3-btn">초대장 {story?'닫기':'열기'}</button></div>
   {story&&<div className="dd3-story"><strong>{active?PLACE_STORIES[active.id]?.title:'초인종이 울리는 동네'}</strong><p>{active?PLACE_STORIES[active.id]?.text:WORLD_INTRO}</p>{active&&<p>{PLACE_STORIES[active.id]?.activity}</p>}{active?.id==='season'&&<p>{SEASON_STORY}</p>}<button type="button" className="dd3-btn" onClick={()=>setStory(false)}>이야기 닫기</button></div>}
   {resident&&RESIDENTS[resident]&&<ResidentConversation key={resident} id={resident} onClose={()=>setResident(null)}/>}
   <div ref={host} className="dd3-canvas" data-testid="mansion-3d" hidden={error||low}/>
