@@ -1,4 +1,5 @@
 import * as T from 'three'
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
 const palette={wood:0xa98260,cream:0xf1dfbd,brass:0xc2a16a,green:0x647b65,red:0x96565c,dark:0x51443d,blue:0x60778a}
 const skin={cat:[0xc79763,0xf5e3c8],santacat:[0xb9b0a4,0xf3e9db],bear:[0xb68a61,0xf1dec2],fox:[0xc7794c,0xf7e4d0],rabbit:[0xe3d5c3,0xfff0e2],owl:[0x9b7a56,0xf1e3c9],squirrel:[0xb17a4e,0xf3dfc3],penguin:[0x414e54,0xf5eddf],dog:[0xd0a578,0xf4e5d0],hamster:[0xe0b78a,0xf9edd7],otter:[0x9f785c,0xe8d2b6],raccoon:[0xa39f97,0xf1e9db],deer:[0xbb8c64,0xf4e2c8],panda:[0xf0e9df,0xfffaf0]}
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v))
@@ -60,7 +61,7 @@ export function createWorld(host,opts){
   // Hinged door: room local -z faces the shared hall.
   for(const dx of [-.9,.9])box(p,palette.wood,dx,1.05,-3.02,.16,2.1,.22)
   box(p,palette.wood,0,2.09,-3.02,1.96,.17,.22)
-  const hinge=group(p,-.81,.06,-3.02);const leaf=box(hinge,s.door,.81,1,0,1.62,2,.16);box(hinge,palette.brass,1.39,1.02,-.13,.1,.1,.12);box(hinge,palette.cream,.81,1.52,-.09,1.12,.035,.035);leaf.userData.room=s.id;hit.push(leaf)
+  const hinge=group(p,-.81,.06,-3.02);hinge.userData.dynamic=true;hinge.userData.target=0;const leaf=box(hinge,s.door,.81,1,0,1.62,2,.16);box(hinge,palette.brass,1.39,1.02,-.13,.1,.1,.12);box(hinge,palette.cream,.81,1.52,-.09,1.12,.035,.035);leaf.userData.room=s.id;hit.push(leaf)
   const label=sign(p,s.name,0,2.53,-3.15);if(label){label.userData.room=s.id;hit.push(label)}
   // Each room has a distinct floor plan and movable visitor aisle.
   const k=s.id
@@ -76,6 +77,8 @@ export function createWorld(host,opts){
   const res=opts.residents[s.id];if(res){const npc=animal(p,res.avatar,res.coat);npc.g.position.set(-1.2,0,1.05);npc.g.rotation.y=Math.PI;sign(p,res.name+' · NPC',-1.2,1.85,1.05)}
   rooms.set(s.id,{s,x,side,hinge,inside:centerZ,doorZ:side*2.08})
  }
+ // Batch static geometry by material to reduce mobile draw calls. Doors, labels, and player stay independent.
+ scene.updateMatrixWorld(true);const batches=new Map(),merged=[];scene.traverse(m=>{if(!m.isMesh)return;for(let p=m;p;p=p.parent)if(p.userData.dynamic)return;const key=m.material.uuid;if(!batches.has(key))batches.set(key,[]);batches.get(key).push(m)});for(const meshes of batches.values()){if(meshes.length<2)continue;const parts=meshes.map(m=>m.geometry.clone().applyMatrix4(m.matrixWorld));const g=mergeGeometries(parts,false);parts.forEach(p=>p.dispose());if(!g)continue;const m=new T.Mesh(g,meshes[0].material);m.castShadow=true;m.receiveShadow=true;scene.add(m);merged.push(g);meshes.forEach(v=>v.removeFromParent())}
  let player=animal(scene,opts.avatar);player.g.position.set(0,.1,0)
  let angle=Math.PI/5,zoom=1,active=null,target=null,queue=[],busy=false,disposed=false,drag=null,frame=0,last=performance.now(),clock=0;
  const focus=new T.Vector3(0,0,0),ray=new T.Raycaster(),ground=new T.Plane(new T.Vector3(0,1,0),-.1),point=new T.Vector3()
@@ -84,12 +87,13 @@ export function createWorld(host,opts){
  function status(s){opts.onStatus(s)}
  function waypoint(x,z,done){return{x,z,done}}
  function enqueue(list){queue=list;target=null;busy=true}
- function leavePath(){if(!active)return[];const r=rooms.get(active);return[waypoint(r.x,r.side*3.0,()=>{r.hinge.rotation.y=-Math.PI/2}),waypoint(r.x,r.side*1.35,()=>{r.hinge.rotation.y=0;active=null;opts.onLeave();status('중앙 복도')})]}
- function visit(id){if(busy||id===active)return;const r=rooms.get(id);if(!r)return;const path=leavePath();if(!active)path.push(waypoint(player.g.position.x,0));path.push(waypoint(r.x,0),waypoint(r.x,r.side*1.35,()=>{r.hinge.rotation.y=-Math.PI/2;status(r.s.name+' 문 열림')}),waypoint(r.x,r.side*3.55,()=>{active=id;r.hinge.rotation.y=0;opts.onEnter(id);status(r.s.name)}));status(r.s.name+'으로 걸어가는 중');enqueue(path)}
+ function leavePath(){if(!active)return[];const r=rooms.get(active);return[waypoint(r.x,r.side*3.0,()=>{r.hinge.userData.target=-Math.PI/2}),waypoint(r.x,r.side*1.35,()=>{r.hinge.userData.target=0;active=null;opts.onLeave();status('중앙 복도')})]}
+ function visit(id){if(busy||id===active)return;const r=rooms.get(id);if(!r)return;const path=leavePath();if(!active)path.push(waypoint(player.g.position.x,0));path.push(waypoint(r.x,0),waypoint(r.x,r.side*1.35,()=>{r.hinge.userData.target=-Math.PI/2;status(r.s.name+' 문 열림')}),waypoint(r.x,r.side*3.55,()=>{active=id;r.hinge.userData.target=0;opts.onEnter(id);status(r.s.name)}));status(r.s.name+'으로 걸어가는 중');enqueue(path)}
  function exit(){if(busy||!active)return;enqueue(leavePath())}
  function walk(x,z){if(busy)return;const r=active?rooms.get(active):null;target=r?waypoint(clamp(x,r.x-.85,r.x+.85),clamp(z,Math.min(r.side*3.4,r.side*6.15),Math.max(r.side*3.4,r.side*6.15))):waypoint(clamp(x,-17.5,17.5),clamp(z,-1.35,1.35))}
  function move(dx,dz){const c=Math.cos(angle),s=Math.sin(angle),p=target||player.g.position;walk(p.x+dx*c+dz*s,p.z-dx*s+dz*c)}
  function orbit(a){angle+=a}
+ function setNight(night){scene.background.set(night?'#6b707e':'#dfd1bc');sun.intensity=night?1.05:2.6;sun.color.set(night?'#e2b789':'#ffebce')}
  function zoomBy(a){zoom=clamp(zoom+a,.65,1.8)}
  function pointerDown(e){drag={x:e.clientX,y:e.clientY,a:angle};renderer.domElement.setPointerCapture?.(e.pointerId)}
  function pointerMove(e){if(!drag)return;if(Math.abs(e.clientX-drag.x)>8)angle=drag.a-(e.clientX-drag.x)*.012}
@@ -100,10 +104,11 @@ export function createWorld(host,opts){
  const ro=new ResizeObserver(resize);ro.observe(host);resize()
  function tick(now){if(disposed)return;const dt=Math.min(.05,(now-last)/1000);last=now;clock+=dt;if(!target&&queue.length)target=queue.shift();let walking=false;const p=player.g.position;
   if(target){const dx=target.x-p.x,dz=target.z-p.z,dist=Math.hypot(dx,dz),step=(busy?9:5)*dt;if(dist<=step+.01){p.x=target.x;p.z=target.z;const done=target.done;target=null;done?.();if(!queue.length)busy=false}else{p.x+=dx/dist*step;p.z+=dz/dist*step;player.g.rotation.y=Math.atan2(dx,dz);walking=true}}
+  for(const r of rooms.values()){const h=r.hinge;h.rotation.y+=(h.userData.target-h.rotation.y)*Math.min(1,dt*16)}
   const motion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;player.legs.forEach((l,i)=>l.rotation.x=walking&&!motion?Math.sin(clock*13+i*Math.PI)*.6:0);player.body.position.y=walking&&!motion?Math.abs(Math.sin(clock*13))*.035:0
   focus.lerp(new T.Vector3(p.x,0,p.z),motion?1:Math.min(1,dt*5));const rad=(active?9.5:15.5)*zoom;camera.position.set(focus.x+Math.sin(angle)*rad,rad*.88,focus.z+Math.cos(angle)*rad);camera.lookAt(focus.x,.45,focus.z)
   canvas.dataset.position=p.x.toFixed(2)+','+p.z.toFixed(2);canvas.dataset.room=active||'hall';canvas.dataset.camera=angle.toFixed(2);renderer.render(scene,camera);frame=requestAnimationFrame(tick)
  }
  frame=requestAnimationFrame(tick)
- return {visit,exit,move,orbit,zoom:zoomBy,setAvatar,dispose(){disposed=true;cancelAnimationFrame(frame);ro.disconnect();for(const m of mat.values())m.dispose();for(const g of geo.values())g.dispose();for(const s of labels){s.material.map?.dispose();s.material.dispose()}renderer.dispose();canvas.remove()}}
+ return {visit,exit,move,orbit,zoom:zoomBy,setAvatar,setNight,dispose(){disposed=true;cancelAnimationFrame(frame);ro.disconnect();for(const m of mat.values())m.dispose();for(const g of geo.values())g.dispose();for(const g of merged)g.dispose();for(const s of labels){s.material.map?.dispose();s.material.dispose()}renderer.dispose();canvas.remove()}}
 }
