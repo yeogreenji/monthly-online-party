@@ -1,9 +1,10 @@
+import {PartyPopper,CalendarDays,Map,Home,Settings,Shirt,UserRound,Mail,Bell,Camera} from 'lucide-react'
 import { access } from '../data/phase1'
 import { DEFAULT_LOOK, normalizeLook } from '../data/avatarLook'
 import { AvatarWardrobe, AvatarPreview } from './AvatarWardrobe'
 import { useEffect, useState } from 'react'
 import type { Profile, RoomId } from '../types'
-import { MONTHLY_IDEAS } from '../data/dingdong'
+import { MONTHLY_IDEAS, SPACES } from '../data/dingdong'
 import type { Space } from '../data/dingdong'
 import { usePersistentState } from '../lib/storage'
 import { Avatar } from './Avatar'
@@ -29,6 +30,13 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   const [chatCollapsed,setChatCollapsed]=useState(true)
   const [wardrobe,setWardrobe]=useState(false)
   const [yearbook,setYearbook]=useState(false)
+  const [toolsOpen,setToolsOpen]=useState(false),[mapOpen,setMapOpen]=useState(false),[mailOpen,setMailOpen]=useState(false)
+  const [request,setRequest]=useState<{id:string;serial:number}|null>(null)
+  function closePanels(){setWardrobe(false);setYearbook(false);setMapOpen(false);setMailOpen(false);setToolsOpen(false)}
+  function showPanel(id:string){closePanels();setChatCollapsed(true);if(id==='wardrobe')setWardrobe(true);if(id==='events')setYearbook(true);if(id==='map')setMapOpen(true);if(id==='mail')setMailOpen(true)}
+  function toggleTools(v:boolean){if(v){closePanels();setChatCollapsed(true)}setToolsOpen(v)}
+  function visit(id:string){closePanels();setChatCollapsed(true);setRequest(p=>({id,serial:(p?.serial??0)+1}))}
+  function externalMenu(id:string){closePanels();setChatCollapsed(true);onMenu(id)}
   const [autoChat, setAutoChat] = useState(false)
   const [topic, setTopic] = useState<Topic | null>(null)
   const [favorites, setFavorites] = usePersistentState<string[]>('dd.favorites.v1', [])
@@ -71,13 +79,17 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
     setDraft(''); setPicture('');clearPlace();setNotice('')
   }
   return <section id="rooms" className="dd-world-app">
-      <div className="dd-world-nav"><button className="dd3-btn" onClick={()=>setWardrobe(v=>!v)}>옷장</button><button className="dd3-btn" onClick={()=>onEditProfile()}>내 캐릭터</button><button className="dd3-btn" onClick={()=>setYearbook(v=>!v)}>연간 행사</button><button className="dd3-btn" onClick={()=>onMenu('calendar')}>일정</button><button className="dd3-btn" onClick={()=>onMenu('wall')}>포토월</button><button className="dd3-btn" onClick={()=>onMenu('etiquette')}>안내</button><button className="dd3-btn" onClick={()=>setOnlyFavorites(v=>!v)} aria-pressed={onlyFavorites}>{onlyFavorites?'전체 문':'☆'}</button></div>
-      {wardrobe&&<div className="dd-world-pop dd-world-wardrobe"><div className="dd-pop-title"><strong>나의 작은 옷장</strong><button className="dd3-btn" onClick={()=>setWardrobe(false)}>옷장 닫기</button></div><AvatarWardrobe avatar={profile.avatar} look={look} onChange={setLook}/></div>}
-      {yearbook&&<div className="dd-world-pop"><button className="dd3-btn" onClick={()=>setYearbook(false)}>닫기</button><h3>365일 파티 안내</h3><p>연간 기획 · 음력 날짜 및 자동 편성은 추후 연결</p>{MONTHLY_IDEAS.map((idea,i)=><p key={i}><strong>{i+1}월</strong> {idea}</p>)}</div>}
+      <nav className="dd-world-nav" aria-label="딩동 메뉴">{[{I:PartyPopper,n:'이벤트',f:()=>showPanel('events')},{I:CalendarDays,n:'일정',f:()=>externalMenu('calendar')},{I:Map,n:'지도',f:()=>showPanel('map')},{I:Home,n:'내 집',f:()=>visit('home')},{I:Settings,n:'설정',f:()=>toggleTools(!toolsOpen)}].map(({I,n,f})=><button key={n} onClick={f}><I size={22}/><span>{n}</span></button>)}</nav>
+      <div className="dd-quick-links"><button aria-label="공지" onClick={()=>externalMenu('etiquette')}><Bell size={20}/></button><button aria-label="포토월" onClick={()=>externalMenu('wall')}><Camera size={20}/></button></div>
+      {space?.id==='home'&&<div className="dd-home-actions"><button onClick={()=>showPanel('wardrobe')}><Shirt size={19}/>옷장</button><button onClick={onEditProfile}><UserRound size={19}/>프로필</button><button onClick={()=>showPanel('mail')}><Mail size={19}/>우편함</button></div>}
+      {wardrobe&&<div className="dd-world-pop dd-world-wardrobe" role="dialog" aria-label="나의 옷장"><div className="dd-pop-title"><strong>나의 작은 옷장</strong><button className="dd3-btn" onClick={()=>setWardrobe(false)}>옷장 닫기</button></div><AvatarWardrobe avatar={profile.avatar} look={look} onChange={setLook}/></div>}
+      {yearbook&&<div className="dd-world-pop" role="dialog" aria-label="연간 이벤트"><div className="dd-pop-title"><strong>딩동의 12개월 파티</strong><button className="dd3-btn" onClick={()=>setYearbook(false)}>닫기</button></div><p>월별 이벤트 기획 · 실제 날짜는 일정에서 확인</p><div className="dd-event-grid">{MONTHLY_IDEAS.map((idea,i)=><button key={i} onClick={()=>i===11?visit('season'):externalMenu('calendar')} style={{'--event-color':['#d6c5f8','#ffc8dc','#c6efdb','#f6cde1','#ffe2a6','#c5d8f6','#bde9ed','#e3caf5','#ffe0aa','#d8c2f1','#cee8d9','#f7c4d2'][i]} as React.CSSProperties}><span className="dd-event-icon">{['🏮','💝','🍭','🌸','🎠','🎷','🏖️','🎪','🌕','🎭','📚','🎄'][i]}</span><strong>{i+1}월</strong><small>{idea}</small><span>{i===11?'시즌홀 입장':'일정 보기'}</span></button>)}</div></div>}
+      {mapOpen&&<div className="dd-world-pop" role="dialog" aria-label="마을 지도"><div className="dd-pop-title"><strong>우리 동네 지도</strong><button className="dd3-btn" onClick={()=>setMapOpen(false)}>닫기</button></div><p>가게를 선택해 걸어가세요.</p><div className="dd-map-grid">{SPACES.map(s=><button key={s.id} onClick={()=>visit(s.id)}><span>{s.icon}</span><strong>{s.name}</strong><small>{access(s.id)==='open'?'방문':access(s.id)==='locked'?'잠금':'준비 중'}</small></button>)}</div><button className="dd3-btn" onClick={()=>setOnlyFavorites(v=>!v)}>{onlyFavorites?'전체 목적지':'즐겨찾기 목적지'}</button></div>}
+      {mailOpen&&<div className="dd-world-pop" role="dialog" aria-label="나의 우편함"><div className="dd-pop-title"><strong>나의 우편함</strong><button className="dd3-btn" onClick={()=>setMailOpen(false)}>닫기</button></div><div className="dd-mail-empty"><Mail size={42}/><h3>친구의 편지가 도착하는 곳</h3><p>현재는 로컬 체험입니다. 친구 방문·편지 송수신은 실제 계정 및 권한 연결 후 제공합니다.</p></div></div>}
       <div className={'dd3-layout'+(space?' dd3-with-chat':'')}>
-        <Mansion3D onMenu={onMenu} profile={profile} look={look} active={space} onEnter={openSpace} onLeave={()=>{leave();setSpace(null)}} onCapture={image=>{if(!topic){setNotice('모임에 입장한 뒤 촬영해 주세요.');return}setPicture(image);setChatCollapsed(false);setNotice('사진 첨부 완료 · 전송을 누르면 로컬 채팅에 저장됩니다.')}} favorites={favorites} onlyFavorites={onlyFavorites} onFavorite={id=>setFavorites(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id])}/>
+        <Mansion3D onMenu={externalMenu} profile={profile} look={look} active={space} request={request} toolsOpen={toolsOpen} onToolsChange={toggleTools} onEnter={openSpace} onLeave={()=>{leave();setSpace(null)}} onCapture={image=>{if(!topic){setNotice('모임에 입장한 뒤 촬영해 주세요.');return}setPicture(image);setChatCollapsed(false);setNotice('사진 첨부 완료 · 전송을 누르면 로컬 채팅에 저장됩니다.')}} favorites={favorites} onlyFavorites={onlyFavorites} onFavorite={id=>setFavorites(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id])}/>
         {space&&<aside role="region" aria-label={space.name} className="dd3-chat dd-chat-reveal">
-      <button type="button" className="dd3-collapse" aria-expanded={!chatCollapsed} onClick={()=>setChatCollapsed(v=>!v)}>{chatCollapsed?'채팅 펼치기':'채팅 접기'}</button>
+      <button type="button" className="dd3-collapse" aria-expanded={!chatCollapsed} onClick={()=>{if(chatCollapsed)closePanels();setChatCollapsed(v=>!v)}}>{space.id==='home'?(chatCollapsed?'집 꾸미기':'집 꾸미기 닫기'):(chatCollapsed?'채팅 펼치기':'채팅 접기')}</button>
       <div className="p-4 sm:p-5" hidden={chatCollapsed}>
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3"><div><h2 className="serif text-2xl">{space.name}</h2><p className="text-xs" style={{color:'var(--muted)'}}>{space.subtitle}</p></div><button type="button" className="btn btn-outline btn-sm" onClick={()=>{leave();setSpace(null)}}>복도로 나가기</button></div>
         {RESIDENTS[space.id]&&<div className="dd3-npc"><strong>{RESIDENTS[space.id].name} · 안내용 NPC</strong><p>{RESIDENTS[space.id].greeting}</p></div>}
