@@ -17,8 +17,8 @@ export const ROOMS: RoomSeed[] = [
     tagline: '집에서 마시는 한 잔을, 같은 시간에 듭니다',
     hours: '매일 21:00 – 24:00',
     host: '살롱지기',
-    capacity: 40,
-    live: 27,
+    capacity: 20,
+    live: 0,
     rules: [
       '과음은 이 살롱에서 가장 큰 매너 위반입니다. 잔은 천천히.',
       '미성년자는 논알콜 음료로 함께합니다. 술을 권하지 않습니다.',
@@ -44,8 +44,8 @@ export const ROOMS: RoomSeed[] = [
     tagline: '이번 주 책 한 권, 오늘의 문장 하나',
     hours: '매일 21:00 – 24:00',
     host: '밤의 서재',
-    capacity: 30,
-    live: 18,
+    capacity: 20,
+    live: 0,
     rules: [
       '다 읽지 않아도 됩니다. 스포일러는 책 페이지로 표시해 주세요.',
       '문장을 그대로 옮기기보다, 내 말로 바꿔 적어봅니다.',
@@ -68,8 +68,8 @@ export const ROOMS: RoomSeed[] = [
     tagline: '각자 집에서, 같은 장면에 도착합니다',
     hours: '매일 21:00 – 24:00',
     host: '골드문',
-    capacity: 50,
-    live: 34,
+    capacity: 20,
+    live: 0,
     rules: [
       '결말·반전 이야기는 스포일러 토글을 켠 뒤에 합니다.',
       '재생 시각은 각자 다를 수 있어요. 장면 번호를 함께 적어주세요.',
@@ -92,8 +92,8 @@ export const ROOMS: RoomSeed[] = [
     tagline: '오늘 밤의 배경음은 우리가 고릅니다',
     hours: '매일 21:00 – 24:00',
     host: '재즈바11',
-    capacity: 60,
-    live: 41,
+    capacity: 20,
+    live: 0,
     rules: [
       '신청곡은 한 사람에 한 곡. 중복은 합쳐서 셉니다.',
       '스피커 볼륨은 이웃을 생각해 한 단계 낮게.',

@@ -7,10 +7,9 @@ export type SalonView = 'home' | 'mediakit'
 
 const NAV = [
   { id: 'party', label: '이번 달 파티' },
-  { id: 'rooms', label: '취향방' },
+  { id: 'rooms', label: '12개 공간' },
   { id: 'wall', label: '포토월' },
   { id: 'calendar', label: '파티 캘린더' },
-  { id: 'brand', label: '브랜드 협찬' },
 ]
 
 export function BrandMark({ size = 34 }: { size?: number }) {
@@ -18,11 +17,7 @@ export function BrandMark({ size = 34 }: { size?: number }) {
     <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden="true">
       <circle cx="20" cy="20" r="19" fill="#1B3B2B" />
       <circle cx="20" cy="20" r="18.2" fill="none" stroke="#C59B48" strokeWidth="0.8" opacity="0.85" />
-      <path d="M11 12h7.2l-1 5.4a2.6 2.6 0 0 1-5.2 0L11 12Z" fill="none" stroke="#E3C98F" strokeWidth="1.1" strokeLinejoin="round" />
-      <path d="M14.6 20.6v5M11.8 25.8h5.6" stroke="#E3C98F" strokeWidth="1.1" strokeLinecap="round" />
-      <path d="M21.8 13.6h7.2l-1 5.4a2.6 2.6 0 0 1-5.2 0l-1-5.4Z" fill="none" stroke="#E3C98F" strokeWidth="1.1" strokeLinejoin="round" />
-      <path d="M25.4 22.2v5M22.6 27.4h5.6" stroke="#E3C98F" strokeWidth="1.1" strokeLinecap="round" />
-      <circle cx="20" cy="9.4" r="0.9" fill="#C59B48" />
+      <path d="M10 27V15a10 10 0 0 1 20 0v12Z" fill="#C59B48"/><path d="M15 27V16a5 5 0 0 1 10 0v11" fill="#F7F1E6"/><circle cx="23" cy="22" r="1.5" fill="#1B3B2B"/><path d="M8 30h24" stroke="#E3C98F" strokeWidth="2" strokeLinecap="round"/>
     </svg>
   )
 }
@@ -68,12 +63,12 @@ export function Header({
           type="button"
           onClick={() => onNavigate('top')}
           className="flex items-center gap-2.5 text-left"
-          aria-label="월간살롱 홈으로"
+          aria-label="딩동 홈으로"
         >
           <BrandMark size={34} />
           <span className="flex flex-col leading-none">
-            <span className="serif text-[17px] tracking-[-0.02em]">월간살롱</span>
-            <span className="kicker mt-1 text-[8px] tracking-[0.3em]">Monthly Salon</span>
+            <span className="serif text-[17px] tracking-[-0.02em]">딩동</span>
+            <span className="kicker mt-1 text-[8px] tracking-[0.3em]">DINGDONG</span>
           </span>
         </button>
 

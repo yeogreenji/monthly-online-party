@@ -242,7 +242,7 @@ export function NotesOverlay({
           </div>
 
           <div className="shrink-0 border-t p-3 text-[9.5px] leading-[1.7]" style={{ borderColor: 'var(--line)', color: 'var(--muted)' }}>
-            연락처·SNS·주소는 주고받지 않아요. 요구하는 대화는 신고해 주세요.
+            쪽지함은 가상 상대와의 로컬 체험입니다. 실제 DM은 아직 연결되지 않았습니다.
           </div>
         </aside>
 
@@ -298,7 +298,7 @@ export function NotesOverlay({
               <div className="shrink-0 border-b px-4 py-2 sm:px-6" style={{ borderColor: 'var(--line)', background: 'var(--surface-2)' }}>
                 <p className="flex items-start gap-1.5 text-[9.5px] leading-relaxed" style={{ color: 'var(--muted)' }}>
                   <Check size={10} className="mt-0.5 shrink-0" style={{ color: 'var(--gold)' }} />
-                  서로 수락한 대화입니다. 연락처·계좌·주소 요구는 살롱 규칙 위반이며, 신고 시 대화가 닫힙니다.
+                  시연용 자동 응답 대화입니다. 실제 상대와 연결되지 않으며 신고는 로컬 저장만 됩니다.
                 </p>
               </div>
 
@@ -366,7 +366,7 @@ export function NotesOverlay({
             <p className="kicker">Report</p>
             <h3 className="serif mt-2 text-[20px]">{reportPeer.nickname}님 신고</h3>
             <p className="mt-1.5 text-[11px] leading-relaxed" style={{ color: 'var(--muted)' }}>
-              신고 내용은 저장되어 운영 검토에 쓰입니다. 상대에게 알림이 가지 않아요.
+              신고 내용은 이 브라우저에만 저장되며 운영자에게 전송되지 않습니다.
             </p>
             <div className="mt-4 space-y-2">
               {['성적 접근 · 원치 않는 연락', '불쾌한 언행 · 비하', '광고 · 홍보 목적', '연락처 · 개인정보 요구', '기타'].map((reason) => (

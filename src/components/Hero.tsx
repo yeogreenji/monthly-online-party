@@ -14,6 +14,7 @@ export function Hero({
   onDownload,
   onExploreRooms,
   onBrandKit,
+  showCommercial = false,
 }: {
   party: PartyEvent
   now: number
@@ -24,6 +25,7 @@ export function Hero({
   onDownload: () => void
   onExploreRooms: () => void
   onBrandKit: () => void
+  showCommercial?: boolean
 }) {
   const cd = countdownTo(party.dateISO, now)
   const dday = cd.past ? `D+${cd.days}` : `D-${cd.days}`
@@ -69,7 +71,7 @@ export function Hero({
           })}
           <span className="ml-auto hidden shrink-0 items-center gap-1.5 pb-3.5 pl-4 text-[10.5px] sm:flex" style={{ color: 'var(--muted)' }}>
             <span className="live-dot" />
-            매일 21:00 취향방 오픈
+            12개 공간 · 개발 체험판
           </span>
         </div>
 
@@ -77,7 +79,7 @@ export function Hero({
           <div className="animate-fade-up">
             <div className="flex flex-wrap items-center gap-2.5">
               <span className="kicker" style={{ color: 'var(--burgundy)' }}>
-                {party.en} · Monthly Party
+                {party.en} · DINGDONG PARTY
               </span>
               <span className="h-3 w-px" style={{ background: 'var(--line-strong)' }} />
               <span className="text-[10.5px]" style={{ color: 'var(--muted)' }}>
@@ -149,13 +151,13 @@ export function Hero({
                 캘린더에 저장
               </button>
               <button type="button" onClick={onExploreRooms} className="btn btn-ghost">
-                취향방 둘러보기
+                12개 공간 둘러보기
                 <ChevronRight size={15} />
               </button>
             </div>
             <p className="mt-3 text-[10.5px] leading-relaxed" style={{ color: 'var(--muted)' }}>
               {rsvp
-                ? `${party.dateLabel} ${party.weekday} 20:30, 살롱에 들어오면 예약한 초대장이 먼저 보여요. (이 브라우저에 저장)`
+                ? `${party.dateLabel} ${party.weekday} 20:30, 딩동에 들어오면 예약한 초대장이 먼저 보여요. (이 브라우저에 저장)`
                 : '예약은 이 브라우저에 저장됩니다. 회원가입도 결제도 없어요.'}
             </p>
 
@@ -210,7 +212,7 @@ export function Hero({
               </div>
             </div>
 
-            <button
+            {showCommercial && <button
               type="button"
               onClick={onBrandKit}
               className="mt-4 flex w-full items-center justify-between gap-4 border px-4 py-3 text-left transition-colors hover:bg-black/[0.02]"
@@ -230,7 +232,7 @@ export function Hero({
                 협찬 안내
                 <ChevronRight size={12} />
               </span>
-            </button>
+            </button>}
           </div>
         </div>
       </div>

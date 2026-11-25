@@ -128,23 +128,7 @@ export function localHostReply(req: HostRequest): string {
   return bank.lines[pick % bank.lines.length]
 }
 
+// Development preview: no API calls or user chat transmission.
 export async function requestHostReply(req: HostRequest): Promise<HostReply> {
-  const controller = new AbortController()
-  const timer = window.setTimeout(() => controller.abort(), 14_000)
-  try {
-    const response = await fetch('/api/party-chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req),
-      signal: controller.signal,
-    })
-    if (!response.ok) throw new Error(`HTTP ${response.status}`)
-    const data = (await response.json()) as { reply?: string; model?: string }
-    if (!data.reply) throw new Error('empty reply')
-    return { reply: data.reply, model: data.model ?? 'gemini' }
-  } catch {
-    return { reply: localHostReply(req), model: 'local' }
-  } finally {
-    window.clearTimeout(timer)
-  }
+  return { reply: localHostReply(req), model: 'local' }
 }

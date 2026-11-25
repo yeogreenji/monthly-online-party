@@ -10,7 +10,8 @@ import { Header } from './components/Header'
 import type { SalonView } from './components/Header'
 import { Hero } from './components/Hero'
 import { Program } from './components/Program'
-import { RoomsSection } from './components/RoomsSection'
+import { DingdongSpaces } from './components/DingdongSpaces'
+import { DINGDONG_STORAGE } from './data/dingdong'
 import { PhotoWall } from './components/PhotoWall'
 import { SponsorsSection } from './components/SponsorsSection'
 import { CalendarSection } from './components/CalendarSection'
@@ -21,6 +22,7 @@ import { RoomOverlay } from './components/RoomOverlay'
 import { NotesOverlay } from './components/NotesOverlay'
 import { ToastStack, useReveal } from './components/ui'
 
+const COMMERCIAL_PREVIEW = false
 const SECTION_IDS = ['party', 'program', 'rooms', 'wall', 'calendar', 'brand', 'etiquette']
 
 function initialChats(): Record<RoomId, ChatMessage[]> {
@@ -101,6 +103,7 @@ export default function App() {
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
     }
+    if (!COMMERCIAL_PREVIEW && (target === 'sponsor-zone' || target === 'brand')) return
     if (target === 'sponsor-zone') {
       setView('home')
       setSection('brand')
@@ -127,7 +130,7 @@ export default function App() {
   }
 
   const resetProfile = () => {
-    Object.values(STORAGE_KEYS).forEach((key) => {
+    [...Object.values(STORAGE_KEYS), ...DINGDONG_STORAGE].forEach((key) => {
       try {
         window.localStorage.removeItem(key)
       } catch {
@@ -169,11 +172,11 @@ export default function App() {
   const downloadParty = (target: PartyEvent) => {
     const ics = buildICS({
       id: `monthly-salon-${target.id}`,
-      title: `월간살롱 · ${target.title}`,
+      title: `딩동 · ${target.title}`,
       dateISO: target.dateISO,
       durationHours: 3,
       description: `${target.subtitle}\n${target.timeLabel} · ${target.place}\n${target.program.map((item) => `${item.time} ${item.title}`).join(' / ')}`,
-      location: '온라인 · 월간살롱',
+      location: '온라인 · 딩동',
     })
     downloadText(`monthly-salon-${target.id}.ics`, ics)
     toast('캘린더 파일을 내려받았어요. 열어서 일정에 추가해 주세요.', 'success')
@@ -272,7 +275,7 @@ export default function App() {
   const reportPeer = (target: string, reason: string, detail: string) => {
     const existing = loadJSON<{ id: string; target: string; reason: string; detail: string; at: string }[]>('ms.reports.v1', [])
     saveJSON('ms.reports.v1', [...existing, { id: `report-${Date.now()}`, target, reason, detail, at: new Date().toISOString() }])
-    toast('신고가 접수됐어요. 살롱지기가 확인합니다.', 'success')
+    toast('신고 체험 기록을 이 브라우저에 저장했어요. 운영자에게 전송되지는 않습니다.', 'success')
   }
 
   const issueCoupon = (coupon: Coupon) => {
@@ -300,7 +303,7 @@ export default function App() {
         onOpenNotes={() => openNotes()}
       />
 
-      {view === 'home' ? (
+      {(view === 'home' || !COMMERCIAL_PREVIEW) ? (
         <main>
           <Hero
             party={party}
@@ -312,9 +315,10 @@ export default function App() {
             onDownload={() => downloadParty(party)}
             onExploreRooms={() => navigate('rooms')}
             onBrandKit={() => setView('mediakit')}
+            showCommercial={COMMERCIAL_PREVIEW}
           />
           <Program party={party} />
-          <RoomsSection onEnter={openRoom} />
+          <DingdongSpaces profile={profile ?? { nickname: '손님', avatar: 'fox', ageBand: '비공개', tags: [], joinedAt: '' }} key={profile?.joinedAt ?? 'guest'} onLegacy={openRoom} onParty={() => navigate('party')} onEditProfile={() => setEditing(true)} />
           <PhotoWall
             feed={feed}
             profile={profile ?? { nickname: '손님', avatar: 'fox', ageBand: '비공개', tags: [], joinedAt: '' }}
@@ -338,7 +342,7 @@ export default function App() {
               toast('메인 파티 화면으로 이동했어요.')
             }}
           />
-          <SponsorsSection
+          {COMMERCIAL_PREVIEW && <SponsorsSection
             party={party}
             coupons={coupons}
             onIssue={issueCoupon}
@@ -347,7 +351,7 @@ export default function App() {
               window.scrollTo({ top: 0 })
             }}
             onToast={toast}
-          />
+          />}
           <EtiquetteSection />
         </main>
       ) : (
@@ -367,6 +371,7 @@ export default function App() {
       )}
 
       <Footer
+        showCommercial={COMMERCIAL_PREVIEW}
         onBrandKit={() => {
           setView('mediakit')
           window.scrollTo({ top: 0 })

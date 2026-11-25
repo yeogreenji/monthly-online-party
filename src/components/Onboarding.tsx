@@ -78,7 +78,7 @@ export function Onboarding({
             />
             <div className="relative">
               <p className="kicker" style={{ color: '#C59B48' }}>
-                Doors open at 21:00
+                WELCOME TO DINGDONG
               </p>
               <h2 className="serif mt-5 text-[30px] leading-[1.45]">
                 잘 차려입은 마음만
@@ -93,7 +93,7 @@ export function Onboarding({
               {[
                 ['01', '캐릭터를 고릅니다', '여덟 명의 살롱 친구 중 하나'],
                 ['02', '닉네임을 정합니다', '실명 대신 오늘의 이름'],
-                ['03', '문을 엽니다', '21시, 네 개의 방'],
+                ['03', '문을 엽니다', '딩동의 12개 공간'],
               ].map(([num, title, detail]) => (
                 <div key={num} className="flex gap-4 border-t pt-3.5" style={{ borderColor: 'rgba(247,241,230,0.18)' }}>
                   <span className="serif text-[12px]" style={{ color: '#C59B48' }}>{num}</span>
@@ -235,13 +235,13 @@ export function Onboarding({
             </div>
 
             <button type="button" onClick={submit} className="btn btn-primary mt-7 w-full py-3.5">
-              {editMode ? '프로필 저장' : '살롱 입장하기'}
+              {editMode ? '프로필 저장' : '딩동 입장하기'}
               <ArrowRight size={16} />
             </button>
 
             <p className="mt-3 flex items-start gap-1.5 text-[10.5px] leading-relaxed" style={{ color: 'var(--muted)' }}>
               <Sparkles size={11} className="mt-0.5 shrink-0" />
-              회원가입 없이 이 브라우저에만 저장됩니다. 입장하면 서로의 취향을 존중하는 살롱 에티켓에 동의한 것으로 봅니다.
+              성인용 개발 체험판입니다. 연령 인증 및 실제 이용자 연결 전이며 정보는 브라우저에만 저장됩니다.
             </p>
 
             {editMode && (

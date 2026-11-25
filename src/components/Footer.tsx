@@ -17,7 +17,7 @@ const PROMISES = [
   {
     icon: GlassWater,
     title: '권하지 않는 한 잔',
-    detail: '과음은 매너 위반입니다. 논알콜도 같은 잔에 따르고, 미성년자는 음료로 함께합니다.',
+    detail: '과음은 매너 위반입니다. 논알콜도 같은 잔에 따르고, 현재 체험판은 성인용이며 연령 인증은 아직 연결되지 않았습니다.',
   },
   {
     icon: ShieldCheck,
@@ -57,7 +57,7 @@ export function EtiquetteSection() {
         <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="flex items-start gap-2 text-[11px] leading-relaxed" style={{ color: 'var(--muted)' }}>
             <AlertCircle size={13} className="mt-0.5 shrink-0" style={{ color: 'var(--burgundy)' }} />
-            불편한 대화는 언제든 신고할 수 있습니다. 신고 내용은 살롱지기가 확인하고, 필요하면 해당 대화가 닫힙니다.
+            신고 기능은 로컬 체험입니다. 실제 운영자에게 전송되거나 계정이 제한되는 기능은 연결되지 않았습니다.
           </p>
           <span className="text-[10.5px]" style={{ color: 'var(--muted)' }}>
             이 브라우저에 저장되는 것: 프로필 · 초대장 · 알림 · 포토월 · 쪽지 · 쿠폰
@@ -68,7 +68,7 @@ export function EtiquetteSection() {
   )
 }
 
-export function Footer({ onBrandKit, onNavigate }: { onBrandKit: () => void; onNavigate: (section: string) => void }) {
+export function Footer({ onBrandKit, onNavigate, showCommercial = false }: { onBrandKit: () => void; onNavigate: (section: string) => void; showCommercial?: boolean }) {
   return (
     <footer className="px-5 pb-10 pt-14 sm:px-8" style={{ borderTop: '1px solid var(--line)' }}>
       <div className="mx-auto max-w-[1280px]">
@@ -77,8 +77,8 @@ export function Footer({ onBrandKit, onNavigate }: { onBrandKit: () => void; onN
             <div className="flex items-center gap-2.5">
               <BrandMark size={32} />
               <div>
-                <p className="serif text-[16px]">월간살롱</p>
-                <p className="kicker mt-0.5 text-[7.5px]">Monthly Salon</p>
+                <p className="serif text-[16px]">딩동</p>
+                <p className="kicker mt-0.5 text-[7.5px]">DINGDONG</p>
               </div>
             </div>
             <p className="serif mt-4 max-w-[28ch] text-[13px] leading-[1.8]" style={{ color: 'var(--ink-soft)' }}>
@@ -92,13 +92,13 @@ export function Footer({ onBrandKit, onNavigate }: { onBrandKit: () => void; onN
             <p className="kicker mb-3">살롱</p>
             <ul className="space-y-2 text-[11.5px]" style={{ color: 'var(--muted)' }}>
               <li><button type="button" onClick={() => onNavigate('party')} className="hover:underline">이번 달 파티</button></li>
-              <li><button type="button" onClick={() => onNavigate('rooms')} className="hover:underline">네 개의 취향방</button></li>
+              <li><button type="button" onClick={() => onNavigate('rooms')} className="hover:underline">12개 공간</button></li>
               <li><button type="button" onClick={() => onNavigate('wall')} className="hover:underline">포토월</button></li>
               <li><button type="button" onClick={() => onNavigate('calendar')} className="hover:underline">파티 캘린더</button></li>
             </ul>
           </div>
 
-          <div>
+          {showCommercial && <div>
             <p className="kicker mb-3">브랜드</p>
             <ul className="space-y-2 text-[11.5px]" style={{ color: 'var(--muted)' }}>
               <li>
@@ -109,7 +109,7 @@ export function Footer({ onBrandKit, onNavigate }: { onBrandKit: () => void; onN
                 <a href={`mailto:${CONTACT_EMAIL}`} className="hover:underline">{CONTACT_EMAIL}</a>
               </li>
             </ul>
-          </div>
+          </div>}
 
           <div>
             <p className="kicker mb-3">약속</p>
@@ -124,10 +124,10 @@ export function Footer({ onBrandKit, onNavigate }: { onBrandKit: () => void; onN
         <div className="mt-10 flex flex-col gap-3 border-t pt-5 sm:flex-row sm:items-center sm:justify-between" style={{ borderColor: 'var(--line)' }}>
           <p className="flex items-center gap-2 text-[10.5px]" style={{ color: 'var(--muted)' }}>
             <Mail size={11} />
-            {CONTACT_EMAIL} · 오픈 전 프리뷰
+            개발 체험판 · 실제 운영 전
           </p>
           <p className="text-[10px]" style={{ color: 'var(--muted)' }}>
-            © 2026 Monthly Salon. 참여자 대화와 스폰서는 예시로 구성된 시연 화면입니다.
+            © 2026 DINGDONG. 참여자 대화는 예시로 구성된 로컬 체험입니다.
           </p>
         </div>
       </div>
