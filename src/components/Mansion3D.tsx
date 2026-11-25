@@ -16,7 +16,7 @@ export function Mansion3D({profile,look,active,onEnter,onLeave,onCapture,favorit
  const [status,setStatus]=useState('중앙 복도'),[error,setError]=useState(false),[low,setLow]=useState(false),[destination,setDestination]=useState(''),[story,setStory]=useState(false),[night,setNight]=useState(false),[sound,setSound]=useState(false),[festive,setFestive]=useState(true)
  const soundRef=useRef(sound);soundRef.current=sound
  useEffect(()=>{if(low||!host.current)return;try{const w=createWorld(host.current,{spaces:SPACES,residents:RESIDENTS,avatar:profile.avatar,look,access,onEnter:id=>{const s=SPACES.find(v=>v.id===id);if(s)callbacks.current.onEnter(s)},onLeave:()=>callbacks.current.onLeave(),onStatus:s=>{setStatus(s);if(soundRef.current&&s.includes('문 열림')){try{salonAudio.chime()}catch{/* optional */}}}});world.current=w;return()=>{w.dispose();world.current=null}}catch(e){console.error('3D 초기화 실패',e);setError(true)}},[low])
- useEffect(()=>{world.current?.setAvatar(profile.avatar,look)},[profile.avatar,look])
+ useEffect(()=>{world.current?.setAvatar(profile.avatar,look)},[profile.avatar,look,low])
  useEffect(()=>{world.current?.setFestive(festive)},[festive,low])
  useEffect(()=>{if(!active)world.current?.exit();if(active?.id!=='cafe'){setNight(false);world.current?.setNight(false)}},[active])
  function visit(id:string){if(access(id)!=='open'){setStatus(accessLabel(id));return}if(error||low){const s=SPACES.find(x=>x.id===id);if(s){callbacks.current.onLeave();callbacks.current.onEnter(s);setStatus(s.name+' · 2D 접근성 대체 모드')}}else world.current?.visit(id)}

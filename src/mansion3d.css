@@ -8,3 +8,5 @@
 
 .dd-place-card{border:1px solid var(--line);border-radius:8px;padding:8px;font-size:12px;overflow-wrap:anywhere}.dd-place-card a{display:block;text-decoration:underline}.dd-place-card summary{cursor:pointer}
 @media(max-width:600px){.dd3-canvas{height:clamp(200px,49dvh,430px)}.dd3-chat:focus-within{scroll-margin-bottom:12px}.dd3-chat input[aria-label="메시지"]{font-size:16px}}
+
+.dd-chat-avatar{width:32px;height:40px;flex:none}.dd-chat-avatar .dd-wardrobe-preview{width:32px;height:40px;border-radius:5px;background:transparent}
