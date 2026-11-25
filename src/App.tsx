@@ -45,6 +45,7 @@ export default function App() {
   const [coupons, setCoupons] = usePersistentState<Coupon[]>(STORAGE_KEYS.coupons, [])
   const [chats, setChats] = usePersistentState<Record<RoomId, ChatMessage[]>>('ms.chats.v1', initialChats())
 
+  const [panelOpen,setPanelOpen]=useState(false)
   const [view, setView] = useState<SalonView>('home')
   const [section, setSection] = useState('rooms')
   const [editing, setEditing] = useState(false)
@@ -98,6 +99,8 @@ export default function App() {
   }, [])
 
   const navigate = (target: string) => {
+    if(target==='rooms'||target==='top'){setPanelOpen(false);setView('home');return}
+    setPanelOpen(true)
     if (target === 'top') {
       setView('home')
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -144,6 +147,7 @@ export default function App() {
       // 무시
     }
     setProfile(null)
+    setPanelOpen(false)
     setEditing(false)
     setFeed(SEED_FEED)
     setNotes(SEED_NOTES)
@@ -290,7 +294,9 @@ export default function App() {
   const pendingNotes = notes.incoming.filter((item) => item.status === 'pending').length
 
   return (
-    <div className="relative min-h-screen" style={{ background: 'var(--bg)' }}>
+    <div className="dd-app-root" style={{ background: 'var(--bg)' }}>
+      {profile&&!editing&&<DingdongSpaces profile={profile} key={profile.joinedAt} onLegacy={openRoom} onParty={()=>navigate('party')} onEditProfile={()=>setEditing(true)} onMenu={navigate}/>}
+      {profile&&panelOpen&&<div className="dd-app-panel" role="dialog" aria-label="딩동 안내 메뉴"><button className="dd-app-panel-close" type="button" onClick={()=>setPanelOpen(false)}>× 공간으로 돌아가기</button>
       <Header
         view={view}
         section={section}
@@ -300,12 +306,12 @@ export default function App() {
         onNavigate={navigate}
         onEditProfile={() => setEditing(true)}
         onToggleNight={() => setNight((prev) => !prev)}
-        onOpenNotes={() => openNotes()}
+        onOpenNotes={() => toast('친구·쪽지는 실제 계정과 안전 확인 후 제공됩니다.')}
       />
 
       {(view === 'home' || !COMMERCIAL_PREVIEW) ? (
         <main>
-          <DingdongSpaces profile={profile ?? { nickname: '손님', avatar: 'fox', ageBand: '비공개', tags: [], joinedAt: '' }} key={profile?.joinedAt ?? 'guest'} onLegacy={openRoom} onParty={() => navigate('party')} onEditProfile={() => setEditing(true)} />
+
           <Hero
             party={party}
             now={now}
@@ -379,6 +385,7 @@ export default function App() {
         onNavigate={navigate}
       />
 
+      </div>}
       {roomId && profile && (
         <RoomOverlay
           roomId={roomId}

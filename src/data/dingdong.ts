@@ -12,7 +12,7 @@ export interface Space {
 }
 
 export const SPACES: Space[] = [
-  { id: 'season', name: '시즌 파티하우스', subtitle: '반짝이는 트리 아래 크리스마스 파티', icon: '🎄', wall: '#e8d3bb', door: '#8b353c', topics: ['크리스마스 티파티', '비밀 산타', '트리 꾸미기', '캐럴 이야기'] },
+  { id: 'season', name: '시즌 파티하우스', subtitle: '반짝이는 트리 아래 크리스마스 파티', icon: '🎄', wall: '#d44962', door: '#dc183d', topics: ['크리스마스 티파티', '비밀 산타', '트리 꾸미기', '캐럴 이야기'] },
   { id: 'jazz', name: '혼술 라운지 및 재즈바', subtitle: '조용한 재즈와 취향에 맞는 한 잔', icon: '🎷', wall: '#c9b9ab', door: '#493d54', topics: ['논알콜 한 잔', '재즈 감상', '오늘 하루'], legacy: ['wine', 'music'] },
   { id: 'cafe', name: '낮과 밤의 카페', subtitle: '커피, 차, 디저트 그리고 수다', icon: '☕', wall: '#ead9c1', door: '#966244', topics: ['오늘의 차', '디저트 추천', '카페 발견'] },
   { id: 'travel', name: '여행자 클럽', subtitle: '지도 위에 펼치는 다음 여행', icon: '🧳', wall: '#cbdce0', door: '#467889', topics: ['혼자 여행', '여행지 추천', '여행 사진'] },

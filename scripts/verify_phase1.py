@@ -8,11 +8,18 @@ with sync_playwright() as p:
         errors=[]
         page.on("pageerror",lambda e:errors.append(str(e)))
         page.goto("http://127.0.0.1:4173")
-        page.get_by_role("button",name="수달",exact=True).click()
+        gallery=page.locator(".dd-entry-world canvas")
+        expect(gallery).to_be_visible(timeout=20000)
+        page.get_by_label("내 캐릭터",exact=True).select_option("otter")
+        expect(gallery).to_have_attribute("data-selected","otter",timeout=15000)
+        page.screenshot(path=f"artifacts/entry-3d-{width}.png")
         page.locator("#nickname").fill("딩동테스트")
         page.get_by_role("button",name="딩동 입장하기",exact=True).click()
         canvas=page.locator(".dd3-canvas canvas")
         expect(canvas).to_have_attribute("data-avatar-mode","2d-billboard",timeout=15000)
+        assert page.locator("body").evaluate("(el)=>el.scrollHeight<=window.innerHeight+2")
+        assert canvas.evaluate("(el)=>el.getBoundingClientRect().height>=window.innerHeight-3")
+        page.get_by_role("button",name="옷장",exact=True).click()
         page.locator(".dd-wardrobe summary").click()
         coat=page.get_by_label("옷 색상",exact=True)
         coat.select_option("#a45e68")
@@ -26,10 +33,12 @@ with sync_playwright() as p:
             expect(canvas).to_have_attribute("data-avatar-look",__import__("re").compile(value),timeout=20000)
             assert preview.evaluate("(c)=>c.toDataURL()")!=before, label+" did not change rendered avatar"
         page.wait_for_function("JSON.parse(localStorage.getItem('dd.avatar.look.v1')||'{}').fabric==='check'",timeout=20000)
+        page.get_by_role("button",name="옷장 닫기",exact=True).click()
         page.reload()
         expect(canvas).to_have_attribute("data-avatar-look",__import__("re").compile("#a45e68"),timeout=15000)
         for value in ["stripe","beret","check"]:
             expect(canvas).to_have_attribute("data-avatar-look",__import__("re").compile(value),timeout=15000)
+        page.locator(".dd3-access-menu summary").click()
         page.locator("#dd3-dest").select_option("jazz")
         page.get_by_role("button",name="걸어가기",exact=True).click()
         expect(page.get_by_role("status").filter(has_text="연령·안전 확인 전 잠금")).to_be_visible()
@@ -44,6 +53,7 @@ with sync_playwright() as p:
             if id=="season":
                 page.get_by_role("button",name="파티 테이블",exact=True).click()
                 expect(canvas).to_have_attribute("data-last-prop","season-banquet",timeout=15000)
+            page.get_by_role("button",name="채팅 펼치기",exact=True).click()
             page.get_by_role("button",name="채팅 접기",exact=True).click()
             page.get_by_role("button",name="채팅 펼치기",exact=True).click()
             expect(page.get_by_role("textbox",name="메시지",exact=True)).to_be_visible(timeout=5000)
@@ -80,6 +90,7 @@ with sync_playwright() as p:
         expect(page.locator(".dd3-fallback")).to_be_visible()
         page.locator("#dd3-dest").select_option("season")
         page.get_by_role("button",name="걸어가기",exact=True).click()
+        page.get_by_role("button",name="채팅 펼치기",exact=True).click()
         expect(page.get_by_role("textbox",name="메시지",exact=True)).to_be_visible(timeout=5000)
         assert not errors,errors
         print(f"PASS {width}x{height}: wardrobe persistence, 3D rooms, lock, prop movement, photo, place save, sitting, hub return, decor toggle, chat collapse, fallback")

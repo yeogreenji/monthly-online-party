@@ -38,3 +38,6 @@ f8c1642 CI 45654531174 성공 확인: npm build, API 타입 검사, 1280×900 �
 
 ### 2026-11-26 배포/회귀 확인
 6f6c416 GitHub Actions 45656409713 성공. Vercel deployment dpl_8NRv1Dw58qkMMd8AAgy2gKLDP8Se READY, ref loren/dingdong-phase1 SHA 6f6c416, URL https://monthly-online-party-mrxsy1207-yeogreenji.vercel.app, branch alias https://monthly-online-party-git-loren-dingdong-phase1-yeogreenji.vercel.app. 운영 main 2d3101f 유지. 배포 메타데이터 검증, 실기기 및 배포 사이트 직접 브라우저 검증은 아직 안 됨. 신규 코디 3항목의 미리보기/저장/3D 설정 테스트 추가, 신규 CI 결과 미확인.
+
+### v0.8 검증 계획
+3D 선택실 canvas와 선택 상태, 전체 뷰포트 높이/스크롤 없음, 메뉴 접근, 기존 phase1 스모크 유지. 신규 색감과 UI의 육안 검수, 모바일 실기기 검수 및 최신 CI/Preview 결과 미확인. 3D 선택 모델은 기본 체형이며 플레이 캐릭터 2D 유지.

@@ -7,7 +7,6 @@ import { MONTHLY_IDEAS } from '../data/dingdong'
 import type { Space } from '../data/dingdong'
 import { usePersistentState } from '../lib/storage'
 import { Avatar } from './Avatar'
-import { SectionHead } from './ui'
 import { ROOMS } from '../data/rooms'
 import { resizeImageFile } from '../lib/image'
 import { Mansion3D } from './Mansion3D'
@@ -23,11 +22,13 @@ const VISIBILITY = { private: '비공개', friends: '친구 공개(설정만)', 
 const INITIAL_HOME = { intro: '', wallpaper: '#f3dfc8', furniture: '🛋️', pet: '🐈', accessory: '🎀', visibility: 'private' as Visibility }
 const FIELD = 'w-full rounded-xl border border-current/15 bg-transparent px-3 py-2 text-sm'
 const uuid = () => globalThis.crypto?.randomUUID?.() ?? String(Date.now()) + Math.random().toString(36).slice(2)
-export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile }: { profile: Profile; onLegacy: (id: RoomId) => void; onParty: () => void; onEditProfile: () => void }) {
+export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMenu }: { profile: Profile; onLegacy: (id: RoomId) => void; onParty: () => void; onEditProfile: () => void; onMenu:(id:string)=>void }) {
   const [space, setSpace] = useState<Space | null>(null)
   const [savedLook,setLook]=usePersistentState('dd.avatar.look.v1',DEFAULT_LOOK)
   const look=normalizeLook(savedLook)
-  const [chatCollapsed,setChatCollapsed]=useState(false)
+  const [chatCollapsed,setChatCollapsed]=useState(true)
+  const [wardrobe,setWardrobe]=useState(false)
+  const [yearbook,setYearbook]=useState(false)
   const [autoChat, setAutoChat] = useState(false)
   const [topic, setTopic] = useState<Topic | null>(null)
   const [favorites, setFavorites] = usePersistentState<string[]>('dd.favorites.v1', [])
@@ -54,7 +55,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile }: { 
   const [saveHistory, setSaveHistory] = useState(false)
   const [visibility, setVisibility] = useState<Visibility>('private')
   useEffect(()=>{if(!space || !autoChat || space.id==='home')return;const first=space.topics[0];if(!first)return;const timer=window.setTimeout(()=>{setTopic({id:space.id+'-0',space:space.id,title:first,description:'자유롭게 이야기를 나누는 시연 모임',date:'',capacity:20,age:'성인 전체'});setAutoChat(false)},window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:680);return()=>window.clearTimeout(timer)},[space,autoChat])
-  function openSpace(next: Space) { if(access(next.id)!=='open')return;setChatCollapsed(false);setSpace(next); setTopic(null); setShowCreate(false); setNotice(''); setAutoChat(next.id!=='home'); setDraft(''); setPicture(''); clearPlace(); setSaveHistory(false); setVisibility('private') }
+  function openSpace(next: Space) { if(access(next.id)!=='open')return;setChatCollapsed(true);setSpace(next); setTopic(null); setShowCreate(false); setNotice(''); setAutoChat(next.id!=='home'); setDraft(''); setPicture(''); clearPlace(); setSaveHistory(false); setVisibility('private') }
   function enter(next: Topic) { setAutoChat(false); setTopic(next); setDraft(''); setPicture(''); clearPlace(); setNotice(''); setSaveHistory(false); setVisibility('private') }
   function leave() {
     if (topic && saveHistory) setHistory(prev => [{id: uuid(), title: topic.title, at: new Date().toISOString(), visibility}, ...prev].slice(0,100))
@@ -69,20 +70,19 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile }: { 
     setMessages(prev => ({...prev, [topic.id]: [...(prev[topic.id] ?? []), item].slice(-50)}))
     setDraft(''); setPicture('');clearPlace();setNotice('')
   }
-  return <section id="rooms" className="px-5 py-14 sm:px-8" style={{background:'var(--bg-deep)'}}>
-    <div className="mx-auto max-w-[1280px]">
-      <SectionHead kicker="DINGDONG · OPEN THE DOOR" title="오늘은 어느 문을 열어볼까요?" description="차 한 잔도, 책 한 권도, 소소한 이야기 하나도 파티가 됩니다. 12개의 공간을 둘러보세요. 현재는 성인용 로컬 개발 체험판입니다." action={<button type="button" className="btn btn-outline" aria-pressed={onlyFavorites} onClick={()=>setOnlyFavorites(v=>!v)}>{onlyFavorites?'전체 공간':'★ 즐겨찾기만'}</button>}/>
-      <div className="mb-5 rounded-xl border p-4 text-xs leading-relaxed" style={{borderColor:'var(--line)',background:'var(--surface)'}}>개발 체험판 · 실제 접속자, 다중 사용자 채팅, 연령 인증 및 서버 정원 검증은 아직 연결되지 않았습니다. 입력 내용은 이 브라우저에만 저장됩니다.</div>
-      <AvatarWardrobe avatar={profile.avatar} look={look} onChange={setLook}/>
+  return <section id="rooms" className="dd-world-app">
+      <div className="dd-world-nav"><button className="dd3-btn" onClick={()=>setWardrobe(v=>!v)}>옷장</button><button className="dd3-btn" onClick={()=>onEditProfile()}>내 캐릭터</button><button className="dd3-btn" onClick={()=>setYearbook(v=>!v)}>연간 행사</button><button className="dd3-btn" onClick={()=>onMenu('calendar')}>일정</button><button className="dd3-btn" onClick={()=>onMenu('wall')}>포토월</button><button className="dd3-btn" onClick={()=>setOnlyFavorites(v=>!v)} aria-pressed={onlyFavorites}>{onlyFavorites?'전체 문':'☆'}</button></div>
+      {wardrobe&&<div className="dd-world-pop dd-world-wardrobe"><button className="dd3-btn" onClick={()=>setWardrobe(false)}>옷장 닫기</button><AvatarWardrobe avatar={profile.avatar} look={look} onChange={setLook}/></div>}
+      {yearbook&&<div className="dd-world-pop"><button className="dd3-btn" onClick={()=>setYearbook(false)}>닫기</button><h3>365일 파티 안내</h3><p>연간 기획 · 음력 날짜 및 자동 편성은 추후 연결</p>{MONTHLY_IDEAS.map((idea,i)=><p key={i}><strong>{i+1}월</strong> {idea}</p>)}</div>}
       <div className={'dd3-layout'+(space?' dd3-with-chat':'')}>
-        <Mansion3D profile={profile} look={look} active={space} onEnter={openSpace} onLeave={()=>{leave();setSpace(null)}} onCapture={image=>{if(!topic){setNotice('모임에 입장한 뒤 촬영해 주세요.');return}setPicture(image);setChatCollapsed(false);setNotice('사진 첨부 완료 · 전송을 누르면 로컬 채팅에 저장됩니다.')}} favorites={favorites} onlyFavorites={onlyFavorites} onFavorite={id=>setFavorites(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id])}/>
+        <Mansion3D onMenu={onMenu} profile={profile} look={look} active={space} onEnter={openSpace} onLeave={()=>{leave();setSpace(null)}} onCapture={image=>{if(!topic){setNotice('모임에 입장한 뒤 촬영해 주세요.');return}setPicture(image);setChatCollapsed(false);setNotice('사진 첨부 완료 · 전송을 누르면 로컬 채팅에 저장됩니다.')}} favorites={favorites} onlyFavorites={onlyFavorites} onFavorite={id=>setFavorites(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id])}/>
         {space&&<aside role="region" aria-label={space.name} className="dd3-chat dd-chat-reveal">
       <button type="button" className="dd3-collapse" aria-expanded={!chatCollapsed} onClick={()=>setChatCollapsed(v=>!v)}>{chatCollapsed?'채팅 펼치기':'채팅 접기'}</button>
       <div className="p-4 sm:p-5" hidden={chatCollapsed}>
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3"><div><h2 className="serif text-2xl">{space.name}</h2><p className="text-xs" style={{color:'var(--muted)'}}>{space.subtitle}</p></div><button type="button" className="btn btn-outline btn-sm" onClick={()=>{leave();setSpace(null)}}>복도로 나가기</button></div>
         {RESIDENTS[space.id]&&<div className="dd3-npc"><strong>{RESIDENTS[space.id].name} · 안내용 NPC</strong><p>{RESIDENTS[space.id].greeting}</p></div>}
         {autoChat && <p role="status" className="text-sm py-3">공간에 도착했어요. 대화창을 준비합니다…</p>}
-        {space.id==='season' && <button className="btn btn-outline mb-3" onClick={()=>{leave();setSpace(null);onParty()}}>크리스마스 파티 일정 보기</button>}
+        {space.id==='season' && <button className="btn btn-outline mb-3" onClick={onParty}>크리스마스 파티 일정 보기</button>}
         {space.id==='home' ? <div className="space-y-4">
           <div className="rounded-2xl p-5 text-center" style={{background:home.wallpaper,color:'#48382e'}}><div className="flex justify-center"><Avatar name={profile.avatar} size={75}/></div><p className="mt-1 text-lg">{home.accessory} {profile.nickname}</p><div className="mt-6 flex justify-center gap-6 text-5xl">{home.furniture} {home.pet}</div><p className="mt-4 text-sm">{home.intro||'나의 작은 집에 오신 것을 환영해요.'}</p></div>
           <button className="btn btn-outline" onClick={()=>{leave();setSpace(null);onEditProfile()}}>캐릭터·닉네임·취향 수정</button>
@@ -127,7 +127,5 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile }: { 
       </div>
         </aside>}
       </div>
-      <div className="mt-10"><h3 className="serif text-xl">365일, 작은 파티의 계절</h3><p className="my-2 text-xs" style={{color:'var(--muted)'}}>연간 테마 기획 · 음력 명절의 정확한 날짜와 매일 모임 자동 편성은 추후 연결합니다.</p><div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">{MONTHLY_IDEAS.map((idea,i)=><div className="card p-3" key={i}><strong className="text-sm">{i+1}월</strong><p className="mt-1 text-xs leading-relaxed">{idea}</p></div>)}</div></div>
-    </div>
   </section>
 }

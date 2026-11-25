@@ -178,5 +178,30 @@
     "scale": 1,
     "source": "딩동 자체 제작 기본 도형 조립",
     "interaction": "approach-and-read"
+  },
+  {
+    "id": "hub-calendar",
+    "room": "hall",
+    "name": "축제 일정 안내판",
+    "position": [
+      -1.65,
+      0,
+      1.48
+    ],
+    "approach": [
+      -1.65,
+      0,
+      0.9
+    ],
+    "bounds": [
+      0.55,
+      0.18
+    ],
+    "message": "광장 축제 일정 안내판을 열었어요.",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기본 도형 조립",
+    "interaction": "approach-and-read",
+    "menu": "calendar"
   }
 ]
