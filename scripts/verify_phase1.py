@@ -104,6 +104,7 @@ with sync_playwright() as p:
         for value in ["stripe","beret","check"]:
             expect(canvas).to_have_attribute("data-avatar-look",__import__("re").compile(value),timeout=15000)
         expect(canvas).to_have_attribute("data-layout","town-plaza-v2")
+        expect(page.locator(".dd-game-control")).to_have_count(0)
         expect(canvas).to_have_attribute("data-plaza-diameter","21.7")
         expect(canvas).to_have_attribute("data-town-size","74x72")
         page.get_by_role("button",name="일정",exact=True).click()

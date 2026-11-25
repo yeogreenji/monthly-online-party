@@ -1,5 +1,5 @@
 import {ResidentConversation} from './ResidentConversation'
-import {ChevronUp,ChevronDown,ChevronLeft,ChevronRight,Footprints,RotateCcw,RotateCw,ZoomIn,ZoomOut,Settings2,House,Map as MapIcon} from 'lucide-react'
+import {RotateCcw,RotateCw,ZoomIn,ZoomOut,Settings2,House,Map as MapIcon} from 'lucide-react'
 import PHASE_PROPS from '../data/phase1Props.json'
 import { access, accessLabel } from '../data/phase1'
 import type { Look } from '../data/avatarLook'
@@ -10,7 +10,7 @@ import type { Profile } from '../types'
 import type { Space } from '../data/dingdong'
 import { SPACES } from '../data/dingdong'
 import { salonAudio } from '../lib/audio'
-import { RESIDENTS, WORLD_INTRO, SEASON_STORY } from '../data/world'
+import { RESIDENTS, WORLD_INTRO, SEASON_STORY, PLACE_STORIES } from '../data/world'
 import { createWorld } from '../lib/mansion3d.js'
 import type { WorldController } from '../lib/mansion3d.js'
 export function Mansion3D({profile,look,home,active,request,toolsOpen,onToolsChange,onEnter,onLeave,onCapture,onMenu,favorites,onFavorite,onlyFavorites}:{profile:Profile;look:Look;home:import('../data/homeDecor').HomeDecor;active:Space|null;request:{id:string;serial:number}|null;toolsOpen:boolean;onToolsChange:(v:boolean)=>void;onEnter:(s:Space)=>void;onLeave:()=>void;onCapture:(image:string)=>void;onMenu:(id:string)=>void;favorites:string[];onFavorite:(id:string)=>void;onlyFavorites:boolean}){
@@ -31,11 +31,10 @@ export function Mansion3D({profile,look,home,active,request,toolsOpen,onToolsCha
  useEffect(()=>{if(request)visit(request.id)},[request])
  return <div className="dd3-shell">
   <div className="dd3-title"><div><p>DINGDONG · 로컬 체험</p><h3>{active?.name??'딩동 · 온라인 파티'}</h3><span role="status">{status}</span></div><button type="button" onClick={()=>setStory(v=>!v)} className="dd3-btn">초대장 {story?'닫기':'열기'}</button></div>
-  {story&&<div className="dd3-story"><strong>{active?.id==='season'?'열두 번째 초대장':'오늘도 딩동!'}</strong><p>{WORLD_INTRO}</p>{active?.id==='season'&&<p>{SEASON_STORY}</p>}</div>}
+  {story&&<div className="dd3-story"><strong>{active?PLACE_STORIES[active.id]?.title:'초인종이 울리는 동네'}</strong><p>{active?PLACE_STORIES[active.id]?.text:WORLD_INTRO}</p>{active&&<p>{PLACE_STORIES[active.id]?.activity}</p>}{active?.id==='season'&&<p>{SEASON_STORY}</p>}<button type="button" className="dd3-btn" onClick={()=>setStory(false)}>이야기 닫기</button></div>}
   {resident&&RESIDENTS[resident]&&<ResidentConversation key={resident} id={resident} onClose={()=>setResident(null)}/>}
   <div ref={host} className="dd3-canvas" data-testid="mansion-3d" hidden={error||low}/>
   {(error||low)&&<div className="dd3-fallback"><RoomArtwork space={active??SPACES.find(s=>s.id==='plaza')!}/><AvatarPreview avatar={profile.avatar} look={look}/><p>2D 대체 모드 · 공간 이동은 목적지 안내로 체험합니다.</p></div>}
-  <div className="dd-game-control"><div className="dd-dpad" aria-label="거리 이동">{([{Icon:ChevronUp,n:'앞으로',x:0,z:-1,s:'up'},{Icon:ChevronLeft,n:'왼쪽',x:-1,z:0,s:'left'},{Icon:ChevronRight,n:'오른쪽',x:1,z:0,s:'right'},{Icon:ChevronDown,n:'뒤로',x:0,z:1,s:'down'}]).map(({Icon,n,x,z,s})=><button key={s} data-slot={s} disabled={error||low} aria-label={n+' 거리 이동'} onClick={()=>world.current?.move(x*2,z*2)}><Icon size={24} strokeWidth={3}/></button>)}<span><Footprints size={20}/></span></div></div>
   {!active&&<div className="dd-map-views"><button aria-pressed={overview} onClick={()=>{setOverview(v=>!v);world.current?.setOverview(!overview)}}><MapIcon size={19}/>{overview?"캐릭터 따라가기":"마을 전체 보기"}</button><button aria-pressed={roofsOpen} onClick={()=>setRoofsOpen(v=>!v)}><House size={19}/>{roofsOpen?"지붕 닫기":"지붕 열기"}</button></div>}
   <div className="dd-camera-control">{[{I:RotateCcw,n:'왼쪽 회전',f:()=>world.current?.orbit(-Math.PI/4)},{I:RotateCw,n:'오른쪽 회전',f:()=>world.current?.orbit(Math.PI/4)},{I:ZoomIn,n:'화면 확대',f:()=>{setOverview(false);world.current?.zoom(-.25)}},{I:ZoomOut,n:'화면 축소',f:()=>{setOverview(false);world.current?.zoom(.35)}}].map(({I,n,f})=><button key={n} disabled={error||low} aria-label={n} onClick={f}><I size={19}/><small>{n.replace('화면 ','')}</small></button>)}</div>
   <details className="dd3-access-menu" open={toolsOpen} ><summary onClick={e=>{e.preventDefault();onToolsChange(!toolsOpen)}}><Settings2 size={17}/> 이동·공간 메뉴</summary>
