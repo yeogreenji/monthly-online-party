@@ -1,0 +1,82 @@
+[
+  {
+    "id": "hub-directory",
+    "room": "hall",
+    "name": "안내 게시판",
+    "position": [
+      -1.7,
+      0,
+      -1.45
+    ],
+    "approach": [
+      -1.7,
+      0,
+      -0.9
+    ],
+    "message": "벨의 안내소 · 지금은 광장과 시즌 파티하우스만 체험할 수 있어요.",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기본 도형 조립",
+    "interaction": "approach-and-read"
+  },
+  {
+    "id": "hub-bell",
+    "room": "hall",
+    "name": "황동 초인종",
+    "position": [
+      1.65,
+      0,
+      1.48
+    ],
+    "approach": [
+      1.65,
+      0,
+      0.9
+    ],
+    "message": "딩동! 벨이 새로운 방문객을 환영합니다. (가상 안내)",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기본 도형 조립",
+    "interaction": "approach-and-read"
+  },
+  {
+    "id": "season-banquet",
+    "room": "season",
+    "name": "파티 테이블",
+    "position": [
+      1.65,
+      0,
+      -0.7
+    ],
+    "approach": [
+      0.72,
+      0,
+      -0.65
+    ],
+    "message": "노엘의 파티 테이블 · 오늘 나누고 싶은 이야기를 채팅창에 남겨 보세요.",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기본 도형 조립",
+    "interaction": "approach-and-read"
+  },
+  {
+    "id": "season-photo",
+    "room": "season",
+    "name": "겨울 포토존",
+    "position": [
+      -1.85,
+      0,
+      -0.55
+    ],
+    "approach": [
+      -0.72,
+      0,
+      -0.55
+    ],
+    "message": "겨울 포토존 · 사진은 기기에서 직접 첨부할 수 있어요. 실제 촬영 기능은 준비중입니다.",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기본 도형 조립",
+    "interaction": "approach-and-read"
+  }
+]

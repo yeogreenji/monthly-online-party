@@ -22,10 +22,16 @@ with sync_playwright() as p:
         page.get_by_role("button",name="걸어가기",exact=True).click()
         expect(page.get_by_role("status").filter(has_text="연령·안전 확인 전 잠금")).to_be_visible()
         expect(canvas).to_have_attribute("data-room","hall")
+        page.get_by_role("button",name="황동 초인종",exact=True).click()
+        expect(canvas).to_have_attribute("data-last-prop","hub-bell",timeout=15000)
+        expect(page.get_by_role("status").filter(has_text="새로운 방문객")).to_be_visible()
         for id in ["season","plaza"]:
             page.locator("#dd3-dest").select_option(id)
             page.get_by_role("button",name="걸어가기",exact=True).click()
             expect(canvas).to_have_attribute("data-room",id,timeout=35000)
+            if id=="season":
+                page.get_by_role("button",name="파티 테이블",exact=True).click()
+                expect(canvas).to_have_attribute("data-last-prop","season-banquet",timeout=15000)
             page.get_by_role("button",name="채팅 접기",exact=True).click()
             page.get_by_role("button",name="채팅 펼치기",exact=True).click()
             expect(page.get_by_role("textbox",name="메시지",exact=True)).to_be_visible(timeout=5000)
