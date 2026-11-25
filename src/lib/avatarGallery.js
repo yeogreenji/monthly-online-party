@@ -17,20 +17,20 @@ export function createAvatarGallery(host,avatars,onSelect){
  const stands=[];const groups=[];let selected=2,rotation=0,frame=0,disposed=false,drag=null
  for(let i=0;i<3;i++){const p=new T.Group();p.position.x=(i-1)*2.55;scene.add(p);disc(p,0xffbd38,0,.12,0,.96,.22);disc(p,0x464098,0,.25,0,.87,.16);stands.push(p)}
  function animal(id,index){const [fur,cream]=colors[id]||colors.cat;const g=new T.Group();const dark=0x2d2439;const c=coat[index%coat.length]
- ell(g,c,0,.86,0,.43,.60,.35);ell(g,cream,0,1.04,.27,.28,.35,.12);for(const s of [-1,1]){ell(g,c,s*.42,.88,0,.15,.35,.16).rotation.z=s*.3;ell(g,fur,s*.48,.67,.03,.13,.13,.14);ell(g,dark,s*.22,.28,.13,.19,.13,.25)}
+ ell(g,c,0,.77,0,.43,.43,.34);ell(g,cream,0,.88,.27,.27,.24,.12);for(const s of [-1,1]){ell(g,c,s*.42,.88,0,.15,.35,.16).rotation.z=s*.3;ell(g,fur,s*.48,.67,.03,.13,.13,.14);ell(g,dark,s*.22,.28,.13,.19,.13,.25)}
  if(['cat','santacat','fox','squirrel','raccoon','otter','dog'].includes(id))ell(g,fur,.38,.65,-.33,.22,.40,.19).rotation.z=-.7
- ell(g,fur,0,1.65,0,.61,.57,.47)
+ ell(g,fur,0,1.58,0,.68,.58,.51)
  for(const s of [-1,1]){if(['cat','santacat','fox','squirrel'].includes(id)){const ear=mesh(g,cone,fur,s*.4,2.15,0,.24,.55,.2);ear.rotation.z=-s*.22;ell(g,0xff9caa,s*.4,2.12,.14,.11,.16,.06)}
  else if(id==='rabbit'){ell(g,fur,s*.23,2.25,0,.16,.55,.14).rotation.z=-s*.10;ell(g,0xff91b7,s*.23,2.25,.1,.08,.4,.04)}
  else if(id==='dog'){ell(g,0x8e542b,s*.55,1.65,0,.19,.38,.20).rotation.z=s*.25}
  else if(id!=='penguin'){ell(g,id==='panda'?dark:fur,s*.45,2.02,0,.22,.22,.16);ell(g,cream,s*.45,2.02,.13,.11,.11,.04)}
  if(['panda','raccoon'].includes(id))ell(g,dark,s*.22,1.71,.41,.16,.18,.065)
- ell(g,['panda','raccoon'].includes(id)?0xffffff:dark,s*.22,1.73,.465,.062,.078,.045);ell(g,dark,s*.22,1.73,.498,.036,.045,.022);ell(g,0xffffff,s*.22-.014,1.76,.515,.016,.019,.009);ell(g,0xff9ba4,s*.35,1.56,.39,.09,.043,.035)}
+ ell(g,['panda','raccoon'].includes(id)?0xffffff:dark,s*.22,1.73,.465,.085,.10,.05);ell(g,dark,s*.22,1.73,.498,.047,.062,.025);ell(g,0xffffff,s*.22-.014,1.76,.515,.025,.025,.012);ell(g,0xff9ba4,s*.35,1.56,.39,.09,.043,.035)}
  ell(g,cream,0,1.49,.4,.25,.17,.10);ell(g,id==='owl'||id==='penguin'?0xffae22:dark,0,1.55,.505,.09,.062,.055)
  if(id==='deer')for(const s of [-1,1]){ell(g,0x89582c,s*.34,2.24,0,.055,.34,.06).rotation.z=-s*.17;ell(g,0x89582c,s*.46,2.31,0,.045,.15,.05).rotation.z=-s*.55}
  if(id==='santacat'){mesh(g,cone,0xe72942,0,2.23,0,.36,.52,.35);ell(g,0xffffff,0,2.5,0,.09,.09,.09);ell(g,0xffffff,0,2.02,0,.37,.09,.35)}
  for(const y of [.79,.98])ell(g,0xffd54a,0,y,.36,.045,.045,.03);return g}
- function refresh(index){selected=(index+avatars.length)%avatars.length;rotation=0;for(let i=0;i<3;i++){if(groups[i])stands[i].remove(groups[i]);const n=(selected+i-1+avatars.length)%avatars.length;const g=animal(avatars[n],n);g.userData.index=n;g.position.y=.33;g.scale.setScalar(i===1?1:.74);stands[i].add(g);groups[i]=g}renderer.domElement.dataset.selected=avatars[selected]}
+ function refresh(index){selected=(index+avatars.length)%avatars.length;rotation=0;for(let i=0;i<3;i++){if(groups[i])stands[i].remove(groups[i]);const n=(selected+i-1+avatars.length)%avatars.length;const g=animal(avatars[n],n);g.userData.index=n;g.position.y=.33;g.scale.setScalar(i===1?.88:.64);stands[i].add(g);groups[i]=g}renderer.domElement.dataset.selected=avatars[selected]}
  function resize(){const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);renderer.setSize(w,h,false);camera.aspect=w/h;const d=camera.aspect<.8?13:9.4;camera.position.set(0,3.2,d);camera.lookAt(0,1.65,0);camera.updateProjectionMatrix()}
  const observer=new ResizeObserver(resize);observer.observe(host);resize()
  function down(e){drag={x:e.clientX,y:e.clientY,r:rotation};renderer.domElement.setPointerCapture?.(e.pointerId)}

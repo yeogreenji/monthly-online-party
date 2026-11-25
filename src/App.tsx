@@ -15,6 +15,7 @@ import { DINGDONG_STORAGE } from './data/dingdong'
 import { PhotoWall } from './components/PhotoWall'
 import { SponsorsSection } from './components/SponsorsSection'
 import { CalendarSection } from './components/CalendarSection'
+import { TownCalendar } from './components/TownCalendar'
 import { EtiquetteSection, Footer } from './components/Footer'
 import { MediaKit } from './components/MediaKit'
 import { Onboarding } from './components/Onboarding'
@@ -76,7 +77,7 @@ export default function App() {
   }, [view])
 
   useEffect(() => {
-    if (view !== 'home') return
+    if (view !== 'home'||section!=='legacy') return
     const nodes = SECTION_IDS.map((id) => document.getElementById(id)).filter((node): node is HTMLElement => Boolean(node))
     if (nodes.length === 0) return
     const observer = new IntersectionObserver(
@@ -89,7 +90,7 @@ export default function App() {
     )
     nodes.forEach((node) => observer.observe(node))
     return () => observer.disconnect()
-  }, [view])
+  }, [view,section])
 
   const toast = useCallback((text: string, tone: 'default' | 'success' = 'default') => {
     toastId.current += 1
@@ -296,7 +297,8 @@ export default function App() {
   return (
     <div className="dd-app-root" style={{ background: 'var(--bg)' }}>
       {profile&&!editing&&<DingdongSpaces profile={profile} key={profile.joinedAt} onLegacy={openRoom} onParty={()=>navigate('party')} onEditProfile={()=>setEditing(true)} onMenu={navigate}/>}
-      {profile&&panelOpen&&<div className="dd-app-panel" role="dialog" aria-label="딩동 안내 메뉴"><button className="dd-app-panel-close" type="button" onClick={()=>setPanelOpen(false)}>× 공간으로 돌아가기</button>
+      {profile&&panelOpen&&<div className="dd-app-panel" role="dialog" aria-label="딩동 안내 메뉴"><button className="dd-app-panel-close" type="button" onClick={()=>setPanelOpen(false)}>× 마을로 돌아가기</button>
+      {section==='calendar'?<TownCalendar parties={PARTIES} rsvps={rsvps} alarms={alarms} onRsvp={toggleRsvp} onAlarm={toggleAlarm} onDownload={downloadParty} onParty={id=>{setMonthId(id);setSection('party')}}/>:section==='party'||section==='program'?<div className="dd-party-pop"><div className="dd-calendar-cover"><div><small>PARTY INVITATION</small><h2>{party.title}</h2><p>{party.dateLabel} · {party.timeLabel}</p></div></div><p>{party.subtitle}</p><div className="dd-cal-actions"><button onClick={()=>toggleRsvp(party.id)}>{rsvps[party.id]?'예약 취소':'초대장 예약'}</button><button onClick={()=>downloadParty(party)}>일정 저장</button><button onClick={()=>setSection('calendar')}>달력</button></div>{party.program.map(p=><div className="dd-cal-event" key={p.time}><strong>{p.time}</strong><div><h3>{p.title}</h3><p>{p.detail}</p></div></div>)}</div>:section==='wall'?<PhotoWall feed={feed} profile={profile} onPublish={publishPost} onLike={likePost} onComment={commentPost} onRemove={removePost} onToast={toast}/>:section==='etiquette'?<div className="dd-party-pop"><h2>딩동 마을 안내</h2><p>바닥을 누르거나 방향키로 골목을 돌아다니세요. 가게의 문과 안내판을 눌러 방문할 수 있어요.</p><p>성인용 로컬 개발 체험판이며 실제 친구·채팅·연령 확인은 연결되지 않았습니다.</p><EtiquetteSection/></div>:<>
       <Header
         view={view}
         section={section}
@@ -385,6 +387,7 @@ export default function App() {
         onNavigate={navigate}
       />
 
+      </>}
       </div>}
       {roomId && profile && (
         <RoomOverlay

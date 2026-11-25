@@ -38,6 +38,12 @@ with sync_playwright() as p:
         expect(canvas).to_have_attribute("data-avatar-look",__import__("re").compile("#a45e68"),timeout=15000)
         for value in ["stripe","beret","check"]:
             expect(canvas).to_have_attribute("data-avatar-look",__import__("re").compile(value),timeout=15000)
+        expect(canvas).to_have_attribute("data-layout","town-grid-v1")
+        page.get_by_role("button",name="일정",exact=True).click()
+        expect(page.get_by_role("heading",name="우리 마을의 파티 달력")).to_be_visible()
+        assert page.get_by_role("heading",name="우리 마을의 파티 달력").count()==1
+        page.get_by_role("button",name="× 마을로 돌아가기",exact=True).click()
+        expect(canvas).to_be_visible()
         page.locator(".dd3-access-menu summary").click()
         page.locator("#dd3-dest").select_option("jazz")
         page.get_by_role("button",name="걸어가기",exact=True).click()
@@ -62,6 +68,7 @@ with sync_playwright() as p:
                 expect(canvas).to_have_attribute("data-last-prop","season-photo",timeout=15000)
                 page.get_by_role("button",name="포토존 사진 촬영",exact=True).click()
                 expect(page.get_by_alt_text("첨부 미리보기")).to_be_visible()
+                page.locator(".dd3-access-menu summary").click()
                 page.get_by_role("button",name="전송",exact=True).click()
                 expect(page.get_by_alt_text("내가 올린 사진")).to_be_visible()
                 page.get_by_role("button",name="장소 추천 첨부",exact=True).click()
@@ -70,6 +77,7 @@ with sync_playwright() as p:
                 page.get_by_role("button",name="전송",exact=True).click()
                 page.get_by_role("button",name="장소 저장",exact=True).click()
                 expect(page.get_by_text("저장한 장소 (1)",exact=True)).to_be_visible()
+            if id=="season": page.locator(".dd3-access-menu summary").click()
             page.get_by_role("button",name="파티 의자에 앉기" if id=="season" else "광장 벤치에 앉기",exact=True).click()
             expect(canvas).to_have_attribute("data-pose","seated",timeout=15000)
             page.screenshot(path=f"artifacts/seated-{id}-{width}.png")
