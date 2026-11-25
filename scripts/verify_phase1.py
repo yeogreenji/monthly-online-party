@@ -21,6 +21,7 @@ with sync_playwright() as p:
         assert page.locator("body").evaluate("(el)=>el.scrollHeight<=window.innerHeight+2")
         assert canvas.evaluate("(el)=>el.getBoundingClientRect().height>=window.innerHeight-3")
         expect(canvas).to_have_attribute("data-festive","false")
+        expect(canvas).to_have_attribute("data-time-mode","auto")
         expect(canvas).to_have_attribute("data-roofs","open")
         page.get_by_role("button",name="마을 전체 보기",exact=True).click()
         expect(canvas).to_have_attribute("data-overview","true")

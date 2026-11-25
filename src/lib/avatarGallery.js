@@ -1,8 +1,10 @@
 import * as T from 'three'
+import {makeTownSky} from './townSky.js'
+import {createModelFactory} from './animalModels.js'
 const colors={cat:[0xe6a051,0xffedc9],bear:[0xb67842,0xffdbab],fox:[0xf07827,0xffecd7],rabbit:[0xe8c7d6,0xfff4fa],santacat:[0xb6b0c8,0xfff4ee],owl:[0x9f6740,0xfad897],squirrel:[0xc76d34,0xffd6a0],penguin:[0x26354c,0xfff8ec],dog:[0xca9b68,0xffe0b9],hamster:[0xf2bb72,0xfff0ce],otter:[0x9b6744,0xffd5a4],raccoon:[0x9299b2,0xf6f3ed],deer:[0xc5834e,0xffe0ac],panda:[0xf7f6f2,0xfffaf0]}
 const coat=[0xe52f59,0x19a86f,0x2467eb,0x913bcc,0xf5ad21,0x09adbb,0xff5b91]
 export function createAvatarGallery(host,avatars,onSelect){
- const scene=new T.Scene();scene.background=new T.Color(0xc9e8f5);scene.fog=new T.Fog(0xc9e8f5,23,45)
+ const scene=new T.Scene(),sky=makeTownSky(),factory=createModelFactory();scene.background=sky.texture;scene.fog=new T.Fog(0xc9e8f5,23,45)
  const renderer=new T.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.outputColorSpace=T.SRGBColorSpace;renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.domElement.dataset.design='sunlit-garden';renderer.domElement.setAttribute('aria-label','3D 캐릭터 선택실');renderer.domElement.tabIndex=0;host.appendChild(renderer.domElement)
  const camera=new T.PerspectiveCamera(42,1,.1,60);scene.add(new T.HemisphereLight(0xfff8eb,0xc3b6d0,1.65));const key=new T.DirectionalLight(0xffe5c5,2.2);key.position.set(4,8,6);key.castShadow=true;key.shadow.mapSize.set(1024,1024);Object.assign(key.shadow.camera,{left:-10,right:10,top:9,bottom:-9,near:.5,far:30});key.shadow.bias=-.0005;scene.add(key);const fill=new T.DirectionalLight(0xe1f5ff,.7);fill.position.set(-5,4,-4);scene.add(fill)
  const sphere=new T.SphereGeometry(1,24,16),box=new T.BoxGeometry(1,1,1),cylinder=new T.CylinderGeometry(1,1,1,32),cone=new T.ConeGeometry(1,1,24),materials=new Map()
@@ -19,7 +21,7 @@ export function createAvatarGallery(host,avatars,onSelect){
  for(let n=0;n<=14;n++){const a=n*Math.PI/14;ell(scene,n%2?0xe58bb4:0xf7d8a6,Math.cos(a)*3.5,3.1+Math.sin(a)*1.05,-3.1,.34,.25,.28)}
  for(let n=0;n<11;n++){const x=-3.25+n*.65,y=3.55-.45*(1-(x/3.5)**2);const b=mesh(scene,cone,coat[n%7],x,y,-2.82,.18,.42,.065);b.rotation.z=Math.PI}
  for(const [x,col] of [[-8,0xe9a5bd],[8,0x91cfc1]]){cube(scene,col,x,1.4,-5.8,3.2,2.8,2.6);for(const side of [-1,1]){const r=cube(scene,x<0?0xc86e93:0x548bb8,x+side*.8,3.16,-5.8,1.9,.19,3);r.rotation.z=-side*.40}cube(scene,0xfff0d5,x,1.05,-4.44,.95,2.1,.13);for(const dx of [-1,1]){cube(scene,0xfff0d5,x+dx,1.65,-4.44,.76,.86,.12);cube(scene,0x8dbfdc,x+dx,1.65,-4.35,.62,.70,.04)}}
- const stands=[];const groups=[];let selected=2,rotation=0,frame=0,disposed=false,drag=null
+ const stands=[];const groups=[],models=[];let selected=2,rotation=0,frame=0,disposed=false,drag=null
  for(let i=0;i<3;i++){const p=new T.Group();p.position.x=(i-1)*2.55;scene.add(p);disc(p,0xd8a9c4,0,.20,0,1.04,.22);disc(p,i===1?0xf6d4e6:0xf9e9d2,0,.34,0,.98,.13);stands.push(p)}
  function animal(id,index){const [fur,cream]=colors[id]||colors.cat;const g=new T.Group();const dark=0x2d2439;const c=coat[index%coat.length]
  ell(g,c,0,.77,0,.43,.43,.34);ell(g,cream,0,.88,.27,.27,.24,.12);for(const s of [-1,1]){ell(g,c,s*.42,.88,0,.15,.35,.16).rotation.z=s*.3;ell(g,fur,s*.48,.67,.03,.13,.13,.14);ell(g,dark,s*.22,.28,.13,.19,.13,.25)}
@@ -35,7 +37,7 @@ export function createAvatarGallery(host,avatars,onSelect){
  if(id==='deer')for(const s of [-1,1]){ell(g,0x89582c,s*.34,2.24,0,.055,.34,.06).rotation.z=-s*.17;ell(g,0x89582c,s*.46,2.31,0,.045,.15,.05).rotation.z=-s*.55}
  if(id==='santacat'){mesh(g,cone,0xe72942,0,2.23,0,.36,.52,.35);ell(g,0xffffff,0,2.5,0,.09,.09,.09);ell(g,0xffffff,0,2.02,0,.37,.09,.35)}
  for(const y of [.79,.98])ell(g,0xffd54a,0,y,.36,.045,.045,.03);return g}
- function refresh(index){selected=(index+avatars.length)%avatars.length;rotation=0;for(let i=0;i<3;i++){if(groups[i])stands[i].remove(groups[i]);const n=(selected+i-1+avatars.length)%avatars.length;const g=animal(avatars[n],n);g.userData.index=n;g.position.y=.40;g.scale.setScalar(i===1?.88:.64);stands[i].add(g);groups[i]=g}renderer.domElement.dataset.selected=avatars[selected]}
+ function refresh(index){selected=(index+avatars.length)%avatars.length;rotation=0;for(let i=0;i<3;i++){models[i]?.dispose();const n=(selected+i-1+avatars.length)%avatars.length,model=factory.create(stands[i],avatars[n],coat[n%coat.length]);const g=model.g;g.userData.index=n;g.position.y=.40;g.scale.setScalar(i===1?1.48:1.1);groups[i]=g;models[i]=model}renderer.domElement.dataset.selected=avatars[selected]}
  function resize(){const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);renderer.setSize(w,h,false);camera.aspect=w/h;const d=camera.aspect<.8?12:9.8;camera.position.set(0,4.2,d);camera.lookAt(0,1.42,0);camera.updateProjectionMatrix()}
  const observer=new ResizeObserver(resize);observer.observe(host);resize()
  function down(e){drag={x:e.clientX,y:e.clientY,r:rotation};renderer.domElement.setPointerCapture?.(e.pointerId)}
@@ -43,5 +45,5 @@ export function createAvatarGallery(host,avatars,onSelect){
  function up(e){if(!drag)return;const d=drag;drag=null;if(Math.hypot(e.clientX-d.x,e.clientY-d.y)>9)return;const rect=renderer.domElement.getBoundingClientRect();const ray=new T.Raycaster();ray.setFromCamera(new T.Vector2((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1),camera);const hits=ray.intersectObjects(groups,true);if(hits.length){let p=hits[0].object;while(p&&p.userData.index===undefined)p=p.parent;if(p)onSelect(avatars[p.userData.index])}}
  renderer.domElement.addEventListener('pointerdown',down);renderer.domElement.addEventListener('pointermove',move);renderer.domElement.addEventListener('pointerup',up);renderer.domElement.addEventListener('pointercancel',()=>{drag=null})
  refresh(selected);function tick(){if(disposed)return;groups[1].rotation.y=rotation;renderer.render(scene,camera);frame=requestAnimationFrame(tick)}tick()
- return {select(id){const i=avatars.indexOf(id);if(i>=0)refresh(i)},dispose(){disposed=true;cancelAnimationFrame(frame);observer.disconnect();for(const m of materials.values())m.dispose();for(const g of [sphere,box,cylinder,cone])g.dispose();renderer.dispose();renderer.domElement.remove()}}
+ return {select(id){const i=avatars.indexOf(id);if(i>=0)refresh(i)},dispose(){disposed=true;cancelAnimationFrame(frame);observer.disconnect();factory.dispose();sky.dispose();for(const m of materials.values())m.dispose();for(const g of [sphere,box,cylinder,cone])g.dispose();renderer.dispose();renderer.domElement.remove()}}
 }
