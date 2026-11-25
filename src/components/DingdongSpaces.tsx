@@ -1,3 +1,5 @@
+import {HomeEditor} from './HomeEditor'
+import {HOME_DEFAULT,normalizeHome} from '../data/homeDecor'
 import {FestivalArt} from './FestivalArt'
 import {PartyPopper,CalendarDays,Map,Home,Settings,Shirt,UserRound,Mail,Bell,Camera,MessageCircle,ImagePlus,Smile,MapPin,Send,MoreHorizontal,ChevronDown,ChevronLeft} from 'lucide-react'
 import { access } from '../data/phase1'
@@ -20,7 +22,7 @@ type Message = { id: string; text: string; image?: string; place?:Place; at: str
 function safePlaceUrl(value:string){try{const u=new URL(value.trim());return ['https:','http:'].includes(u.protocol)&&!u.username&&!u.password?u.href:''}catch{return ''}}
 type History = { id: string; title: string; at: string; visibility: Visibility }
 const VISIBILITY = { private: '비공개', friends: '친구 공개(설정만)', public: '전체 공개(설정만)' }
-const INITIAL_HOME = { intro: '', wallpaper: '#f3dfc8', furniture: '🛋️', pet: '🐈', accessory: '🎀', visibility: 'private' as Visibility }
+const INITIAL_HOME = HOME_DEFAULT
 const FIELD = 'w-full rounded-xl border border-current/15 bg-transparent px-3 py-2 text-sm'
 const uuid = () => globalThis.crypto?.randomUUID?.() ?? String(Date.now()) + Math.random().toString(36).slice(2)
 export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMenu }: { profile: Profile; onLegacy: (id: RoomId) => void; onParty: () => void; onEditProfile: () => void; onMenu:(id:string)=>void }) {
@@ -45,7 +47,8 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   const [topics, setTopics] = usePersistentState<Topic[]>('dd.topics.v1', [])
   const [messages, setMessages] = usePersistentState<Record<string, Message[]>>('dd.messages.v1', {})
   const [history, setHistory] = usePersistentState<History[]>('dd.history.v1', [])
-  const [home, setHome] = usePersistentState('dd.home.v1', INITIAL_HOME)
+  const [storedHome, setHome] = usePersistentState('dd.home.v1', INITIAL_HOME)
+  const home=normalizeHome(storedHome)
   const [onlyFavorites, setOnlyFavorites] = useState(false)
   const [draft, setDraft] = useState('')
   const [picture, setPicture] = useState('')
@@ -91,7 +94,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
       {mailOpen&&<div className="dd-world-pop" role="dialog" aria-label="나의 우편함"><div className="dd-pop-title"><strong>나의 우편함</strong><button className="dd3-btn" onClick={()=>setMailOpen(false)}>닫기</button></div><div className="dd-mail-empty"><Mail size={42}/><h3>친구의 편지가 도착하는 곳</h3><p>현재는 로컬 체험입니다. 친구 방문·편지 송수신은 실제 계정 및 권한 연결 후 제공합니다.</p></div></div>}
       <div className={'dd3-layout'+(space?' dd3-with-chat':'')+(space&&space.id!=='home'&&!chatCollapsed?' dd-chat-open':'')}>
         <Mansion3D onMenu={id=>{if(id==='home-wardrobe')showPanel('wardrobe');else if(id==='home-profile')onEditProfile();else if(id==='home-mailbox')showPanel('mail');else if(id==='home-decor'){closePanels();setChatCollapsed(false)}else externalMenu(id)}} profile={profile} look={look} home={home} active={space} request={request} toolsOpen={toolsOpen} onToolsChange={toggleTools} onEnter={openSpace} onLeave={()=>{leave();setSpace(null)}} onCapture={image=>{if(!topic){setNotice('모임에 입장한 뒤 촬영해 주세요.');return}setPicture(image);setChatCollapsed(false);setNotice('사진 첨부 완료 · 전송을 누르면 로컬 채팅에 저장됩니다.')}} favorites={favorites} onlyFavorites={onlyFavorites} onFavorite={id=>setFavorites(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id])}/>
-        {space&&<aside role="region" aria-label={space.name} className={"dd3-chat dd-chat-reveal"+(space.id!=="home"&&!chatCollapsed?" dd-messenger":"")}>
+        {space&&<aside role="region" aria-label={space.name} className={"dd3-chat dd-chat-reveal"+(space.id!=="home"&&!chatCollapsed?" dd-messenger":space.id==="home"&&!chatCollapsed?" dd-home-panel":"")}>
       <button type="button" className="dd3-collapse" aria-expanded={!chatCollapsed} onClick={()=>{if(chatCollapsed)closePanels();setChatCollapsed(v=>!v)}}>{space.id!=='home'&&<MessageCircle size={18}/>}<span>{space.id==='home'?(chatCollapsed?'집 꾸미기':'집 꾸미기 닫기'):(chatCollapsed?'채팅 펼치기':'채팅 접기')}</span>{!chatCollapsed&&<ChevronDown size={16}/>}</button>
       <div className={space.id!=='home'&&topic?'dd-chat-body':'p-4 sm:p-5'} hidden={chatCollapsed}>
         <div className="dd-room-heading mb-4 flex flex-wrap items-start justify-between gap-3"><div><h2 className="serif text-2xl">{space.name}</h2><p className="text-xs" style={{color:'var(--muted)'}}>{space.subtitle}</p></div><button type="button" className="btn btn-outline btn-sm" onClick={()=>{leave();setSpace(null)}}>복도로 나가기</button></div>
@@ -99,15 +102,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
         {autoChat && <p role="status" className="text-sm py-3">공간에 도착했어요. 대화창을 준비합니다…</p>}
         {space.id==='season' && !topic && <button className="btn btn-outline mb-3" onClick={onParty}>크리스마스 파티 일정 보기</button>}
         {space.id==='home' ? <div className="space-y-4">
-          <div className="rounded-2xl p-5 text-center" style={{background:home.wallpaper,color:'#48382e'}}><div className="flex justify-center"><AvatarPreview avatar={profile.avatar} look={look}/></div><p className="mt-1 text-lg">{home.accessory} {profile.nickname}</p><div className="mt-6 flex justify-center gap-6 text-5xl">{home.furniture} {home.pet}</div><p className="mt-4 text-sm">{home.intro||'나의 작은 집에 오신 것을 환영해요.'}</p></div>
-          <button className="btn btn-outline" onClick={()=>{leave();setSpace(null);onEditProfile()}}>캐릭터·닉네임·취향 수정</button>
-          <label className="block text-sm">미니홈피 소개<textarea className={FIELD} maxLength={160} value={home.intro} onChange={e=>setHome(p=>({...p,intro:e.target.value}))}/></label>
-          <div className="grid grid-cols-2 gap-3">
-            <label className="text-sm">벽지<select aria-label="벽지" className={FIELD} value={home.wallpaper} onChange={e=>setHome(p=>({...p,wallpaper:e.target.value}))}>{[['#f3dfc8','크림'],['#d7e4ca','숲'],['#ead1de','분홍'],['#cddbe9','하늘']].map(([v,n])=><option key={v} value={v}>{n}</option>)}</select></label>
-            <label className="text-sm">가구<select className={FIELD} value={home.furniture} onChange={e=>setHome(p=>({...p,furniture:e.target.value}))}>{['🛋️','🛏️','🪑','📚'].map(v=><option key={v}>{v}</option>)}</select></label>
-            <label className="text-sm">반려동물<select className={FIELD} value={home.pet} onChange={e=>setHome(p=>({...p,pet:e.target.value}))}>{['🐈','🐕','🐇','🐹','없음'].map(v=><option key={v}>{v}</option>)}</select></label>
-            <label className="text-sm">소품<select className={FIELD} value={home.accessory} onChange={e=>setHome(p=>({...p,accessory:e.target.value}))}>{['🎀','🎩','🧣','🌷','없음'].map(v=><option key={v}>{v}</option>)}</select></label>
-          </div>
+          <HomeEditor home={home} onChange={setHome}/><details className="dd-home-profile"><summary>미니홈피와 프로필</summary><button className="btn btn-outline" onClick={()=>{leave();setSpace(null);onEditProfile()}}>캐릭터·닉네임·취향 수정</button><label className="block text-sm">미니홈피 소개<textarea className={FIELD} maxLength={160} value={home.intro} onChange={e=>setHome(p=>({...p,intro:e.target.value}))}/></label></details>
           <label className="text-sm">미니홈피 공개 범위<select className={FIELD} value={home.visibility} onChange={e=>setHome(p=>({...p,visibility:e.target.value as Visibility}))}>{Object.entries(VISIBILITY).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>
           <p className="text-xs" style={{color:'var(--muted)'}}>벽지·가구·반려동물은 내 3D 집에 적용되고 브라우저에 자동 저장됩니다. 공개 범위는 설정만 저장되며 실제 친구 방문·편지는 계정 연결 전 제공되지 않습니다.</p>
           <h3 className="serif text-lg">나의 모임 기록</h3>{history.length===0?<p className="text-sm">저장한 모임이 없어요.</p>:history.map(h=><div className="card flex flex-wrap items-center justify-between gap-2 p-3 text-sm" key={h.id}><span>{h.title} · {VISIBILITY[h.visibility]}</span><button className="btn btn-ghost btn-sm" onClick={()=>setHistory(p=>p.filter(x=>x.id!==h.id))}>삭제</button></div>)}
