@@ -1,5 +1,6 @@
 import * as T from 'three'
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
+import { createSpriteFactory } from './animalSprites.js'
 const palette={wood:0xa98260,cream:0xf1dfbd,brass:0xc2a16a,green:0x647b65,red:0x96565c,dark:0x51443d,blue:0x60778a}
 const skin={cat:[0xc79763,0xf5e3c8],santacat:[0xb9b0a4,0xf3e9db],bear:[0xb68a61,0xf1dec2],fox:[0xc7794c,0xf7e4d0],rabbit:[0xe3d5c3,0xfff0e2],owl:[0x9b7a56,0xf1e3c9],squirrel:[0xb17a4e,0xf3dfc3],penguin:[0x414e54,0xf5eddf],dog:[0xd0a578,0xf4e5d0],hamster:[0xe0b78a,0xf9edd7],otter:[0x9f785c,0xe8d2b6],raccoon:[0xa39f97,0xf1e9db],deer:[0xbb8c64,0xf4e2c8],panda:[0xf0e9df,0xfffaf0]}
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v))
@@ -29,19 +30,8 @@ export function createWorld(host,opts){
  function lamp(p,x,z){cyl(p,palette.brass,x,.08,z,.22,.12);cyl(p,palette.brass,x,.9,z,.035,1.7);cone(p,palette.cream,x,1.77,z,.32,.45)}
  function gift(p,x,z){box(p,palette.red,x,.18,z,.5,.36,.45);box(p,palette.cream,x,.37,z,.1,.03,.45);box(p,palette.cream,x,.37,z,.5,.03,.1)}
  function plant(p,x,z){cyl(p,palette.wood,x,.2,z,.21,.4);for(let i=0;i<5;i++){const a=i*1.8;const l=ball(p,palette.green,x+Math.sin(a)*.16,.53+(i%2)*.16,z+Math.cos(a)*.16,.12,.31,.08);l.rotation.z=Math.sin(a)*.6}}
- function animal(parent,key,coat=palette.green){
-  const [fur,light]=skin[key]||skin.cat;const g=group(parent);const body=group(g);const legs=[]
-  for(const x of [-.14,.14]){const pivot=group(body,x,.29,0);ball(pivot,0x5b5147,0,-.11,.025,.12,.16,.13);legs.push(pivot)}
-  ball(body,coat,0,.49,0,.29,.34,.20);ball(body,palette.cream,0,.53,.168,.115,.22,.06)
-  for(const x of [-.29,.29]){const arm=ball(body,coat,x,.52,0,.115,.25,.12);arm.rotation.z=x>0?.25:-.25;ball(body,fur,x,.33,.04,.1,.12,.1)}
-  const head=group(body,0,1.0,0);ball(head,fur,0,0,0,.36,.32,.31)
-  const round=['bear','hamster','otter','raccoon','panda','owl'].includes(key);if(round){for(const x of [-.26,.26]){ball(head,key==='panda'?palette.dark:fur,x,.22,0,.135,.14,.10);ball(head,light,x,.23,.078,.07,.075,.04)}}else if(key==='rabbit'){for(const x of [-.17,.17]){const e=ball(head,fur,x,.39,0,.105,.29,.09);e.rotation.z=x>0?-.16:.16;ball(head,0xcba4a0,x,.4,.075,.055,.21,.025)}}else if(key==='dog'){for(const x of [-.31,.31]){const e=ball(head,0x916c4c,x,.04,0,.12,.27,.12);e.rotation.z=x>0?.3:-.3}}else if(key==='deer'){for(const x of [-.28,.28]){const e=ball(head,fur,x,.23,0,.18,.085,.10);e.rotation.z=x>0?.45:-.45;cyl(head,0x7b5c43,x*.62,.39,0,.035,.32);const h=cyl(head,0x7b5c43,x*.86,.43,0,.025,.17);h.rotation.z=x>0?-.65:.65}}else if(key!=='penguin'){for(const x of [-.23,.23]){const e=cone(head,fur,x,.28,0,.13,.32);e.rotation.z=x>0?-.2:.2;cone(head,light,x,.28,.075,.078,.20)}}
-  if(key==='penguin'||key==='owl'){ball(head,light,0,-.035,.235,.24,.235,.09);const beak=cone(head,0xd8a05b,0,-.055,.32,.075,.13);beak.rotation.x=Math.PI/2}else{ball(head,light,0,-.11,.255,.18,.115,.095);ball(head,palette.dark,0,-.045,.337,.047,.032,.032)}
-  for(const x of [-.125,.125]){if(['panda','raccoon'].includes(key))ball(head,palette.dark,x,.015,.271,.105,.09,.035);ball(head,0x302e2b,x,.026,.303,.043,.055,.035);ball(head,0xfff8e7,x-.013,.046,.331,.013,.013,.009)}
-  if(['fox','squirrel','raccoon','otter','cat','santacat'].includes(key)){const tail=ball(body,fur,.12,.4,-.25,.15,.16,.35);tail.rotation.x=.4}
-  if(key==='santacat'){cone(head,palette.red,.035,.42,0,.27,.36);ball(head,palette.cream,.035,.61,0,.075,.075,.075);cyl(head,palette.cream,0,.27,0,.29,.07)}
-  return {g,body,legs}
- }
+ const spriteFactory=createSpriteFactory(),residentSprites=[]
+ function animal(parent,key,coat=palette.green){return spriteFactory.create(parent,key,coat)}
  // A single connected floor plan: six rooms on either side of a continuous central corridor.
  box(scene,0xb49b81,0,-.18,0,38,.3,16.5);box(scene,0xc8aa83,0,.01,0,37,.08,3.7)
  for(let x=-17;x<=17;x+=1.3)box(scene,0x9d795d,x,.066,0,.028,.012,3.6)
@@ -65,7 +55,7 @@ export function createWorld(host,opts){
   const label=sign(p,s.name,0,2.53,-3.15);if(label){label.userData.room=s.id;hit.push(label)}
   // Each room has a distinct floor plan and movable visitor aisle.
   const k=s.id
-  if(k==='season'||k==='plaza'){tree(p,-1.8,1.55);gift(p,-1.25,2.1);gift(p,-2.1,.75);table(p,1.6,1.25,'party');lamp(p,2.15,-.7);if(k==='season'){box(p,0x96766b,0,.55,2.75,1.5,1.1,.42);box(p,palette.dark,0,.38,2.5,.92,.58,.1);ball(p,0xe5a358,0,.39,2.42,.2,.27,.11)}}
+  if(k==='season'||k==='plaza'){tree(p,-1.8,1.55);gift(p,-1.25,2.1);gift(p,-2.1,.75);table(p,1.6,1.25,'party');lamp(p,2.15,-.7);if(k==='season'){box(p,0x96766b,0,.55,2.75,1.5,1.1,.42);box(p,palette.dark,0,.38,2.5,.92,.58,.1);ball(p,0xe5a358,0,.39,2.42,.2,.27,.11);box(p,0xe7cfaa,0,1.18,2.66,1.8,.12,.6);box(p,0x647b65,0,1.42,2.66,.85,.14,.18);for(const x of [-.47,0,.47]){cyl(p,0xf0d8ae,x,1.42,2.53,.04,.28);ball(p,0xf7c16d,x,1.59,2.53,.04,.075,.04)}box(p,0x71695d,1.65,1.35,2.96,1.45,1.5,.08);box(p,0x7594aa,1.65,1.35,2.89,1.28,1.32,.04);for(const x of [1.65])box(p,0xe5d0ab,x,1.35,2.84,.07,1.32,.06);box(p,0xe5d0ab,1.65,1.35,2.84,1.28,.07,.06);for(let n=0;n<9;n++)ball(p,0xf1ede5,1.1+(n%3)*.47,.85+Math.floor(n/3)*.42,2.85,.035,.035,.02);box(p,0xd9c19f,1.65,.64,2.83,1.55,.13,.27);const warm=new T.PointLight(0xffb66c,5,7,2);warm.position.set(0,1.35,1.95);p.add(warm);const glow=new T.PointLight(0xffdb9b,2.3,6,2);glow.position.set(-1.8,2.3,1.55);p.add(glow)}}
   else if(k==='jazz'){shelf(p,-1.95,2.45,'records');couch(p,1.55,1.95,0x786674);table(p,1.5,.3);lamp(p,-2.1,-.7);box(p,palette.dark,-1.8,.7,1.1,1.15,1.4,.5)}
   else if(k==='cafe'){box(p,palette.wood,-1.9,.57,1.2,1.2,1.14,2.45);box(p,0xd7b48d,-1.9,1.18,1.2,1.35,.14,2.55);box(p,palette.blue,-1.9,1.44,1.95,.85,.45,.75);for(let j=0;j<3;j++)cyl(p,0xc99583,-1.9,1.36,.25+j*.43,.15,.19);table(p,1.7,.65);chair(p,1.7,1.65,0x9ca58d);plant(p,2.2,-.85)}
   else if(k==='travel'){shelf(p,-1.9,2.45);box(p,0xdcc7a5,0,1.25,2.91,2.3,.65,.06);for(let j=0;j<4;j++)box(p,0x839b7d,-.85+j*.55,1.22+(j%2)*.13,2.86,.4,.3,.07);table(p,1.7,1.25,'map');box(p,palette.red,-1.8,.3,.4,.78,.6,.45);plant(p,2.2,2.3)}
@@ -74,16 +64,16 @@ export function createWorld(host,opts){
   else if(k==='hobby'){shelf(p,-1.9,2.48);shelf(p,1.9,2.48);table(p,1.7,.4,'craft');box(p,palette.wood,-1.7,.8,.8,.11,1.6,.11);box(p,palette.cream,-1.7,1.1,.8,.9,.7,.08);plant(p,2.15,-.75)}
   else if(k==='cinema'){box(p,palette.dark,0,1.34,2.85,3.8,1.55,.16);box(p,0xa6bdbe,0,1.34,2.75,3.48,1.25,.05);for(const x of [-1.65,1.65])for(const z of [.2,1.65])chair(p,x,z,palette.red);gift(p,-2.0,-1.3)}
   else if(k==='home'){box(p,palette.wood,-1.65,.34,1.5,1.4,.5,2);box(p,0x9da991,-1.65,.66,1.5,1.36,.23,1.98);box(p,palette.cream,-1.65,.82,2.2,1.1,.2,.48);shelf(p,1.85,2.45);table(p,1.65,.35);plant(p,-2.1,-.55)}
-  const res=opts.residents[s.id];if(res){const npc=animal(p,res.avatar,res.coat);npc.g.position.set(-1.2,0,1.05);npc.g.rotation.y=Math.PI;sign(p,res.name+' · NPC',-1.2,1.85,1.05)}
+  const res=opts.residents[s.id];if(res){const npc=animal(p,res.avatar,res.coat);npc.g.position.set(-1.2,0,1.05);npc.g.rotation.y=Math.PI;residentSprites.push(npc);sign(p,res.name+' · NPC',-1.2,1.85,1.05)}
   rooms.set(s.id,{s,x,side,hinge,inside:centerZ,doorZ:side*2.08})
  }
  // Batch static geometry by material to reduce mobile draw calls. Doors, labels, and player stay independent.
  scene.updateMatrixWorld(true);const batches=new Map(),merged=[];scene.traverse(m=>{if(!m.isMesh)return;for(let p=m;p;p=p.parent)if(p.userData.dynamic)return;const key=m.material.uuid;if(!batches.has(key))batches.set(key,[]);batches.get(key).push(m)});for(const meshes of batches.values()){if(meshes.length<2)continue;const parts=meshes.map(m=>m.geometry.clone().applyMatrix4(m.matrixWorld));const g=mergeGeometries(parts,false);parts.forEach(p=>p.dispose());if(!g)continue;const m=new T.Mesh(g,meshes[0].material);m.castShadow=true;m.receiveShadow=true;scene.add(m);merged.push(g);meshes.forEach(v=>v.removeFromParent())}
- let player=animal(scene,opts.avatar);player.g.position.set(0,.1,0)
+ let player=animal(scene,opts.avatar);player.g.position.set(-12,.1,0)
  let angle=Math.PI/5,zoom=1,active=null,target=null,queue=[],busy=false,disposed=false,drag=null,frame=0,last=performance.now(),clock=0;
- const focus=new T.Vector3(0,0,0),ray=new T.Raycaster(),ground=new T.Plane(new T.Vector3(0,1,0),-.1),point=new T.Vector3()
+ const focus=new T.Vector3(-12,0,0),ray=new T.Raycaster(),ground=new T.Plane(new T.Vector3(0,1,0),-.1),point=new T.Vector3()
  const pos=player.g.position
- function setAvatar(key){const x=player.g.position.clone(),rot=player.g.rotation.y;scene.remove(player.g);player=animal(scene,key);player.g.position.copy(x);player.g.rotation.y=rot}
+ function setAvatar(key){const x=player.g.position.clone(),rot=player.g.rotation.y;if(player.key===key)return;player.dispose();player=animal(scene,key);player.g.position.copy(x);player.g.rotation.y=rot}
  function status(s){opts.onStatus(s)}
  function waypoint(x,z,done){return{x,z,done}}
  function enqueue(list){queue=list;target=null;busy=true}
@@ -105,10 +95,10 @@ export function createWorld(host,opts){
  function tick(now){if(disposed)return;const dt=Math.min(.05,(now-last)/1000);last=now;clock+=dt;if(!target&&queue.length)target=queue.shift();let walking=false;const p=player.g.position;
   if(target){const dx=target.x-p.x,dz=target.z-p.z,dist=Math.hypot(dx,dz),step=(busy?9:5)*dt;if(dist<=step+.01){p.x=target.x;p.z=target.z;const done=target.done;target=null;done?.();if(!queue.length)busy=false}else{p.x+=dx/dist*step;p.z+=dz/dist*step;player.g.rotation.y=Math.atan2(dx,dz);walking=true}}
   for(const r of rooms.values()){const h=r.hinge;h.rotation.y+=(h.userData.target-h.rotation.y)*Math.min(1,dt*16)}
-  const motion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;player.legs.forEach((l,i)=>l.rotation.x=walking&&!motion?Math.sin(clock*13+i*Math.PI)*.6:0);player.body.position.y=walking&&!motion?Math.abs(Math.sin(clock*13))*.035:0
-  focus.lerp(new T.Vector3(p.x,0,p.z),motion?1:Math.min(1,dt*5));const rad=(active?9.5:15.5)*zoom;camera.position.set(focus.x+Math.sin(angle)*rad,rad*.88,focus.z+Math.cos(angle)*rad);camera.lookAt(focus.x,.45,focus.z)
-  canvas.dataset.position=p.x.toFixed(2)+','+p.z.toFixed(2);canvas.dataset.room=active||'hall';canvas.dataset.camera=angle.toFixed(2);renderer.render(scene,camera);frame=requestAnimationFrame(tick)
+  const motion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;player.update(player.g.rotation.y,walking,clock,angle,motion);for(const npc of residentSprites)npc.update(angle,false,clock,angle,motion)
+  focus.lerp(new T.Vector3(p.x,0,p.z),motion?1:Math.min(1,dt*5));const rad=(active?7.5:11.8)*zoom;camera.position.set(focus.x+Math.sin(angle)*rad,rad*.88,focus.z+Math.cos(angle)*rad);camera.lookAt(focus.x,.45,focus.z)
+  canvas.dataset.position=p.x.toFixed(2)+','+p.z.toFixed(2);canvas.dataset.room=active||'hall';canvas.dataset.camera=angle.toFixed(2);canvas.dataset.avatarMode='2d-billboard';canvas.dataset.avatarKey=player.key;canvas.dataset.npcCount=String(residentSprites.length);renderer.render(scene,camera);frame=requestAnimationFrame(tick)
  }
  frame=requestAnimationFrame(tick)
- return {visit,exit,move,orbit,zoom:zoomBy,setAvatar,setNight,dispose(){disposed=true;cancelAnimationFrame(frame);ro.disconnect();for(const m of mat.values())m.dispose();for(const g of geo.values())g.dispose();for(const g of merged)g.dispose();for(const s of labels){s.material.map?.dispose();s.material.dispose()}renderer.dispose();canvas.remove()}}
+ return {visit,exit,move,orbit,zoom:zoomBy,setAvatar,setNight,dispose(){disposed=true;cancelAnimationFrame(frame);ro.disconnect();spriteFactory.dispose();for(const m of mat.values())m.dispose();for(const g of geo.values())g.dispose();for(const g of merged)g.dispose();for(const s of labels){s.material.map?.dispose();s.material.dispose()}renderer.dispose();canvas.remove()}}
 }
