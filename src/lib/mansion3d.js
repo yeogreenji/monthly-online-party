@@ -31,7 +31,7 @@ export function createWorld(host,opts){
  function gift(p,x,z){box(p,palette.red,x,.18,z,.5,.36,.45);box(p,palette.cream,x,.37,z,.1,.03,.45);box(p,palette.cream,x,.37,z,.5,.03,.1)}
  function plant(p,x,z){cyl(p,palette.wood,x,.2,z,.21,.4);for(let i=0;i<5;i++){const a=i*1.8;const l=ball(p,palette.green,x+Math.sin(a)*.16,.53+(i%2)*.16,z+Math.cos(a)*.16,.12,.31,.08);l.rotation.z=Math.sin(a)*.6}}
  const spriteFactory=createSpriteFactory(),residentSprites=[]
- function animal(parent,key,coat=palette.green){return spriteFactory.create(parent,key,coat)}
+ function animal(parent,key,coat=palette.green,look=null){return spriteFactory.create(parent,key,coat,look)}
  // A single connected floor plan: six rooms on either side of a continuous central corridor.
  box(scene,0xb49b81,0,-.18,0,38,.3,16.5);box(scene,0xc8aa83,0,.01,0,37,.08,3.7)
  for(let x=-17;x<=17;x+=1.3)box(scene,0x9d795d,x,.066,0,.028,.012,3.6)
@@ -52,10 +52,11 @@ export function createWorld(host,opts){
   for(const dx of [-.9,.9])box(p,palette.wood,dx,1.05,-3.02,.16,2.1,.22)
   box(p,palette.wood,0,2.09,-3.02,1.96,.17,.22)
   const hinge=group(p,-.81,.06,-3.02);hinge.userData.dynamic=true;hinge.userData.target=0;const leaf=box(hinge,s.door,.81,1,0,1.62,2,.16);box(hinge,palette.brass,1.39,1.02,-.13,.1,.1,.12);box(hinge,palette.cream,.81,1.52,-.09,1.12,.035,.035);leaf.userData.room=s.id;hit.push(leaf)
-  const label=sign(p,s.name,0,2.53,-3.15);if(label){label.userData.room=s.id;hit.push(label)}
+  const label=sign(p,s.name+(opts.access?.(s.id)==='locked'?' · 잠금':opts.access?.(s.id)==='coming'?' · 준비중':''),0,2.53,-3.15);if(label){label.userData.room=s.id;hit.push(label)}
   // Each room has a distinct floor plan and movable visitor aisle.
   const k=s.id
-  if(k==='season'||k==='plaza'){tree(p,-1.8,1.55);gift(p,-1.25,2.1);gift(p,-2.1,.75);table(p,1.6,1.25,'party');lamp(p,2.15,-.7);if(k==='season'){box(p,0x96766b,0,.55,2.75,1.5,1.1,.42);box(p,palette.dark,0,.38,2.5,.92,.58,.1);ball(p,0xe5a358,0,.39,2.42,.2,.27,.11);box(p,0xe7cfaa,0,1.18,2.66,1.8,.12,.6);box(p,0x647b65,0,1.42,2.66,.85,.14,.18);for(const x of [-.47,0,.47]){cyl(p,0xf0d8ae,x,1.42,2.53,.04,.28);ball(p,0xf7c16d,x,1.59,2.53,.04,.075,.04)}box(p,0x71695d,1.65,1.35,2.96,1.45,1.5,.08);box(p,0x7594aa,1.65,1.35,2.89,1.28,1.32,.04);for(const x of [1.65])box(p,0xe5d0ab,x,1.35,2.84,.07,1.32,.06);box(p,0xe5d0ab,1.65,1.35,2.84,1.28,.07,.06);for(let n=0;n<9;n++)ball(p,0xf1ede5,1.1+(n%3)*.47,.85+Math.floor(n/3)*.42,2.85,.035,.035,.02);box(p,0xd9c19f,1.65,.64,2.83,1.55,.13,.27);const warm=new T.PointLight(0xffb66c,5,7,2);warm.position.set(0,1.35,1.95);p.add(warm);const glow=new T.PointLight(0xffdb9b,2.3,6,2);glow.position.set(-1.8,2.3,1.55);p.add(glow)}}
+  if(k==='plaza'){cyl(p,0xb6a58e,0,.21,1.85,.92,.36);cyl(p,0x89aeb7,0,.42,1.85,.75,.07);cyl(p,palette.cream,0,.65,1.85,.12,.53);ball(p,0x9dbec4,0,.98,1.85,.22,.08,.22);box(p,palette.wood,-1.8,.52,1.1,1.25,1.02,.6);sign(p,'벨의 안내소',-1.8,1.6,1.1);couch(p,1.7,.8,0x8b9d7d);plant(p,-2.1,2.3);plant(p,2.1,2.3)}
+  else if(k==='season'){tree(p,-1.8,1.55);gift(p,-1.25,2.1);gift(p,-2.1,.75);table(p,1.6,1.25,'party');lamp(p,2.15,-.7);if(k==='season'){box(p,0x96766b,0,.55,2.75,1.5,1.1,.42);box(p,palette.dark,0,.38,2.5,.92,.58,.1);ball(p,0xe5a358,0,.39,2.42,.2,.27,.11);box(p,0xe7cfaa,0,1.18,2.66,1.8,.12,.6);box(p,0x647b65,0,1.42,2.66,.85,.14,.18);for(const x of [-.47,0,.47]){cyl(p,0xf0d8ae,x,1.42,2.53,.04,.28);ball(p,0xf7c16d,x,1.59,2.53,.04,.075,.04)}box(p,0x71695d,1.65,1.35,2.96,1.45,1.5,.08);box(p,0x7594aa,1.65,1.35,2.89,1.28,1.32,.04);for(const x of [1.65])box(p,0xe5d0ab,x,1.35,2.84,.07,1.32,.06);box(p,0xe5d0ab,1.65,1.35,2.84,1.28,.07,.06);for(let n=0;n<9;n++)ball(p,0xf1ede5,1.1+(n%3)*.47,.85+Math.floor(n/3)*.42,2.85,.035,.035,.02);box(p,0xd9c19f,1.65,.64,2.83,1.55,.13,.27);const warm=new T.PointLight(0xffb66c,5,7,2);warm.position.set(0,1.35,1.95);p.add(warm);const glow=new T.PointLight(0xffdb9b,2.3,6,2);glow.position.set(-1.8,2.3,1.55);p.add(glow)}}
   else if(k==='jazz'){shelf(p,-1.95,2.45,'records');couch(p,1.55,1.95,0x786674);table(p,1.5,.3);lamp(p,-2.1,-.7);box(p,palette.dark,-1.8,.7,1.1,1.15,1.4,.5)}
   else if(k==='cafe'){box(p,palette.wood,-1.9,.57,1.2,1.2,1.14,2.45);box(p,0xd7b48d,-1.9,1.18,1.2,1.35,.14,2.55);box(p,palette.blue,-1.9,1.44,1.95,.85,.45,.75);for(let j=0;j<3;j++)cyl(p,0xc99583,-1.9,1.36,.25+j*.43,.15,.19);table(p,1.7,.65);chair(p,1.7,1.65,0x9ca58d);plant(p,2.2,-.85)}
   else if(k==='travel'){shelf(p,-1.9,2.45);box(p,0xdcc7a5,0,1.25,2.91,2.3,.65,.06);for(let j=0;j<4;j++)box(p,0x839b7d,-.85+j*.55,1.22+(j%2)*.13,2.86,.4,.3,.07);table(p,1.7,1.25,'map');box(p,palette.red,-1.8,.3,.4,.78,.6,.45);plant(p,2.2,2.3)}
@@ -69,16 +70,16 @@ export function createWorld(host,opts){
  }
  // Batch static geometry by material to reduce mobile draw calls. Doors, labels, and player stay independent.
  scene.updateMatrixWorld(true);const batches=new Map(),merged=[];scene.traverse(m=>{if(!m.isMesh)return;for(let p=m;p;p=p.parent)if(p.userData.dynamic)return;const key=m.material.uuid;if(!batches.has(key))batches.set(key,[]);batches.get(key).push(m)});for(const meshes of batches.values()){if(meshes.length<2)continue;const parts=meshes.map(m=>m.geometry.clone().applyMatrix4(m.matrixWorld));const g=mergeGeometries(parts,false);parts.forEach(p=>p.dispose());if(!g)continue;const m=new T.Mesh(g,meshes[0].material);m.castShadow=true;m.receiveShadow=true;scene.add(m);merged.push(g);meshes.forEach(v=>v.removeFromParent())}
- let player=animal(scene,opts.avatar);player.g.position.set(-12,.1,0)
+ let currentLook=opts.look;let player=animal(scene,opts.avatar,currentLook?.coat||palette.green,currentLook);player.g.position.set(-12,.1,0)
  let angle=Math.PI/5,zoom=1,active=null,target=null,queue=[],busy=false,disposed=false,drag=null,frame=0,last=performance.now(),clock=0;
  const focus=new T.Vector3(-12,0,0),ray=new T.Raycaster(),ground=new T.Plane(new T.Vector3(0,1,0),-.1),point=new T.Vector3()
  const pos=player.g.position
- function setAvatar(key){const x=player.g.position.clone(),rot=player.g.rotation.y;if(player.key===key)return;player.dispose();player=animal(scene,key);player.g.position.copy(x);player.g.rotation.y=rot}
+ function setAvatar(key,look=currentLook){const x=player.g.position.clone(),rot=player.g.rotation.y;if(player.key===key&&JSON.stringify(look)===JSON.stringify(currentLook))return;currentLook=look;player.dispose();player=animal(scene,key,look?.coat||palette.green,look);player.g.position.copy(x);player.g.rotation.y=rot}
  function status(s){opts.onStatus(s)}
  function waypoint(x,z,done){return{x,z,done}}
  function enqueue(list){queue=list;target=null;busy=true}
  function leavePath(){if(!active)return[];const r=rooms.get(active);return[waypoint(r.x,r.side*3.0,()=>{r.hinge.userData.target=-Math.PI/2}),waypoint(r.x,r.side*1.35,()=>{r.hinge.userData.target=0;active=null;opts.onLeave();status('중앙 복도')})]}
- function visit(id){if(busy||id===active)return;const r=rooms.get(id);if(!r)return;const path=leavePath();if(!active)path.push(waypoint(player.g.position.x,0));path.push(waypoint(r.x,0),waypoint(r.x,r.side*1.35,()=>{r.hinge.userData.target=-Math.PI/2;status(r.s.name+' 문 열림')}),waypoint(r.x,r.side*3.55,()=>{active=id;r.hinge.userData.target=0;opts.onEnter(id);status(r.s.name)}));status(r.s.name+'으로 걸어가는 중');enqueue(path)}
+ function visit(id){if(opts.access&&opts.access(id)!=='open'){status(opts.access(id)==='locked'?'연령·안전 확인 전 잠금':'개발 준비중');return}if(busy||id===active)return;const r=rooms.get(id);if(!r)return;const path=leavePath();if(!active)path.push(waypoint(player.g.position.x,0));path.push(waypoint(r.x,0),waypoint(r.x,r.side*1.35,()=>{r.hinge.userData.target=-Math.PI/2;status(r.s.name+' 문 열림')}),waypoint(r.x,r.side*3.55,()=>{active=id;r.hinge.userData.target=0;opts.onEnter(id);status(r.s.name)}));status(r.s.name+'으로 걸어가는 중');enqueue(path)}
  function exit(){if(busy||!active)return;enqueue(leavePath())}
  function walk(x,z){if(busy)return;const r=active?rooms.get(active):null;target=r?waypoint(clamp(x,r.x-.85,r.x+.85),clamp(z,Math.min(r.side*3.4,r.side*6.15),Math.max(r.side*3.4,r.side*6.15))):waypoint(clamp(x,-17.5,17.5),clamp(z,-1.35,1.35))}
  function move(dx,dz){const c=Math.cos(angle),s=Math.sin(angle),p=target||player.g.position;walk(p.x+dx*c+dz*s,p.z-dx*s+dz*c)}
@@ -97,7 +98,7 @@ export function createWorld(host,opts){
   for(const r of rooms.values()){const h=r.hinge;h.rotation.y+=(h.userData.target-h.rotation.y)*Math.min(1,dt*16)}
   const motion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;player.update(player.g.rotation.y,walking,clock,angle,motion);for(const npc of residentSprites)npc.update(angle,false,clock,angle,motion)
   focus.lerp(new T.Vector3(p.x,0,p.z),motion?1:Math.min(1,dt*5));const rad=(active?7.5:11.8)*zoom;camera.position.set(focus.x+Math.sin(angle)*rad,rad*.88,focus.z+Math.cos(angle)*rad);camera.lookAt(focus.x,.45,focus.z)
-  canvas.dataset.position=p.x.toFixed(2)+','+p.z.toFixed(2);canvas.dataset.room=active||'hall';canvas.dataset.camera=angle.toFixed(2);canvas.dataset.avatarMode='2d-billboard';canvas.dataset.avatarKey=player.key;canvas.dataset.npcCount=String(residentSprites.length);renderer.render(scene,camera);frame=requestAnimationFrame(tick)
+  canvas.dataset.position=p.x.toFixed(2)+','+p.z.toFixed(2);canvas.dataset.room=active||'hall';canvas.dataset.camera=angle.toFixed(2);canvas.dataset.avatarMode='2d-billboard';canvas.dataset.avatarKey=player.key;canvas.dataset.avatarLook=JSON.stringify(currentLook||{});canvas.dataset.npcCount=String(residentSprites.length);renderer.render(scene,camera);frame=requestAnimationFrame(tick)
  }
  frame=requestAnimationFrame(tick)
  return {visit,exit,move,orbit,zoom:zoomBy,setAvatar,setNight,dispose(){disposed=true;cancelAnimationFrame(frame);ro.disconnect();spriteFactory.dispose();for(const m of mat.values())m.dispose();for(const g of geo.values())g.dispose();for(const g of merged)g.dispose();for(const s of labels){s.material.map?.dispose();s.material.dispose()}renderer.dispose();canvas.remove()}}

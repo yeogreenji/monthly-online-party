@@ -187,8 +187,8 @@ export default function App() {
     toast(alarms[eventId] ? '알림 신청을 해제했어요.' : '알림을 신청했어요. 이 브라우저에 저장됩니다.')
   }
 
-  const openRoom = (id: RoomId) => {
-    setRoomId(id)
+  const openRoom = (_id: RoomId) => {
+    toast('기존 취향방은 1단계 체험에서 준비중입니다. 혼술 라운지는 안전 확인 전 잠금입니다.')
   }
 
   const appendChat = (id: RoomId, message: ChatMessage) => {
@@ -387,7 +387,7 @@ export default function App() {
           messages={chats[roomId] ?? []}
           onAppend={appendChat}
           onClose={() => setRoomId(null)}
-          onSwitchRoom={(id) => setRoomId(id)}
+          onSwitchRoom={openRoom}
           onRequestNote={requestNote}
           onReport={reportPeer}
           onOpenNotes={() => openNotes()}

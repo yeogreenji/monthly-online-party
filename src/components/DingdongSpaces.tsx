@@ -1,3 +1,6 @@
+import { access } from '../data/phase1'
+import { DEFAULT_LOOK, normalizeLook } from '../data/avatarLook'
+import { AvatarWardrobe } from './AvatarWardrobe'
 import { useEffect, useState } from 'react'
 import type { Profile, RoomId } from '../types'
 import { MONTHLY_IDEAS } from '../data/dingdong'
@@ -20,6 +23,9 @@ const FIELD = 'w-full rounded-xl border border-current/15 bg-transparent px-3 py
 const uuid = () => globalThis.crypto?.randomUUID?.() ?? String(Date.now()) + Math.random().toString(36).slice(2)
 export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile }: { profile: Profile; onLegacy: (id: RoomId) => void; onParty: () => void; onEditProfile: () => void }) {
   const [space, setSpace] = useState<Space | null>(null)
+  const [savedLook,setLook]=usePersistentState('dd.avatar.look.v1',DEFAULT_LOOK)
+  const look=normalizeLook(savedLook)
+  const [chatCollapsed,setChatCollapsed]=useState(false)
   const [autoChat, setAutoChat] = useState(false)
   const [topic, setTopic] = useState<Topic | null>(null)
   const [favorites, setFavorites] = usePersistentState<string[]>('dd.favorites.v1', [])
@@ -41,7 +47,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile }: { 
   const [saveHistory, setSaveHistory] = useState(false)
   const [visibility, setVisibility] = useState<Visibility>('private')
   useEffect(()=>{if(!space || !autoChat || space.id==='home')return;const first=space.topics[0];if(!first)return;const timer=window.setTimeout(()=>{setTopic({id:space.id+'-0',space:space.id,title:first,description:'자유롭게 이야기를 나누는 시연 모임',date:'',capacity:20,age:'성인 전체'});setAutoChat(false)},window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:680);return()=>window.clearTimeout(timer)},[space,autoChat])
-  function openSpace(next: Space) { setSpace(next); setTopic(null); setShowCreate(false); setNotice(''); setAutoChat(next.id!=='home'); setDraft(''); setPicture(''); setSaveHistory(false); setVisibility('private') }
+  function openSpace(next: Space) { if(access(next.id)!=='open')return;setChatCollapsed(false);setSpace(next); setTopic(null); setShowCreate(false); setNotice(''); setAutoChat(next.id!=='home'); setDraft(''); setPicture(''); setSaveHistory(false); setVisibility('private') }
   function enter(next: Topic) { setAutoChat(false); setTopic(next); setDraft(''); setPicture(''); setNotice(''); setSaveHistory(false); setVisibility('private') }
   function leave() {
     if (topic && saveHistory) setHistory(prev => [{id: uuid(), title: topic.title, at: new Date().toISOString(), visibility}, ...prev].slice(0,100))
@@ -57,10 +63,12 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile }: { 
     <div className="mx-auto max-w-[1280px]">
       <SectionHead kicker="DINGDONG · OPEN THE DOOR" title="오늘은 어느 문을 열어볼까요?" description="차 한 잔도, 책 한 권도, 소소한 이야기 하나도 파티가 됩니다. 12개의 공간을 둘러보세요. 현재는 성인용 로컬 개발 체험판입니다." action={<button type="button" className="btn btn-outline" aria-pressed={onlyFavorites} onClick={()=>setOnlyFavorites(v=>!v)}>{onlyFavorites?'전체 공간':'★ 즐겨찾기만'}</button>}/>
       <div className="mb-5 rounded-xl border p-4 text-xs leading-relaxed" style={{borderColor:'var(--line)',background:'var(--surface)'}}>개발 체험판 · 실제 접속자, 다중 사용자 채팅, 연령 인증 및 서버 정원 검증은 아직 연결되지 않았습니다. 입력 내용은 이 브라우저에만 저장됩니다.</div>
+      <AvatarWardrobe avatar={profile.avatar} look={look} onChange={setLook}/>
       <div className={'dd3-layout'+(space?' dd3-with-chat':'')}>
-        <Mansion3D profile={profile} active={space} onEnter={openSpace} onLeave={()=>{leave();setSpace(null)}} favorites={favorites} onlyFavorites={onlyFavorites} onFavorite={id=>setFavorites(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id])}/>
+        <Mansion3D profile={profile} look={look} active={space} onEnter={openSpace} onLeave={()=>{leave();setSpace(null)}} favorites={favorites} onlyFavorites={onlyFavorites} onFavorite={id=>setFavorites(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id])}/>
         {space&&<aside role="region" aria-label={space.name} className="dd3-chat dd-chat-reveal">
-      <div className="p-4 sm:p-5">
+      <button type="button" className="dd3-collapse" aria-expanded={!chatCollapsed} onClick={()=>setChatCollapsed(v=>!v)}>{chatCollapsed?'채팅 펼치기':'채팅 접기'}</button>
+      <div className="p-4 sm:p-5" hidden={chatCollapsed}>
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3"><div><h2 className="serif text-2xl">{space.name}</h2><p className="text-xs" style={{color:'var(--muted)'}}>{space.subtitle}</p></div><button type="button" className="btn btn-outline btn-sm" onClick={()=>{leave();setSpace(null)}}>복도로 나가기</button></div>
         {RESIDENTS[space.id]&&<div className="dd3-npc"><strong>{RESIDENTS[space.id].name} · 안내용 NPC</strong><p>{RESIDENTS[space.id].greeting}</p></div>}
         {autoChat && <p role="status" className="text-sm py-3">공간에 도착했어요. 대화창을 준비합니다…</p>}

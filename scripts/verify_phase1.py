@@ -1,0 +1,43 @@
+import os
+from playwright.sync_api import sync_playwright, expect
+os.makedirs("artifacts",exist_ok=True)
+with sync_playwright() as p:
+    b=p.chromium.launch(args=["--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader"])
+    for width,height in [(1280,900),(390,844)]:
+        page=b.new_page(viewport={"width":width,"height":height},reduced_motion="reduce")
+        errors=[]
+        page.on("pageerror",lambda e:errors.append(str(e)))
+        page.goto("http://127.0.0.1:4173")
+        page.get_by_role("button",name="수달",exact=True).click()
+        page.locator("#nickname").fill("딩동테스트")
+        page.get_by_role("button",name="딩동 입장하기",exact=True).click()
+        canvas=page.locator(".dd3-canvas canvas")
+        expect(canvas).to_have_attribute("data-avatar-mode","2d-billboard",timeout=15000)
+        page.locator(".dd-wardrobe summary").click()
+        page.get_by_label("옷 색상",exact=True).select_option("#a45e68")
+        expect(canvas).to_have_attribute("data-avatar-look",__import__("re").compile("#a45e68"))
+        page.reload()
+        expect(canvas).to_have_attribute("data-avatar-look",__import__("re").compile("#a45e68"),timeout=15000)
+        page.locator("#dd3-dest").select_option("jazz")
+        page.get_by_role("button",name="걸어가기",exact=True).click()
+        expect(page.get_by_role("status").filter(has_text="연령·안전 확인 전 잠금")).to_be_visible()
+        expect(canvas).to_have_attribute("data-room","hall")
+        for id in ["season","plaza"]:
+            page.locator("#dd3-dest").select_option(id)
+            page.get_by_role("button",name="걸어가기",exact=True).click()
+            expect(canvas).to_have_attribute("data-room",id,timeout=35000)
+            page.get_by_role("button",name="채팅 접기",exact=True).click()
+            page.get_by_role("button",name="채팅 펼치기",exact=True).click()
+            expect(page.get_by_role("textbox",name="메시지",exact=True)).to_be_visible(timeout=5000)
+            page.screenshot(path=f"artifacts/{id}-{width}.png")
+            page.get_by_role("button",name="복도로 걷기",exact=True).click()
+            expect(canvas).to_have_attribute("data-room","hall",timeout=20000)
+        page.get_by_role("button",name="가벼운 2D 모드",exact=True).click()
+        expect(page.locator(".dd3-fallback")).to_be_visible()
+        page.locator("#dd3-dest").select_option("season")
+        page.get_by_role("button",name="걸어가기",exact=True).click()
+        expect(page.get_by_role("textbox",name="메시지",exact=True)).to_be_visible(timeout=5000)
+        assert not errors,errors
+        print(f"PASS {width}x{height}: wardrobe persistence, 3D rooms, lock, chat collapse, fallback")
+        page.close()
+    b.close()
