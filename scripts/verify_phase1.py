@@ -40,7 +40,7 @@ with sync_playwright() as p:
         page.get_by_role("button",name="의자에서 일어나기",exact=True).click()
         expect(canvas).to_have_attribute("data-pose","standing")
         page.get_by_role("button",name="설정",exact=True).click()
-        page.get_by_role("button",name="집 꾸미기",exact=True).click()
+        page.get_by_role("button",name="가구 꾸미기 소품",exact=True).click()
         page.get_by_label("벽지",exact=True).select_option("#ead1de")
         expect(canvas).to_have_attribute("data-home-config",__import__("re").compile("#ead1de"))
         page.get_by_role("button",name="집 꾸미기 닫기",exact=True).click()
