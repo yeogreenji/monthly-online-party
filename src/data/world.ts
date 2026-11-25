@@ -12,7 +12,7 @@ export const RESIDENTS:Record<string,Resident>={
  hobby:{name:'페이지',avatar:'owl',role:'취미 큐레이터',greeting:'책, 그림, 손작업. 좋아하는 것을 함께 이야기해요.',coat:'#947359'},
  cinema:{name:'필름',avatar:'panda',role:'영화관지기',greeting:'오늘 마음에 남은 장면은 무엇인가요?',coat:'#9b5c63'},
  home:{name:'단추',avatar:'hamster',role:'소품 디자이너',greeting:'작은 방을 원하는 색으로 꾸며 보세요.',coat:'#a99b72'},
- plaza:{name:'벨',avatar:'cat',role:'맨션 안내인',greeting:'딩동! 초인종을 누른 순간부터 오늘의 파티 친구예요.',coat:'#627c69'}
+ plaza:{name:'벨',avatar:'cat',role:'마을 안내인',greeting:'딩동! 초인종을 누른 순간부터 오늘의 파티 친구예요.',coat:'#627c69'}
 }
-export const WORLD_INTRO='오래된 황동 초인종을 단 저택에 서로 다른 취향을 가진 동물들이 모였습니다. 문 하나마다 새로운 이야기가 기다립니다.'
+export const WORLD_INTRO='딩동! 차 한 잔, 좋아하는 책, 음악과 수다까지 모두 파티예요. 작은 골목의 가게를 찾아 오늘의 이야기를 나눠요.'
 export const SEASON_STORY='열두 번째 초대장 — 눈 내리는 저녁, 노엘이 마지막 초대장을 건넵니다. 빈칸에는 오늘 당신이 나누고 싶은 이야기를 적어요.'

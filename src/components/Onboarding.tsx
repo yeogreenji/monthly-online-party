@@ -66,7 +66,7 @@ export function Onboarding({
   return <div className="dd-entry">
     <div ref={host} className="dd-entry-world" data-testid="avatar-gallery"/>
     {fallback&&<div className="dd-entry-fallback"><Avatar name={avatar} size={110}/><p>WebGL 미지원 · 2D 접근성 대체</p></div>}
-    <header className="dd-entry-title"><span>WELCOME TO</span><h1>딩동 DINGDONG</h1><p>{editMode?'캐릭터 의상실':'크리스마스 캐릭터 선택실'}</p>{editMode&&<button className="dd3-btn" onClick={onClose}>닫기</button>}</header>
+    <header className="dd-entry-title"><span>WELCOME TO</span><h1>딩동 DINGDONG</h1><p>{editMode?'캐릭터 의상실':'우리 동네 온라인 파티 · 나의 캐릭터 만들기'}</p>{editMode&&<button className="dd3-btn" onClick={onClose}>닫기</button>}</header>
     <div className="dd-entry-controls">
       <div className="dd-entry-pick"><button className="dd3-btn" aria-label="이전 캐릭터" onClick={()=>choose(-1)}>‹</button><div><label htmlFor="dd-entry-avatar">내 캐릭터</label><select id="dd-entry-avatar" value={avatar} onChange={e=>setAvatar(e.target.value as AvatarKey)}>{AVATARS.map(a=><option key={a.key} value={a.key}>{a.label}</option>)}</select></div><button className="dd3-btn" aria-label="다음 캐릭터" onClick={()=>choose(1)}>›</button></div>
       <p className="dd-entry-tip">캐릭터를 터치해 선택 · 좌우 드래그로 회전</p>

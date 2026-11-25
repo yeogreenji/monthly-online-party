@@ -11,9 +11,9 @@ export function createAvatarGallery(host,avatars,onSelect){
  const ell=(p,c,x,y,z,sx,sy,sz)=>mesh(p,sphere,c,x,y,z,sx,sy,sz)
  const cube=(p,c,x,y,z,sx,sy,sz)=>mesh(p,box,c,x,y,z,sx,sy,sz)
  const disc=(p,c,x,y,z,r,h)=>mesh(p,cylinder,c,x,y,z,r,h,r)
- cube(scene,0x6041a5,0,-.13,0,20,.25,14);cube(scene,0x253b79,0,3,-4.8,19,6,.2)
+ cube(scene,0xdcc7ef,0,-.13,0,20,.25,14);cube(scene,0x788bd5,0,3,-4.8,19,6,.2)
  for(let i=0;i<18;i++){const x=-8.5+i;cube(scene,i%2?0xffc449:0xf45090,x,5,-4.65,.055,.8,.1);ell(scene,coat[i%coat.length],x,4.58,-4.5,.16,.16,.16)}
- for(const x of [-5.8,5.8]){disc(scene,0xffcb4c,x,.15,-1,1.0,.28);for(let i=0;i<3;i++)mesh(scene,cone,0x008e62,x,.85+i*.55,-1,.86-i*.19,1.1,.86-i*.19);ell(scene,0xffd739,x,2.7,-1,.16,.2,.16)}
+ for(const x of [-5.8,5.8]){disc(scene,0xf8b789,x,.17,-1,.62,.34);for(let i=0;i<5;i++)ell(scene,0x39ab91,x+Math.sin(i*2)*.23,.9+i*.22,-1+Math.cos(i*2)*.16,.42,.36,.33);for(let i=0;i<4;i++)ell(scene,coat[(i+3)%7],x+Math.sin(i*2)*.4,1.4+i*.2,-.78,.13,.13,.13)}for(let i=0;i<7;i++){const x=-4.5+i*1.5;const b=mesh(scene,cone,coat[i],x,3.65,-4.55,.24,.48,.10);b.rotation.z=Math.PI;cube(scene,0xffe6bc,x,3.94,-4.53,1.52,.035,.03)}
  const stands=[];const groups=[];let selected=2,rotation=0,frame=0,disposed=false,drag=null
  for(let i=0;i<3;i++){const p=new T.Group();p.position.x=(i-1)*2.55;scene.add(p);disc(p,0xffbd38,0,.12,0,.96,.22);disc(p,0x464098,0,.25,0,.87,.16);stands.push(p)}
  function animal(id,index){const [fur,cream]=colors[id]||colors.cat;const g=new T.Group();const dark=0x2d2439;const c=coat[index%coat.length]
