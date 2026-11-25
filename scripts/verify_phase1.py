@@ -19,8 +19,17 @@ with sync_playwright() as p:
         expect(coat).to_have_value("#a45e68",timeout=20000)
         expect(canvas).to_have_attribute("data-avatar-look",__import__("re").compile("#a45e68"),timeout=20000)
         page.wait_for_function("JSON.parse(localStorage.getItem(\'dd.avatar.look.v1\')||\'{}\').coat===\'#a45e68\'",timeout=20000)
+        preview=page.locator(".dd-wardrobe .dd-wardrobe-preview")
+        for label,value in [("털 무늬","stripe"),("머리 장식","beret"),("옷 무늬","check")]:
+            before=preview.evaluate("(c)=>c.toDataURL()")
+            page.get_by_label(label,exact=True).select_option(value)
+            expect(canvas).to_have_attribute("data-avatar-look",__import__("re").compile(value),timeout=20000)
+            assert preview.evaluate("(c)=>c.toDataURL()")!=before, label+" did not change rendered avatar"
+        page.wait_for_function("JSON.parse(localStorage.getItem('dd.avatar.look.v1')||'{}').fabric==='check'",timeout=20000)
         page.reload()
         expect(canvas).to_have_attribute("data-avatar-look",__import__("re").compile("#a45e68"),timeout=15000)
+        for value in ["stripe","beret","check"]:
+            expect(canvas).to_have_attribute("data-avatar-look",__import__("re").compile(value),timeout=15000)
         page.locator("#dd3-dest").select_option("jazz")
         page.get_by_role("button",name="걸어가기",exact=True).click()
         expect(page.get_by_role("status").filter(has_text="연령·안전 확인 전 잠금")).to_be_visible()

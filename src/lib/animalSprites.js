@@ -25,6 +25,14 @@ function draw(key,coat,direction,frame,look={}){
  if(look.style==='overalls'){rect(49,108,30,27,4,'#687c91');line([[51,95],[53,112]],'#687c91',5);line([[77,95],[75,112]],'#687c91',5);rect(58,116,12,9,2,coat)}
  if((!look.style||look.style==='coat')&&!back){path([[48,96],[64,108],[80,96],[77,105],[64,115],[51,105]],cream);line([[64,115],[64,132]],ink,1);for(const y of [117,126])ellipse(67,y,1.8,1.8,'#dec18c',null)}
  else if(back&&(!look.style||look.style==='coat')){line([[64,99],[64,130]],ink,1);line([[48,130],[80,130]],'#d9bd8e',1)}
+ // Distinct garment patterns in a clipped patch inside the outfit; all directions and poses.
+ if(look.fabric&&look.fabric!=='plain'){
+  c.save();c.beginPath();c.roundRect(47,116,34,14,4);c.clip()
+  if(look.fabric==='dots')for(let x=49;x<82;x+=8)for(let y=119;y<131;y+=7)ellipse(x,y,1.4,1.4,'#f0dfc3',null)
+  else if(look.fabric==='check'){for(let x=49;x<82;x+=8)line([[x,116],[x,130]],'#dac3a4',1);for(let y=118;y<132;y+=6)line([[47,y],[81,y]],'#dac3a4',1)}
+  else if(look.fabric==='stitch'){for(let x=48;x<79;x+=5)line([[x,127],[x+2,124]],'#f0dfc3',1.4)}
+  c.restore()
+ }
  const hx=side?69:64,hy=69
  if(['cat','santacat','fox','squirrel'].includes(key)){path([[34,53],[33,24],[55,43]],fur);path([[94,53],[95,24],[73,43]],fur);path([[37,43],[37,31],[48,44]],'#d6a29b',null);path([[91,43],[91,31],[80,44]],'#d6a29b',null)}
  else if(key==='rabbit'){ellipse(49,33,10,25,fur,ink,-.13);ellipse(78,32,10,25,fur,ink,.13);ellipse(49,32,4,18,'#d6a29b',null,-.13);ellipse(78,31,4,18,'#d6a29b',null,.13)}
@@ -32,6 +40,9 @@ function draw(key,coat,direction,frame,look={}){
  else if(key==='deer'){ellipse(31,48,15,8,fur,ink,.45);ellipse(96,48,15,8,fur,ink,-.45);line([[48,46],[43,21],[34,13]],'#856244',4);line([[43,25],[53,15]],'#856244',3);line([[80,46],[85,21],[94,13]],'#856244',4);line([[85,25],[75,15]],'#856244',3)}
  else if(key!=='penguin'){for(const x of [34,94]){ellipse(x,44,12,12,key==='panda'?ink:fur);ellipse(x,44,6,6,cream,null)}}
  ellipse(hx,hy,35,33,fur)
+ if(look.pattern==='stripe'){for(const x of [hx-9,hx,hx+9])line([[x,hy-29],[x,hy-21]],ink,2.6)}
+ else if(look.pattern==='blaze')ellipse(hx,hy-24,5,9,cream,null)
+ else if(look.pattern==='spot')ellipse(hx+12,hy-23,8,6,'#997153',null,.25)
  if(!back){
   if(key==='owl'||key==='penguin'){ellipse(hx,hy+4,26,26,cream,null)}
   else{ellipse(hx+(side?8:0),hy+15,20,13,cream,null);if(key==='fox'){ellipse(hx-17,hy+13,12,10,cream,null);ellipse(hx+17,hy+13,12,10,cream,null)}}
@@ -45,6 +56,11 @@ function draw(key,coat,direction,frame,look={}){
  }else{line([[hx-15,hy-10],[hx,hy-14],[hx+15,hy-10]],cream,1.2)}
  if(key==='santacat'){path([[35,47],[54,14],[86,40],[94,48]],'#a45c60');rect(33,42,62,10,5,cream);ellipse(87,37,7,7,cream)}
  if(key==='owl'&&!back){for(const x of [hx-13,hx+13]){c.beginPath();c.arc(x,hy-1,10,0,Math.PI*2);c.strokeStyle='#b69862';c.stroke()}line([[hx-3,hy-1],[hx+3,hy-1]],'#b69862',1)}
+ // Hats are independent from neck and hand accessories, placed over the head.
+ if(look.hat==='beret'){ellipse(hx-6,hy-33,26,10,'#9c5d66',ink,-.12);line([[hx-5,hy-43],[hx-3,hy-47]],ink,2)}
+ else if(look.hat==='ribbon'){path([[hx+12,hy-30],[hx+3,hy-38],[hx+1,hy-26],[hx+12,hy-29],[hx+24,hy-37],[hx+25,hy-26]],'#b7819b');ellipse(hx+12,hy-30,3,3,'#d9b27a')}
+ else if(look.hat==='beanie'){ellipse(hx,hy-32,22,13,'#687e91');rect(hx-23,hy-33,46,9,4,'#c6bca4');ellipse(hx,hy-47,6,6,'#c6bca4')}
+ else if(look.hat==='flower'){for(let i=0;i<5;i++){const angle=i*Math.PI*2/5;ellipse(hx+18+Math.cos(angle)*5,hy-27+Math.sin(angle)*5,4,4,'#f0d6a0',ink)}ellipse(hx+18,hy-27,3,3,'#a76f52')}
  if(look.accessory==='scarf'){rect(43,96,42,9,4,'#b78170');rect(back?45:72,103,9,18,2,'#b78170')}
  if(look.accessory==='bow'){path([[64,102],[51,96],[51,108],[64,104],[77,96],[77,108]],'#b7819b');ellipse(64,103,3,3,'#d9b27a')}
  if(look.accessory==='glasses'&&!back){for(const x of side?[hx+13]:[hx-13,hx+13]){c.beginPath();c.arc(x,hy-1,9,0,Math.PI*2);c.strokeStyle='#6b5140';c.stroke()}if(!side)line([[hx-4,hy-1],[hx+4,hy-1]],'#6b5140',1.4)}

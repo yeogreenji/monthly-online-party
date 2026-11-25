@@ -35,3 +35,6 @@ f8c1642 CI 45654531174 성공 확인: npm build, API 타입 검사, 1280×900 �
 
 ### 2026-11-26 회귀 검증
 556cac9 CI 45656044073: npm ci/build/API 타입 통과, PC 브라우저 18행 실패(5초 안에 data-avatar-look 색상이 기본값에서 바뀌지 않음). 앉기/장식까지 검증 미도달. 렌더 부하 감소/외형 교체 순서 개선 및 선택값·저장값·렌더 결과의 별도 검사를 추가했다. 원인 확정 및 최신 CI 결과는 미확인. 3D 장식 토글 자체도 별도 검증 항목으로 추가.
+
+### 2026-11-26 배포/회귀 확인
+6f6c416 GitHub Actions 45656409713 성공. Vercel deployment dpl_8NRv1Dw58qkMMd8AAgy2gKLDP8Se READY, ref loren/dingdong-phase1 SHA 6f6c416, URL https://monthly-online-party-mrxsy1207-yeogreenji.vercel.app, branch alias https://monthly-online-party-git-loren-dingdong-phase1-yeogreenji.vercel.app. 운영 main 2d3101f 유지. 배포 메타데이터 검증, 실기기 및 배포 사이트 직접 브라우저 검증은 아직 안 됨. 신규 코디 3항목의 미리보기/저장/3D 설정 테스트 추가, 신규 CI 결과 미확인.
