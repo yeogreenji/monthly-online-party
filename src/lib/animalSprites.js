@@ -71,7 +71,7 @@ function draw(key,coat,direction,frame,look={}){
  c.restore();
  return canvas
 }
-export function drawAvatarPreview(key,look){return draw(key,look.coat,'front',0,look)}
+export function drawAvatarPreview(key,look,direction='front'){return draw(key,look.coat,direction,0,look)}
 export function createSpriteFactory(){
  const textures=new Map(),characters=new Set();const shadowGeo=new T.CircleGeometry(1,24);const shadowMat=new T.MeshBasicMaterial({color:0x48372a,transparent:true,opacity:.17,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1})
  function texture(key,coat,dir,frame){const id=[key,coat,dir,frame].join(':');if(!textures.has(id)){const t=new T.CanvasTexture(draw(key,coat,dir,frame));t.colorSpace=T.SRGBColorSpace;t.minFilter=T.LinearFilter;t.magFilter=T.LinearFilter;textures.set(id,t)}return textures.get(id)}
