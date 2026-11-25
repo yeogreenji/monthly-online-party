@@ -8,7 +8,7 @@ export const RESIDENTS:Record<string,Resident>={
  travel:{name:'로드',avatar:'fox',role:'엽서 수집가',greeting:'다음에 떠나고 싶은 곳을 지도에 표시해 봐요.',coat:'#718267',look:{style:'vest',hat:'cap',accessory:'camera'}},
  women:{name:'로지',avatar:'rabbit',role:'모임지기',greeting:'오늘의 소소한 이야기부터 편하게 꺼내 봐요.',coat:'#b37f8a',look:{style:'dress',hat:'ribbon',accessory:'necklace'}},
  men:{name:'테오',avatar:'dog',role:'취미 모임지기',greeting:'편한 자리에 앉아요. 요즘 즐기는 것이 궁금해요.',coat:'#788e7a',look:{style:'hoodie',hat:'beanie'}},
- single:{name:'레터',avatar:'penguin',role:'살롱 안내인',greeting:'서로의 취향과 경계를 존중하며 천천히 알아가는 곳이에요.',coat:'#53657b'},
+ single:{name:'레터',avatar:'penguin',role:'딩동 안내인',greeting:'서로의 취향과 경계를 존중하며 천천히 알아가는 곳이에요.',coat:'#53657b'},
  games:{name:'픽셀',avatar:'raccoon',role:'게임 라운지 주인',greeting:'퀴즈 한 문제, 보드게임 한 판처럼 가볍게 시작해요.',coat:'#9484a0',look:{style:'hoodie',accessory:'headphones'}},
  hobby:{name:'페이지',avatar:'owl',role:'취미 큐레이터',greeting:'책, 그림, 손작업. 좋아하는 것을 함께 이야기해요.',coat:'#947359',look:{style:'knit',hat:'beret',accessory:'glasses'}},
  cinema:{name:'필름',avatar:'panda',role:'영화관지기',greeting:'오늘 마음에 남은 장면은 무엇인가요?',coat:'#9b5c63',look:{style:'tux',accessory:'bow'}},

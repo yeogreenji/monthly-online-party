@@ -1,6 +1,6 @@
 import type { FeedPost } from '../types'
 
-/** 오픈 전 프리뷰용 예시 피드. 실제 참여자가 올린 글이 아니라 살롱 스태프가 준비한 예시입니다. */
+/** 오픈 전 프리뷰용 예시 피드. 실제 참여자가 올린 글이 아니라 딩동 스태프가 준비한 예시입니다. */
 export const SEED_FEED: FeedPost[] = [
   {
     id: 'f1',
@@ -73,5 +73,5 @@ export const SEED_FEED: FeedPost[] = [
 export const FRAME_LABEL: Record<FeedPost['frame'], string> = {
   polaroid: '폴라로이드',
   magazine: '매거진',
-  postcard: '살롱 엽서',
+  postcard: '딩동 엽서',
 }

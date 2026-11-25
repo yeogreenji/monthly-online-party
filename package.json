@@ -1,9 +1,9 @@
 {
-  "name": "monthly-online-party",
+  "name": "dingdong",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "월간살롱 (Monthly Salon) — 매월 빅 파티와 4개의 취향방이 함께 열리는 온라인 살롱",
+  "description": "딩동 (DINGDONG) — 온라인 파티·소셜 커뮤니티",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

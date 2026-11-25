@@ -266,7 +266,7 @@ export function RoomOverlay({
     <div className="fixed inset-0 z-[60] flex flex-col" style={{ background: 'var(--bg)' }}>
       <header className="flex shrink-0 items-center justify-between gap-3 border-b px-4 py-3 sm:px-6" style={{ borderColor: 'var(--line)' }}>
         <div className="flex min-w-0 flex-1 items-center gap-3">
-          <button type="button" onClick={onClose} className="btn btn-ghost btn-icon" aria-label="살롱으로 돌아가기">
+          <button type="button" onClick={onClose} className="btn btn-ghost btn-icon" aria-label="딩동으로 돌아가기">
             <ArrowLeft size={18} />
           </button>
           <div className="flex min-w-0 flex-1 items-center gap-2.5">
@@ -475,7 +475,7 @@ export function RoomOverlay({
                     {playing ? MOODS.find((mood) => mood.id === playing)?.title : '오늘 밤의 배경음'}
                   </h3>
                   <p className="mt-1 text-[11px] leading-[1.7]" style={{ color: 'var(--muted)' }}>
-                    {playing ? '살롱 오리지널 세션을 합성해 재생합니다. 볼륨은 낮게.' : '세 가지 무드 중 하나를 골라 재생해보세요.'}
+                    {playing ? '딩동 오리지널 세션을 합성해 재생합니다. 볼륨은 낮게.' : '세 가지 무드 중 하나를 골라 재생해보세요.'}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
@@ -851,7 +851,7 @@ export function RoomOverlay({
                   쪽지 열기 요청
                 </button>
                 <p className="mt-2 text-[9.5px] leading-relaxed" style={{ color: 'var(--muted)' }}>
-                  서로 수락해야 열립니다. 연락처·SNS·주소는 이 살롱에서 주고받지 않아요.
+                  서로 수락해야 열립니다. 연락처·SNS·주소는 이 딩동에서 주고받지 않아요.
                 </p>
               </>
             )}

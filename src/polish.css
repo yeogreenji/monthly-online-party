@@ -1,0 +1,241 @@
+/* 딩동 UI 다듬기: 입체감 있는 장난감 같은 버튼, 통일된 보라·핑크·골드 팔레트.
+   기능과 클래스 이름은 그대로 두고 겉모습만 덮어씁니다. */
+:root {
+  --dd-edge: #c9a9e8;
+  --dd-edge-deep: #a77bd4;
+  --dd-grad-soft: linear-gradient(180deg, #ffffff 0%, #fdf1fb 55%, #f3dff8 100%);
+  --dd-grad-primary: linear-gradient(180deg, #b78cf2 0%, #8c5bd0 100%);
+  --dd-grad-hot: linear-gradient(180deg, #ff8fb8 0%, #e5578f 100%);
+  --dd-ring: #f4bb51;
+  --dd-press: transform .08s ease, box-shadow .08s ease;
+}
+
+/* ── 공용 버튼: 위에서 빛을 받는 두툼한 입체 버튼 ── */
+.dd-quick-links button,
+.dd-camera-control button,
+.dd-home-actions button,
+.dd-room-actions button {
+  background: var(--dd-grad-soft);
+  color: #6a3f98;
+  border: 0;
+  border-radius: 18px;
+  box-shadow: inset 0 2px 0 #fff, inset 0 -2px 0 #e8d2f3, 0 3px 0 var(--dd-edge), 0 9px 16px #4b2a6b2e;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  transition: var(--dd-press);
+}
+.dd-quick-links button svg,
+.dd-camera-control button svg,
+.dd-home-actions button svg {
+  color: #8c5bd0;
+  stroke-width: 2.3;
+}
+.dd-quick-links button:active,
+.dd-camera-control button:active,
+.dd-home-actions button:active,
+.dd-room-actions button:active {
+  transform: translateY(3px);
+  box-shadow: inset 0 2px 0 #fff, inset 0 -2px 0 #e8d2f3, 0 0 0 var(--dd-edge), 0 3px 8px #4b2a6b2e;
+}
+/* 집 안 첫 번째 버튼은 가장 중요한 동작이라 핑크로 강조 */
+.dd-home-actions button:first-child {
+  background: var(--dd-grad-hot);
+  color: #fff;
+  text-shadow: 0 1px 0 #a52f6066;
+  box-shadow: inset 0 2px 0 #ffffff66, inset 0 -3px 0 #c93c76, 0 3px 0 #a52f60, 0 9px 16px #a52f6040;
+}
+.dd-home-actions button:first-child svg { color: #fff; }
+.dd-home-actions button:first-child:active {
+  box-shadow: inset 0 2px 0 #ffffff66, inset 0 -3px 0 #c93c76, 0 0 0 #a52f60, 0 3px 8px #a52f6040;
+}
+
+/* ── 집 꾸미기 시트: 방이 보이도록 낮추고 앱 팔레트로 통일 ── */
+.dd-home-panel {
+  max-height: 44dvh;
+  bottom: 84px;
+  border: 0;
+  border-radius: 26px;
+  background: linear-gradient(180deg, #fffaf7 0%, #fbeff7 100%);
+  box-shadow: inset 0 2px 0 #fff, 0 5px 0 var(--dd-edge), 0 16px 36px #3a1f5a4d;
+}
+.dd-home-panel .dd3-collapse {
+  background: var(--dd-grad-primary);
+  color: #fff;
+  border-radius: 24px 24px 0 0;
+  box-shadow: inset 0 2px 0 #ffffff55;
+  text-shadow: 0 1px 0 #4a2a7a66;
+}
+.dd-home-editor header h3 { color: #4a2f6a; }
+.dd-home-editor header p { color: #8d7a98; }
+.dd-home-editor header button {
+  background: var(--dd-grad-soft);
+  color: #6a3f98;
+  border-radius: 14px;
+  box-shadow: inset 0 2px 0 #fff, 0 3px 0 var(--dd-edge);
+}
+.dd-home-editor h4 {
+  color: #6a3f98;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dd-home-editor h4::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dd-ring);
+  box-shadow: 0 0 0 3px #f4bb5133;
+}
+
+/* 탭: 눌린 홈 안에 들어간 조각 모양 */
+.dd-home-editor nav {
+  background: #f1e6f8;
+  border-radius: 18px;
+  padding: 4px;
+  gap: 4px;
+  box-shadow: inset 0 2px 5px #7a4bb024;
+}
+.dd-home-editor nav button {
+  background: transparent;
+  color: #8d6aa8;
+  border-radius: 14px;
+  min-height: 50px;
+  font-weight: 800;
+  transition: var(--dd-press);
+}
+.dd-home-editor nav button[aria-pressed='true'] {
+  background: var(--dd-grad-primary);
+  color: #fff;
+  outline: 0;
+  box-shadow: inset 0 2px 0 #ffffff44, 0 3px 0 #6b3fb0, 0 7px 12px #6b3fb040;
+}
+
+/* 벽지·가구·소품 선택 카드 */
+.dd-home-editor .dd-home-items button,
+.dd-home-editor .dd-home-swatches button,
+.dd-home-editor .dd-home-pets button {
+  background: #fff;
+  border: 0;
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 2px #f1e4f6, 0 3px 0 #e6d3f0;
+  color: #5a3a7e;
+  transition: var(--dd-press);
+}
+.dd-home-editor .dd-home-items button:active,
+.dd-home-editor .dd-home-swatches button:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 0 0 2px #f1e4f6, 0 1px 0 #e6d3f0;
+}
+.dd-home-editor .dd-home-items button[aria-pressed='true'],
+.dd-home-editor .dd-home-swatches button[aria-pressed='true'],
+.dd-home-editor .dd-home-pets button[aria-pressed='true'] {
+  background: #fff8e6;
+  outline: 0;
+  box-shadow: inset 0 0 0 3px var(--dd-ring), 0 3px 0 #d9a032, 0 0 0 4px #f4bb5133;
+}
+.dd-home-items canvas { background: radial-gradient(circle at 50% 35%, #ffffff, #f4e6fa); }
+.dd-home-items small, .dd-home-swatches small { color: #5a3a7e; }
+.dd-home-swatches button span {
+  border: 0;
+  border-radius: 12px;
+  box-shadow: inset 0 2px 0 #ffffff99, inset 0 -3px 0 #0000001f;
+}
+.dd-home-editor input[type='range'] { accent-color: #8c5bd0; }
+
+/* 저장 줄 */
+.dd-home-save button {
+  background: var(--dd-grad-soft);
+  color: #6a3f98;
+  border-radius: 16px;
+  min-height: 48px;
+  font-weight: 800;
+  box-shadow: inset 0 2px 0 #fff, 0 3px 0 var(--dd-edge);
+  transition: var(--dd-press);
+}
+.dd-home-save button:last-child {
+  background: var(--dd-grad-hot);
+  color: #fff;
+  text-shadow: 0 1px 0 #a52f6066;
+  box-shadow: inset 0 2px 0 #ffffff66, inset 0 -3px 0 #c93c76, 0 4px 0 #a52f60, 0 10px 16px #a52f6040;
+}
+.dd-home-save button:active { transform: translateY(3px); }
+
+/* ── 전체 화면 패널(이벤트·일정·포토월·공지 등) ── */
+.dd-app-panel {
+  --ink: #493352;
+  --ink-soft: #5f4a6b;
+  --muted: #8d7a98;
+  --line: #7a4bb01f;
+  --line-strong: #7a4bb040;
+  --surface: #fffaf5;
+  --surface-2: #f6ecf9;
+  --forest: #8054b4;
+  --forest-ink: #ffffff;
+  --burgundy: #e85c8e;
+  --gold: #f4bb51;
+  --gold-soft: #ffe3a6;
+  --shadow: 0 10px 24px #4b2a6b26;
+  color: var(--ink);
+}
+.dd-app-panel > div:not(.dd-app-panel-close),
+.dd-app-panel > section {
+  background: linear-gradient(180deg, #fffaf6 0%, #fcf1f8 100%);
+  border: 0;
+  border-radius: 28px;
+  box-shadow: inset 0 2px 0 #fff, 0 5px 0 var(--dd-edge), 0 18px 40px #2a144d55;
+}
+.dd-app-panel .serif { font-family: var(--font-sans); font-weight: 800; letter-spacing: -0.035em; }
+.dd-app-panel .kicker { color: #e85c8e; letter-spacing: 0.14em; }
+.dd-app-panel section[id] { padding-top: 26px !important; padding-bottom: 26px !important; border-top: 0 !important; }
+.dd-app-panel .btn {
+  border: 0;
+  border-radius: 16px;
+  font-weight: 800;
+  transition: var(--dd-press);
+}
+.dd-app-panel .btn:active { transform: translateY(3px); }
+.dd-app-panel .btn-outline {
+  background: var(--dd-grad-soft);
+  color: #6a3f98;
+  box-shadow: inset 0 2px 0 #fff, inset 0 -2px 0 #e8d2f3, 0 3px 0 var(--dd-edge), 0 8px 14px #4b2a6b26;
+}
+.dd-app-panel .btn-primary,
+.dd-app-panel .btn-gold {
+  background: var(--dd-grad-primary);
+  color: #fff;
+  box-shadow: inset 0 2px 0 #ffffff44, 0 3px 0 #6b3fb0, 0 8px 14px #6b3fb040;
+}
+.dd-app-panel .btn-burgundy {
+  background: var(--dd-grad-hot);
+  color: #fff;
+  box-shadow: inset 0 2px 0 #ffffff66, 0 3px 0 #a52f60, 0 8px 14px #a52f6040;
+}
+/* 패널 닫기 버튼은 다른 버튼과 같은 모양으로 */
+.dd-app-panel-close {
+  background: var(--dd-grad-hot) !important;
+  color: #fff !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  padding: 10px 18px !important;
+  font-weight: 800;
+  box-shadow: inset 0 2px 0 #ffffff66, inset 0 -3px 0 #c93c76, 0 3px 0 #a52f60, 0 8px 14px #00000033 !important;
+}
+.dd-app-panel-close:active { transform: translateY(3px); }
+
+/* 사진 올리기 창 등 팝업 입력칸 */
+.dd-app-panel input[type='text'],
+.dd-app-panel textarea,
+.dd-app-panel select {
+  border-radius: 14px;
+  border: 2px solid #eadcf3;
+  background: #fff;
+  color: var(--ink);
+}
+.dd-app-panel input[type='text']:focus,
+.dd-app-panel textarea:focus,
+.dd-app-panel select:focus {
+  outline: 0;
+  border-color: #b78cf2;
+  box-shadow: 0 0 0 4px #b78cf233;
+}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""월간살롱 (Monthly Salon) 검증 스크립트.
+"""딩동 (DINGDONG) 검증 스크립트.
 
 준비:
   export PATH=/workspace/.tools/node-v22.12.0-linux-x64/bin:$PATH
@@ -88,7 +88,7 @@ def api_check() -> None:
             "roomId": "wine",
             "roomName": "오늘 밤 9시 혼술 타임",
             "roomTopic": "집에서 마시는 한 잔",
-            "host": "살롱지기",
+            "host": "딩동지기",
             "profile": {"nickname": "검증손님", "ageBand": "30대", "tags": ["독서"]},
             "message": "오늘 야근하고 와서 한 잔 하려고요. 안주는 뭐가 좋을까요?",
             "history": [],
@@ -172,7 +172,7 @@ def enter(page: Page, nickname: str = "검증 손님") -> None:
     page.fill("#nickname", nickname)
     page.get_by_role("button", name="30대", exact=True).click()
     page.get_by_role("button", name="독서", exact=True).click()
-    page.get_by_role("button", name="살롱 입장하기").click()
+    page.get_by_role("button", name="딩동 입장하기").click()
     page.wait_for_timeout(900)
 
 
@@ -365,7 +365,7 @@ def desktop_flow(browser) -> None:
     shot(page, "18-mediakit-inquiry")
 
     # 홈 복귀 후 스크롤 리빌이 다시 동작하는지
-    page.get_by_role("button", name="살롱으로 돌아가기").click()
+    page.get_by_role("button", name="딩동으로 돌아가기").click()
     page.wait_for_timeout(900)
     scroll_to(page, "#program", 120)
     page.wait_for_timeout(2200)
@@ -409,7 +409,7 @@ def mobile_flow(browser) -> None:
     check("모바일: 온보딩 가로 넘침 없음", no_horizontal_overflow(page))
     shot(page, "20-mobile-onboarding")
     page.fill("#nickname", "모바일 손님")
-    page.get_by_role("button", name="살롱 입장하기").click()
+    page.get_by_role("button", name="딩동 입장하기").click()
     page.wait_for_timeout(1800)
     check("모바일: 홈 표시", "크리스마스 이브 홈파티" in body_text(page))
     check("모바일: 홈 가로 넘침 없음", no_horizontal_overflow(page))

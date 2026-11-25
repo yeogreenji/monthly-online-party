@@ -96,7 +96,7 @@ export function RoomsSection({ onEnter }: { onEnter: (room: RoomId) => void }) {
         </div>
 
         <p className="mt-6 text-[10.5px] leading-relaxed" style={{ color: 'var(--muted)' }}>
-          오픈 전 프리뷰입니다. 방의 지난 대화는 살롱 스태프가 준비한 예시이고, 보내신 말에는 호스트가 답합니다. 쪽지는 서로 수락해야 열립니다.
+          오픈 전 프리뷰입니다. 방의 지난 대화는 딩동 스태프가 준비한 예시이고, 보내신 말에는 호스트가 답합니다. 쪽지는 서로 수락해야 열립니다.
         </p>
       </div>
     </section>

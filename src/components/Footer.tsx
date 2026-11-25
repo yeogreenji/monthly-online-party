@@ -38,7 +38,7 @@ export function EtiquetteSection() {
               <br className="sm:hidden" /> 네 가지만 약속합니다
             </>
           }
-          description="살롱이 오래 열려 있으려면, 서로의 선을 지키는 일이 먼저입니다. 어길 경우 신고 후 이용이 제한될 수 있어요."
+          description="딩동이 오래 열려 있으려면, 서로의 선을 지키는 일이 먼저입니다. 어길 경우 신고 후 이용이 제한될 수 있어요."
         />
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -84,12 +84,12 @@ export function Footer({ onBrandKit, onNavigate, showCommercial = false }: { onB
             <p className="serif mt-4 max-w-[28ch] text-[13px] leading-[1.8]" style={{ color: 'var(--ink-soft)' }}>
               매월의 큰 파티와 매일 밤의 작은 취향방.
               <br />
-              같은 밤을 보내는 사람들끼리의 살롱.
+              같은 밤을 보내는 사람들끼리의 온라인 파티.
             </p>
           </div>
 
           <div>
-            <p className="kicker mb-3">살롱</p>
+            <p className="kicker mb-3">딩동</p>
             <ul className="space-y-2 text-[11.5px]" style={{ color: 'var(--muted)' }}>
               <li><button type="button" onClick={() => onNavigate('party')} className="hover:underline">이번 달 파티</button></li>
               <li><button type="button" onClick={() => onNavigate('rooms')} className="hover:underline">12개 공간</button></li>
@@ -114,7 +114,7 @@ export function Footer({ onBrandKit, onNavigate, showCommercial = false }: { onB
           <div>
             <p className="kicker mb-3">약속</p>
             <ul className="space-y-2 text-[11.5px]" style={{ color: 'var(--muted)' }}>
-              <li><button type="button" onClick={() => onNavigate('etiquette')} className="hover:underline">살롱 에티켓</button></li>
+              <li><button type="button" onClick={() => onNavigate('etiquette')} className="hover:underline">딩동 에티켓</button></li>
               <li><span>신고 · 차단 안내</span></li>
               <li><span>개인정보는 브라우저에만</span></li>
             </ul>

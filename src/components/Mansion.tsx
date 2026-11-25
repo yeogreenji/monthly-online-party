@@ -9,7 +9,7 @@ import { salonAudio } from '../lib/audio'
 const WINGS=[
  {name:'크리스마스 중앙 홀',ids:['season','jazz','cafe','plaza'],note:'반짝이는 샹들리에 아래 오늘의 파티를 찾아보세요.'},
  {name:'취향의 복도',ids:['travel','hobby','cinema','games'],note:'책, 영화, 여행과 게임이 기다리는 복도입니다.'},
- {name:'친구들의 살롱',ids:['women','men','single','home'],note:'편하게 이야기하고 나의 작은 집에도 들러보세요.'}
+ {name:'친구들의 딩동',ids:['women','men','single','home'],note:'편하게 이야기하고 나의 작은 집에도 들러보세요.'}
 ]
 const X=[14,38,62,86]
 const clamp=(n:number,lo:number,hi:number)=>Math.min(hi,Math.max(lo,n))

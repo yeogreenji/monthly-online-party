@@ -1,5 +1,5 @@
 /**
- * 월간살롱 💬 파티 채팅 — Vercel Serverless Function
+ * 딩동 💬 파티 채팅 — Vercel Serverless Function
  *
  * POST /api/party-chat
  * {
@@ -51,7 +51,7 @@ function list(value: unknown, count: number, length: number): string[] {
 function buildPrompt(body: ChatBody): string {
   const mode = body.mode === 'note' ? 'note' : 'room'
   const roomId = clamp(body.roomId, 20) || 'wine'
-  const host = clamp(body.host, 20) || '살롱지기'
+  const host = clamp(body.host, 20) || '딩동지기'
   const profile = body.profile ?? {}
   const message = clamp(body.message, MAX_MESSAGE)
   const history = Array.isArray(body.history) ? body.history.slice(-MAX_HISTORY) : []
@@ -62,7 +62,7 @@ function buildPrompt(body: ChatBody): string {
   if (mode === 'note') {
     const peer = body.peer ?? {}
     const peerTags = list(peer.tags, 4, 12)
-    lines.push('당신은 한국의 온라인 살롱 "월간살롱"에서 1:1 쪽지를 주고받는 참여자입니다.')
+    lines.push('당신은 한국의 온라인 파티 공간 "딩동"에서 1:1 쪽지를 주고받는 참여자입니다.')
     lines.push(`당신의 이름: ${clamp(peer.nickname, 20) || '손님'} / 연령대: ${clamp(peer.ageBand, 10) || '비공개'} / 관심사: ${peerTags.join(', ') || '없음'}`)
     lines.push(`두 사람이 만난 맥락: ${clamp(peer.context, 120)}`)
     lines.push('')
@@ -72,11 +72,11 @@ function buildPrompt(body: ChatBody): string {
     lines.push('[규칙]')
     lines.push('1. 취향이 통해서 열린 대화입니다. 다정하지만 가볍게 들뜨지 않는 말투로, 1~2문장만 답하세요.')
     lines.push('2. 만남·연락처·계좌·주소·SNS 아이디를 먼저 묻거나 알려주지 마세요. 상대가 물으면 "여기서 이야기해요"라고 부드럽게 미루세요.')
-    lines.push('3. 성적인 농담, 외모 평가, 애정 공세는 하지 않습니다. 이 살롱은 건전한 취향 모임입니다.')
+    lines.push('3. 성적인 농담, 외모 평가, 애정 공세는 하지 않습니다. 이 딩동은 건전한 취향 모임입니다.')
     lines.push('4. 오늘 나눈 대화의 구체적인 내용을 자연스럽게 언급하세요.')
     lines.push('5. 설명·라벨·따옴표 없이 말만 출력하세요. 이모지는 최대 한 개.')
   } else {
-    lines.push('당신은 한국의 온라인 살롱 "월간살롱"의 방 호스트입니다.')
+    lines.push('당신은 한국의 온라인 파티 공간 "딩동"의 방 호스트입니다.')
     lines.push(`이름: ${host}. 방: ${clamp(body.roomName, 40)} — ${clamp(body.roomTopic, 80)}`)
     if (body.topicDetail) lines.push(`오늘의 주제: ${clamp(body.topicDetail, 200)}`)
     lines.push(`방 분위기 규칙: ${ROOM_NOTES[roomId] ?? ROOM_NOTES.wine}`)
@@ -92,7 +92,7 @@ function buildPrompt(body: ChatBody): string {
       lines.push('')
     }
     lines.push('[규칙]')
-    lines.push('1. 살롱의 호스트로서, 따뜻하고 차분한 존댓말로 2~3문장만 답하세요. 상대의 말에서 구체적인 단어 하나를 받아 언급하세요.')
+    lines.push('1. 딩동의 호스트로서, 따뜻하고 차분한 존댓말로 2~3문장만 답하세요. 상대의 말에서 구체적인 단어 하나를 받아 언급하세요.')
     lines.push('2. AI·모델·도우미라는 사실을 말하지 말고, 상담원 같은 상투적 표현("도움이 되셨나요", "무엇을 도와드릴까요")을 쓰지 마세요.')
     lines.push('3. 술을 권하지 않고, 과음·미성년자 음주를 절대 장려하지 않습니다. 논알콜도 같은 자리로 대접합니다.')
     lines.push('4. 상대의 개인정보(실명·연락처·주소·직장)를 묻지 말고, 다른 참여자의 정보를 지어내지 마세요.')

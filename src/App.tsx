@@ -176,14 +176,14 @@ export default function App() {
 
   const downloadParty = (target: PartyEvent) => {
     const ics = buildICS({
-      id: `monthly-salon-${target.id}`,
+      id: `dingdong-${target.id}`,
       title: `딩동 · ${target.title}`,
       dateISO: target.dateISO,
       durationHours: 3,
       description: `${target.subtitle}\n${target.timeLabel} · ${target.place}\n${target.program.map((item) => `${item.time} ${item.title}`).join(' / ')}`,
       location: '온라인 · 딩동',
     })
-    downloadText(`monthly-salon-${target.id}.ics`, ics)
+    downloadText(`dingdong-${target.id}.ics`, ics)
     toast('캘린더 파일을 내려받았어요. 열어서 일정에 추가해 주세요.', 'success')
   }
 
