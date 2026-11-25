@@ -17,7 +17,11 @@
     "rotation": 0,
     "scale": 1,
     "source": "딩동 자체 제작 기본 도형 조립",
-    "interaction": "approach-and-read"
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.64,
+      0.18
+    ]
   },
   {
     "id": "hub-bell",
@@ -37,7 +41,11 @@
     "rotation": 0,
     "scale": 1,
     "source": "딩동 자체 제작 기본 도형 조립",
-    "interaction": "approach-and-read"
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.25,
+      0.25
+    ]
   },
   {
     "id": "season-banquet",
@@ -57,7 +65,11 @@
     "rotation": 0,
     "scale": 1,
     "source": "딩동 자체 제작 기본 도형 조립",
-    "interaction": "approach-and-read"
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.68,
+      0.44
+    ]
   },
   {
     "id": "season-photo",
@@ -74,6 +86,94 @@
       -0.55
     ],
     "message": "겨울 포토존 · 도착했어요. 포토존 사진 촬영 버튼으로 3D 화면을 로컬 채팅에 첨부할 수 있어요.",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기본 도형 조립",
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.58,
+      0.32
+    ]
+  },
+  {
+    "id": "season-chair",
+    "room": "season",
+    "name": "파티 의자에 앉기",
+    "position": [
+      1.65,
+      0,
+      -1.42
+    ],
+    "approach": [
+      0.72,
+      0,
+      -1.42
+    ],
+    "seat": [
+      1.65,
+      0,
+      -1.42
+    ],
+    "seatHeight": 0.42,
+    "bounds": [
+      0.43,
+      0.4
+    ],
+    "message": "파티 의자에 앉았어요. 대화를 나누거나 일어나서 다시 걸을 수 있어요.",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기본 도형 조립",
+    "interaction": "sit"
+  },
+  {
+    "id": "plaza-bench",
+    "room": "plaza",
+    "name": "광장 벤치에 앉기",
+    "position": [
+      1.7,
+      0,
+      0.8
+    ],
+    "approach": [
+      0.65,
+      0,
+      0.8
+    ],
+    "seat": [
+      1.7,
+      0,
+      0.8
+    ],
+    "seatHeight": 0.39,
+    "bounds": [
+      0.83,
+      0.4
+    ],
+    "message": "광장 벤치에 앉았어요. 잠시 쉬었다가 일어나세요.",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기본 도형 조립",
+    "interaction": "sit"
+  },
+  {
+    "id": "plaza-fountain",
+    "room": "plaza",
+    "name": "분수 살펴보기",
+    "position": [
+      0,
+      0,
+      1.85
+    ],
+    "approach": [
+      0,
+      0,
+      0.65
+    ],
+    "bounds": [
+      0.92,
+      0.92
+    ],
+    "message": "벨이 관리하는 광장 분수입니다. 물결을 바라보며 쉬어 보세요.",
     "rotation": 0,
     "scale": 1,
     "source": "딩동 자체 제작 기본 도형 조립",

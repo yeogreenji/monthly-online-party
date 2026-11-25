@@ -69,11 +69,12 @@ export function createWorld(host,opts){
   else if(k==='cinema'){box(p,palette.dark,0,1.34,2.85,3.8,1.55,.16);box(p,0xa6bdbe,0,1.34,2.75,3.48,1.25,.05);for(const x of [-1.65,1.65])for(const z of [.2,1.65])chair(p,x,z,palette.red);gift(p,-2.0,-1.3)}
   else if(k==='home'){box(p,palette.wood,-1.65,.34,1.5,1.4,.5,2);box(p,0x9da991,-1.65,.66,1.5,1.36,.23,1.98);box(p,palette.cream,-1.65,.82,2.2,1.1,.2,.48);shelf(p,1.85,2.45);table(p,1.65,.35);plant(p,-2.1,-.55)}
   const res=opts.residents[s.id];if(res){const npc=animal(p,res.avatar,res.coat);npc.g.position.set(-1.2,0,1.05);npc.g.rotation.y=Math.PI;residentSprites.push(npc);sign(p,res.name+' · NPC',-1.2,1.85,1.05)}
-  rooms.set(s.id,{s,x,side,hinge,inside:centerZ,doorZ:side*2.08})
+  rooms.set(s.id,{s,x,side,hinge,parent:p,inside:centerZ,doorZ:side*2.08})
  }
  // Phase one: reusable, individually identified decor with local interaction.
  const plaza=rooms.get('plaza'),season=rooms.get('season')
  if(plaza){
+ install(plaza.parent,'plaza-bench',g=>{});install(plaza.parent,'plaza-fountain',g=>{});
  const hub=group(scene,0,0,0);hub.userData.dynamic=true
  box(hub,0xd7c2a1,0,.075,0,5.55,.035,3.5)
  box(hub,palette.brass,0,.11,-1.65,5.4,.025,.045);box(hub,palette.brass,0,.11,1.65,5.4,.025,.045)
@@ -86,25 +87,33 @@ export function createWorld(host,opts){
  if(season){
  const room=group(scene,season.x,0,season.inside);if(season.side<0)room.rotation.y=Math.PI
  install(room,'season-banquet',g=>{box(g,palette.wood,0,.66,0,1.35,.12,.85);for(const x of [-.52,.52])for(const z of [-.3,.3])box(g,palette.wood,x,.33,z,.1,.66,.1);box(g,0xe8d2b1,0,.74,0,.38,.035,.84);for(const x of [-.42,.42]){cyl(g,palette.cream,x,.77,0,.15,.035);cyl(g,0xb78975,x,.84,0,.09,.12)}chair(g,0,-.72,palette.red)})
+ install(room,'season-chair',g=>{})
  install(room,'season-photo',g=>{box(g,0x687f70,0,1.04,.28,1.15,1.95,.09);for(let j=0;j<5;j++)ball(g,j%2?palette.brass:palette.cream,-.42+j*.21,1.81,.18,.055,.055,.055);gift(g,-.37,.07);gift(g,.37,.08)})
  }
+ const festive=group(scene);festive.userData.dynamic=true;
+ function garland(p,x,y,z){for(let i=0;i<9;i++){const dx=(i-4)*.18;ball(p,0x52705a,x+dx,y-.09*Math.sin(i*Math.PI/8),z,.13,.09,.10);if(i%2===0)ball(p,0xa85355,x+dx,y-.05,z+.07,.045,.045,.045)}ball(p,palette.brass,x,y-.14,z+.1,.08,.1,.06)}
+ const hallDecor=group(festive,0,0,0);garland(hallDecor,0,2.65,-1.6);garland(hallDecor,0,2.65,1.6);
+ if(season){const p=group(festive,season.x,0,season.inside);if(season.side<0)p.rotation.y=Math.PI;garland(p,0,1.38,2.7);for(const x of [-.6,.6]){cyl(p,palette.brass,x,.12,-2.55,.1,.24);ball(p,0xe4bf72,x,.26,-2.55,.07,.13,.07)}}
+ function setFestive(value){festive.visible=!!value}
  // Batch static geometry by material to reduce mobile draw calls. Doors, labels, and player stay independent.
  scene.updateMatrixWorld(true);const batches=new Map(),merged=[];scene.traverse(m=>{if(!m.isMesh)return;for(let p=m;p;p=p.parent)if(p.userData.dynamic)return;const key=m.material.uuid;if(!batches.has(key))batches.set(key,[]);batches.get(key).push(m)});for(const meshes of batches.values()){if(meshes.length<2)continue;const parts=meshes.map(m=>m.geometry.clone().applyMatrix4(m.matrixWorld));const g=mergeGeometries(parts,false);parts.forEach(p=>p.dispose());if(!g)continue;const m=new T.Mesh(g,meshes[0].material);m.castShadow=true;m.receiveShadow=true;scene.add(m);merged.push(g);meshes.forEach(v=>v.removeFromParent())}
- let currentLook=opts.look;let player=animal(scene,opts.avatar,currentLook?.coat||palette.green,currentLook);player.g.position.set(0,.1,0)
+ let seated=null;let currentLook=opts.look;let player=animal(scene,opts.avatar,currentLook?.coat||palette.green,currentLook);player.g.position.set(0,.1,0)
  let angle=Math.PI/5,zoom=1,active=null,target=null,queue=[],busy=false,disposed=false,drag=null,frame=0,last=performance.now(),clock=0;
  const focus=new T.Vector3(0,0,0),ray=new T.Raycaster(),ground=new T.Plane(new T.Vector3(0,1,0),-.1),point=new T.Vector3()
  const pos=player.g.position
  function setAvatar(key,look=currentLook){const x=player.g.position.clone(),rot=player.g.rotation.y;if(player.key===key&&JSON.stringify(look)===JSON.stringify(currentLook))return;currentLook=look;player.dispose();player=animal(scene,key,look?.coat||palette.green,look);player.g.position.copy(x);player.g.rotation.y=rot}
  function status(s){opts.onStatus(s)}
  function waypoint(x,z,done){return{x,z,done}}
- function enqueue(list){delete canvas.dataset.lastProp;queue=list;target=null;busy=true}
+ function stand(){if(!seated)return;const a=seated.def.approach;const v=seated.parent.localToWorld(new T.Vector3(a[0],a[1],a[2]));player.g.position.set(v.x,.1,v.z);seated=null;canvas.dataset.pose='standing';status('일어났어요. 다시 걸어갈 수 있어요.')}
+ function enqueue(list){stand();delete canvas.dataset.lastProp;queue=list;target=null;busy=true}
  function leavePath(){if(!active)return[];const r=rooms.get(active);return[waypoint(r.x,r.side*3.0,()=>{r.hinge.userData.target=-Math.PI/2}),waypoint(r.x,r.side*1.35,()=>{r.hinge.userData.target=0;active=null;opts.onLeave();status('중앙 복도')})]}
  function visit(id){if(opts.access&&opts.access(id)!=='open'){status(opts.access(id)==='locked'?'연령·안전 확인 전 잠금':'개발 준비중');return}if(busy||id===active)return;const r=rooms.get(id);if(!r)return;const path=leavePath();if(!active)path.push(waypoint(player.g.position.x,0));path.push(waypoint(r.x,0),waypoint(r.x,r.side*1.35,()=>{r.hinge.userData.target=-Math.PI/2;status(r.s.name+' 문 열림')}),waypoint(r.x,r.side*3.55,()=>{active=id;r.hinge.userData.target=0;opts.onEnter(id);status(r.s.name)}));status(r.s.name+'으로 걸어가는 중');enqueue(path)}
  function exit(){if(busy||!active)return;enqueue(leavePath())}
  function returnHub(){if(busy)return;const path=leavePath();path.push(waypoint(active?rooms.get(active).x:player.g.position.x,0),waypoint(0,0,()=>status('중앙 축제광장 · 도착')));enqueue(path)}
  function capture(){if(disposed||busy||active!=='season'||canvas.dataset.lastProp!=='season-photo')return null;try{renderer.render(scene,camera);const shot=document.createElement('canvas');const scale=Math.min(1,480/canvas.width,480/canvas.height);shot.width=Math.max(1,Math.round(canvas.width*scale));shot.height=Math.max(1,Math.round(canvas.height*scale));const ctx=shot.getContext('2d');if(!ctx)return null;ctx.drawImage(canvas,0,0,shot.width,shot.height);let jpeg=shot.toDataURL('image/jpeg',.65);if(jpeg.length>90000)jpeg=shot.toDataURL('image/jpeg',.35);return jpeg.startsWith('data:image/jpeg')&&jpeg.length<=90000?jpeg:null}catch{return null}}
- function interact(id){if(busy)return;const item=propInfo.get(id);if(!item||item.def.room!==(active||'hall'))return;const a=item.def.approach;const v=item.parent.localToWorld(new T.Vector3(a[0],a[1],a[2]));status(item.def.name+' 가까이 걸어가는 중');enqueue([waypoint(v.x,v.z,()=>{const obj=item.g.getWorldPosition(new T.Vector3());player.g.rotation.y=Math.atan2(obj.x-v.x,obj.z-v.z);canvas.dataset.lastProp=id;status(item.message)})])}
- function walk(x,z){if(busy)return;delete canvas.dataset.lastProp;const r=active?rooms.get(active):null;target=r?waypoint(clamp(x,r.x-.85,r.x+.85),clamp(z,Math.min(r.side*3.4,r.side*6.15),Math.max(r.side*3.4,r.side*6.15))):waypoint(clamp(x,-17.5,17.5),clamp(z,-1.35,1.35))}
+ function interact(id){if(busy)return;const item=propInfo.get(id);if(!item||item.def.room!==(active||'hall'))return;const a=item.def.approach;const v=item.parent.localToWorld(new T.Vector3(a[0],a[1],a[2]));const r=active?rooms.get(active):null;const path=[];stand();if(r)path.push(waypoint(r.x,player.g.position.z),waypoint(r.x,v.z));path.push(waypoint(v.x,v.z,()=>{const obj=item.g.getWorldPosition(new T.Vector3());player.g.rotation.y=Math.atan2(obj.x-v.x,obj.z-v.z);if(item.def.interaction==='sit'){const s=item.def.seat;const seat=item.parent.localToWorld(new T.Vector3(s[0],0,s[2]));player.g.position.set(seat.x,item.def.seatHeight,seat.z);player.g.rotation.y=item.parent.rotation.y+Math.PI;seated=item;canvas.dataset.pose='seated'}canvas.dataset.lastProp=id;status(item.message)}));enqueue(path);status(item.def.name+' 가까이 걸어가는 중')}
+ function blocked(x,z){for(const item of propInfo.values()){if(item.def.room!==(active||'hall')||!item.def.bounds)continue;const p=item.parent.worldToLocal(new T.Vector3(x,0,z)),a=item.def.position,b=item.def.bounds;if(Math.abs(p.x-a[0])<b[0]+.18&&Math.abs(p.z-a[2])<b[1]+.18)return true}return false}
+ function walk(x,z){if(busy)return;stand();delete canvas.dataset.lastProp;const r=active?rooms.get(active):null;const w=r?waypoint(clamp(x,r.x-.85,r.x+.85),clamp(z,Math.min(r.side*3.4,r.side*6.15),Math.max(r.side*3.4,r.side*6.15))):waypoint(clamp(x,-17.5,17.5),clamp(z,-1.35,1.35));const p=player.g.position;const steps=Math.max(1,Math.ceil(Math.hypot(w.x-p.x,w.z-p.z)/.12));for(let i=1;i<=steps;i++){if(blocked(p.x+(w.x-p.x)*i/steps,p.z+(w.z-p.z)*i/steps)){target=null;status('가구가 놓여 있어요. 빈 바닥으로 돌아가 주세요.');return}}target=w}
  function move(dx,dz){const c=Math.cos(angle),s=Math.sin(angle),p=target||player.g.position;walk(p.x+dx*c+dz*s,p.z-dx*s+dz*c)}
  function orbit(a){angle+=a}
  function setNight(night){scene.background.set(night?'#6b707e':'#dfd1bc');sun.intensity=night?1.05:2.6;sun.color.set(night?'#e2b789':'#ffebce')}
@@ -119,10 +128,10 @@ export function createWorld(host,opts){
  function tick(now){if(disposed)return;const dt=Math.min(.05,(now-last)/1000);last=now;clock+=dt;if(!target&&queue.length)target=queue.shift();let walking=false;const p=player.g.position;
   if(target){const dx=target.x-p.x,dz=target.z-p.z,dist=Math.hypot(dx,dz),step=(busy?9:5)*dt;if(dist<=step+.01){p.x=target.x;p.z=target.z;const done=target.done;target=null;done?.();if(!queue.length)busy=false}else{p.x+=dx/dist*step;p.z+=dz/dist*step;player.g.rotation.y=Math.atan2(dx,dz);walking=true}}
   for(const r of rooms.values()){const h=r.hinge;h.rotation.y+=(h.userData.target-h.rotation.y)*Math.min(1,dt*16)}
-  const motion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;player.update(player.g.rotation.y,walking,clock,angle,motion);for(const npc of residentSprites)npc.update(angle,false,clock,angle,motion)
+  const motion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;player.update(player.g.rotation.y,walking,clock,angle,motion,!!seated);for(const npc of residentSprites)npc.update(angle,false,clock,angle,motion)
   focus.lerp(new T.Vector3(p.x,0,p.z),motion?1:Math.min(1,dt*5));const rad=(active?7.5:11.8)*zoom;camera.position.set(focus.x+Math.sin(angle)*rad,rad*.88,focus.z+Math.cos(angle)*rad);camera.lookAt(focus.x,.45,focus.z)
-  canvas.dataset.position=p.x.toFixed(2)+','+p.z.toFixed(2);canvas.dataset.room=active||'hall';canvas.dataset.camera=angle.toFixed(2);canvas.dataset.avatarMode='2d-billboard';canvas.dataset.avatarKey=player.key;canvas.dataset.avatarLook=JSON.stringify(currentLook||{});canvas.dataset.npcCount=String(residentSprites.length);canvas.dataset.interactiveProps=String(propInfo.size);renderer.render(scene,camera);frame=requestAnimationFrame(tick)
+  canvas.dataset.pose=seated?'seated':'standing';canvas.dataset.position=p.x.toFixed(2)+','+p.z.toFixed(2);canvas.dataset.room=active||'hall';canvas.dataset.camera=angle.toFixed(2);canvas.dataset.avatarMode='2d-billboard';canvas.dataset.avatarKey=player.key;canvas.dataset.avatarLook=JSON.stringify(currentLook||{});canvas.dataset.npcCount=String(residentSprites.length);canvas.dataset.interactiveProps=String(propInfo.size);renderer.render(scene,camera);frame=requestAnimationFrame(tick)
  }
  frame=requestAnimationFrame(tick)
- return {visit,exit,returnHub,capture,interact,move,orbit,zoom:zoomBy,setAvatar,setNight,dispose(){disposed=true;cancelAnimationFrame(frame);ro.disconnect();spriteFactory.dispose();for(const m of mat.values())m.dispose();for(const g of geo.values())g.dispose();for(const g of merged)g.dispose();for(const s of labels){s.material.map?.dispose();s.material.dispose()}renderer.dispose();canvas.remove()}}
+ return {visit,exit,returnHub,capture,interact,stand,move,orbit,zoom:zoomBy,setAvatar,setNight,setFestive,dispose(){disposed=true;cancelAnimationFrame(frame);ro.disconnect();spriteFactory.dispose();for(const m of mat.values())m.dispose();for(const g of geo.values())g.dispose();for(const g of merged)g.dispose();for(const s of labels){s.material.map?.dispose();s.material.dispose()}renderer.dispose();canvas.remove()}}
 }
