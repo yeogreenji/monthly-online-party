@@ -81,7 +81,7 @@ export function createSpriteFactory(){
   const m=new T.SpriteMaterial({map:getTexture('front',0),transparent:true,alphaTest:.08,depthWrite:true,depthTest:true,toneMapped:false})
   const sprite=new T.Sprite(m);sprite.center.set(.5,.04);sprite.scale.set(.91,1.16,1);sprite.position.y=.025;g.add(sprite);const shadow=new T.Mesh(shadowGeo,shadowMat);shadow.rotation.x=-Math.PI/2;shadow.scale.set(.33,.22,1);shadow.position.y=.025;g.add(shadow)
   const char={g,sprite,key,coat,m};characters.add(char)
-  char.update=(heading,walking,clock,cameraAngle,reduced,seated=false)=>{const relative=heading-cameraAngle;const side=Math.abs(Math.sin(relative))>.65;const dir=side?(Math.sin(relative)<0?'left':'right'):Math.cos(relative)<0?'back':'front';const frame=seated?3:walking&&!reduced?1+Math.floor(clock*8)%2:0;const t=getTexture(dir,frame);if(m.map!==t)m.map=t;sprite.scale.set(.91,seated?1.02:1.16,1);sprite.position.y=seated?-.17:.025;shadow.visible=!seated}
+  char.update=(heading,walking,clock,cameraAngle,reduced,seated=false)=>{const relative=heading-cameraAngle;const side=Math.abs(Math.sin(relative))>.65;const dir=side?(Math.sin(relative)<0?'left':'right'):Math.cos(relative)<0?'back':'front';const lying=seated==='lying';const frame=lying?0:seated?3:walking&&!reduced?1+Math.floor(clock*8)%2:0;const t=getTexture(dir,frame);if(m.map!==t)m.map=t;sprite.center.set(.5,lying?.5:.04);m.rotation=lying?Math.PI/2:0;sprite.scale.set(.91,lying?1.16:seated?1.02:1.16,1);sprite.position.y=lying?.12:seated?-.17:.025;shadow.visible=!seated}
   char.dispose=()=>{g.removeFromParent();m.dispose();for(const t of privateTextures.values())t.dispose();privateTextures.clear();characters.delete(char)}
   return char
  }

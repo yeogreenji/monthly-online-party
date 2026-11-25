@@ -8,7 +8,6 @@ import type { Profile, RoomId } from '../types'
 import { MONTHLY_IDEAS, SPACES } from '../data/dingdong'
 import type { Space } from '../data/dingdong'
 import { usePersistentState } from '../lib/storage'
-import { Avatar } from './Avatar'
 import { ROOMS } from '../data/rooms'
 import { resizeImageFile } from '../lib/image'
 import { Mansion3D } from './Mansion3D'
@@ -91,7 +90,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
       {mapOpen&&<div className="dd-world-pop" role="dialog" aria-label="마을 지도"><div className="dd-pop-title"><strong>우리 동네 지도</strong><button className="dd3-btn" onClick={()=>setMapOpen(false)}>닫기</button></div><p>가게를 선택해 걸어가세요.</p><div className="dd-map-grid">{SPACES.map(s=><button key={s.id} onClick={()=>visit(s.id)}><span>{s.icon}</span><strong>{s.name}</strong><small>{access(s.id)==='open'?'방문':access(s.id)==='locked'?'잠금':'준비 중'}</small></button>)}</div><button className="dd3-btn" onClick={()=>setOnlyFavorites(v=>!v)}>{onlyFavorites?'전체 목적지':'즐겨찾기 목적지'}</button></div>}
       {mailOpen&&<div className="dd-world-pop" role="dialog" aria-label="나의 우편함"><div className="dd-pop-title"><strong>나의 우편함</strong><button className="dd3-btn" onClick={()=>setMailOpen(false)}>닫기</button></div><div className="dd-mail-empty"><Mail size={42}/><h3>친구의 편지가 도착하는 곳</h3><p>현재는 로컬 체험입니다. 친구 방문·편지 송수신은 실제 계정 및 권한 연결 후 제공합니다.</p></div></div>}
       <div className={'dd3-layout'+(space?' dd3-with-chat':'')+(space&&space.id!=='home'&&!chatCollapsed?' dd-chat-open':'')}>
-        <Mansion3D onMenu={externalMenu} profile={profile} look={look} active={space} request={request} toolsOpen={toolsOpen} onToolsChange={toggleTools} onEnter={openSpace} onLeave={()=>{leave();setSpace(null)}} onCapture={image=>{if(!topic){setNotice('모임에 입장한 뒤 촬영해 주세요.');return}setPicture(image);setChatCollapsed(false);setNotice('사진 첨부 완료 · 전송을 누르면 로컬 채팅에 저장됩니다.')}} favorites={favorites} onlyFavorites={onlyFavorites} onFavorite={id=>setFavorites(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id])}/>
+        <Mansion3D onMenu={id=>{if(id==='home-wardrobe')showPanel('wardrobe');else if(id==='home-profile')onEditProfile();else if(id==='home-mailbox')showPanel('mail');else if(id==='home-decor'){closePanels();setChatCollapsed(false)}else externalMenu(id)}} profile={profile} look={look} home={home} active={space} request={request} toolsOpen={toolsOpen} onToolsChange={toggleTools} onEnter={openSpace} onLeave={()=>{leave();setSpace(null)}} onCapture={image=>{if(!topic){setNotice('모임에 입장한 뒤 촬영해 주세요.');return}setPicture(image);setChatCollapsed(false);setNotice('사진 첨부 완료 · 전송을 누르면 로컬 채팅에 저장됩니다.')}} favorites={favorites} onlyFavorites={onlyFavorites} onFavorite={id=>setFavorites(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id])}/>
         {space&&<aside role="region" aria-label={space.name} className={"dd3-chat dd-chat-reveal"+(space.id!=="home"&&!chatCollapsed?" dd-messenger":"")}>
       <button type="button" className="dd3-collapse" aria-expanded={!chatCollapsed} onClick={()=>{if(chatCollapsed)closePanels();setChatCollapsed(v=>!v)}}>{space.id!=='home'&&<MessageCircle size={18}/>}<span>{space.id==='home'?(chatCollapsed?'집 꾸미기':'집 꾸미기 닫기'):(chatCollapsed?'채팅 펼치기':'채팅 접기')}</span>{!chatCollapsed&&<ChevronDown size={16}/>}</button>
       <div className={space.id!=='home'&&topic?'dd-chat-body':'p-4 sm:p-5'} hidden={chatCollapsed}>
@@ -100,7 +99,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
         {autoChat && <p role="status" className="text-sm py-3">공간에 도착했어요. 대화창을 준비합니다…</p>}
         {space.id==='season' && !topic && <button className="btn btn-outline mb-3" onClick={onParty}>크리스마스 파티 일정 보기</button>}
         {space.id==='home' ? <div className="space-y-4">
-          <div className="rounded-2xl p-5 text-center" style={{background:home.wallpaper,color:'#48382e'}}><div className="flex justify-center"><Avatar name={profile.avatar} size={75}/></div><p className="mt-1 text-lg">{home.accessory} {profile.nickname}</p><div className="mt-6 flex justify-center gap-6 text-5xl">{home.furniture} {home.pet}</div><p className="mt-4 text-sm">{home.intro||'나의 작은 집에 오신 것을 환영해요.'}</p></div>
+          <div className="rounded-2xl p-5 text-center" style={{background:home.wallpaper,color:'#48382e'}}><div className="flex justify-center"><AvatarPreview avatar={profile.avatar} look={look}/></div><p className="mt-1 text-lg">{home.accessory} {profile.nickname}</p><div className="mt-6 flex justify-center gap-6 text-5xl">{home.furniture} {home.pet}</div><p className="mt-4 text-sm">{home.intro||'나의 작은 집에 오신 것을 환영해요.'}</p></div>
           <button className="btn btn-outline" onClick={()=>{leave();setSpace(null);onEditProfile()}}>캐릭터·닉네임·취향 수정</button>
           <label className="block text-sm">미니홈피 소개<textarea className={FIELD} maxLength={160} value={home.intro} onChange={e=>setHome(p=>({...p,intro:e.target.value}))}/></label>
           <div className="grid grid-cols-2 gap-3">
@@ -110,7 +109,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
             <label className="text-sm">소품<select className={FIELD} value={home.accessory} onChange={e=>setHome(p=>({...p,accessory:e.target.value}))}>{['🎀','🎩','🧣','🌷','없음'].map(v=><option key={v}>{v}</option>)}</select></label>
           </div>
           <label className="text-sm">미니홈피 공개 범위<select className={FIELD} value={home.visibility} onChange={e=>setHome(p=>({...p,visibility:e.target.value as Visibility}))}>{Object.entries(VISIBILITY).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>
-          <p className="text-xs" style={{color:'var(--muted)'}}>자동 로컬 저장 · 공개 범위 설정은 실제 공개되지 않습니다. 친구 방문, 방명록, 초인종, 선물 및 전체 의상 꾸미기는 후속 연결 대상입니다.</p>
+          <p className="text-xs" style={{color:'var(--muted)'}}>벽지·가구·반려동물은 내 3D 집에 적용되고 브라우저에 자동 저장됩니다. 공개 범위는 설정만 저장되며 실제 친구 방문·편지는 계정 연결 전 제공되지 않습니다.</p>
           <h3 className="serif text-lg">나의 모임 기록</h3>{history.length===0?<p className="text-sm">저장한 모임이 없어요.</p>:history.map(h=><div className="card flex flex-wrap items-center justify-between gap-2 p-3 text-sm" key={h.id}><span>{h.title} · {VISIBILITY[h.visibility]}</span><button className="btn btn-ghost btn-sm" onClick={()=>setHistory(p=>p.filter(x=>x.id!==h.id))}>삭제</button></div>)}
         </div> : autoChat ? null : topic ? <div className="dd-messenger-main">
           <header className="dd-message-header"><button className="dd-chat-icon" aria-label="모임 목록" onClick={leave}><ChevronLeft size={22}/></button><div><h3>{topic.title}</h3><p>로컬 체험 · 목표 정원 {topic.capacity}명</p></div><button className="dd-chat-icon" aria-label="채팅 설정" aria-expanded={chatExtras} onClick={()=>setChatExtras(v=>!v)}><MoreHorizontal size={22}/></button></header>

@@ -13,7 +13,7 @@
       0,
       -0.9
     ],
-    "message": "벨의 안내소 · 지금은 광장과 시즌 파티하우스만 체험할 수 있어요.",
+    "message": "벨의 안내소 · 일반 공간은 로컬 체험으로 방문할 수 있어요. 성인 전용 공간은 안전 확인 전 잠금입니다.",
     "rotation": 0,
     "scale": 1,
     "source": "딩동 자체 제작 기본 도형 조립",
@@ -203,5 +203,987 @@
     "source": "딩동 자체 제작 기본 도형 조립",
     "interaction": "approach-and-read",
     "menu": "calendar"
+  },
+  {
+    "room": "season",
+    "id": "season-seat-1-1",
+    "name": "1번 테이블 1번 좌석",
+    "position": [
+      -3.6199999999999997,
+      0,
+      -3.6
+    ],
+    "approach": [
+      -2.8499999999999996,
+      0,
+      -3.6
+    ],
+    "message": "1번 테이블 1번 좌석에 앉았어요.",
+    "rotation": 1.5707963267948966,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      -3.6199999999999997,
+      0,
+      -3.6
+    ],
+    "seatHeight": 0.55,
+    "bounds": [
+      0.36,
+      0.36
+    ]
+  },
+  {
+    "room": "season",
+    "id": "season-seat-1-2",
+    "name": "1번 테이블 2번 좌석",
+    "position": [
+      -4.642654848325077,
+      0,
+      -2.192436355883173
+    ],
+    "approach": [
+      -4.404711762656368,
+      0,
+      -1.4601228383359048
+    ],
+    "message": "1번 테이블 2번 좌석에 앉았어요.",
+    "rotation": 0.3141592653589793,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      -4.642654848325077,
+      0,
+      -2.192436355883173
+    ],
+    "seatHeight": 0.55,
+    "bounds": [
+      0.36,
+      0.36
+    ]
+  },
+  {
+    "room": "season",
+    "id": "season-seat-1-3",
+    "name": "1번 테이블 3번 좌석",
+    "position": [
+      -6.2973451516749215,
+      0,
+      -2.7300778266071397
+    ],
+    "approach": [
+      -6.920288237343631,
+      0,
+      -2.2774831823419355
+    ],
+    "message": "1번 테이블 3번 좌석에 앉았어요.",
+    "rotation": -0.9424777960769379,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      -6.2973451516749215,
+      0,
+      -2.7300778266071397
+    ],
+    "seatHeight": 0.55,
+    "bounds": [
+      0.36,
+      0.36
+    ]
+  },
+  {
+    "room": "season",
+    "id": "season-seat-1-4",
+    "name": "1번 테이블 4번 좌석",
+    "position": [
+      -6.2973451516749215,
+      0,
+      -4.4699221733928605
+    ],
+    "approach": [
+      -6.920288237343632,
+      0,
+      -4.922516817658065
+    ],
+    "message": "1번 테이블 4번 좌석에 앉았어요.",
+    "rotation": -2.199114857512855,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      -6.2973451516749215,
+      0,
+      -4.4699221733928605
+    ],
+    "seatHeight": 0.55,
+    "bounds": [
+      0.36,
+      0.36
+    ]
+  },
+  {
+    "room": "season",
+    "id": "season-seat-1-5",
+    "name": "1번 테이블 5번 좌석",
+    "position": [
+      -4.642654848325078,
+      0,
+      -5.007563644116828
+    ],
+    "approach": [
+      -4.404711762656368,
+      0,
+      -5.739877161664095
+    ],
+    "message": "1번 테이블 5번 좌석에 앉았어요.",
+    "rotation": -3.4557519189487724,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      -4.642654848325078,
+      0,
+      -5.007563644116828
+    ],
+    "seatHeight": 0.55,
+    "bounds": [
+      0.36,
+      0.36
+    ]
+  },
+  {
+    "room": "season",
+    "id": "season-seat-2-1",
+    "name": "2번 테이블 1번 좌석",
+    "position": [
+      -3.6199999999999997,
+      0,
+      1.8
+    ],
+    "approach": [
+      -2.8499999999999996,
+      0,
+      1.8
+    ],
+    "message": "2번 테이블 1번 좌석에 앉았어요.",
+    "rotation": 1.5707963267948966,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      -3.6199999999999997,
+      0,
+      1.8
+    ],
+    "seatHeight": 0.55,
+    "bounds": [
+      0.36,
+      0.36
+    ]
+  },
+  {
+    "room": "season",
+    "id": "season-seat-2-2",
+    "name": "2번 테이블 2번 좌석",
+    "position": [
+      -4.642654848325077,
+      0,
+      3.207563644116827
+    ],
+    "approach": [
+      -4.404711762656368,
+      0,
+      3.9398771616640955
+    ],
+    "message": "2번 테이블 2번 좌석에 앉았어요.",
+    "rotation": 0.3141592653589793,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      -4.642654848325077,
+      0,
+      3.207563644116827
+    ],
+    "seatHeight": 0.55,
+    "bounds": [
+      0.36,
+      0.36
+    ]
+  },
+  {
+    "room": "season",
+    "id": "season-seat-2-3",
+    "name": "2번 테이블 3번 좌석",
+    "position": [
+      -6.2973451516749215,
+      0,
+      2.6699221733928606
+    ],
+    "approach": [
+      -6.920288237343631,
+      0,
+      3.122516817658065
+    ],
+    "message": "2번 테이블 3번 좌석에 앉았어요.",
+    "rotation": -0.9424777960769379,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      -6.2973451516749215,
+      0,
+      2.6699221733928606
+    ],
+    "seatHeight": 0.55,
+    "bounds": [
+      0.36,
+      0.36
+    ]
+  },
+  {
+    "room": "season",
+    "id": "season-seat-2-4",
+    "name": "2번 테이블 4번 좌석",
+    "position": [
+      -6.2973451516749215,
+      0,
+      0.93007782660714
+    ],
+    "approach": [
+      -6.920288237343632,
+      0,
+      0.47748318234193565
+    ],
+    "message": "2번 테이블 4번 좌석에 앉았어요.",
+    "rotation": -2.199114857512855,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      -6.2973451516749215,
+      0,
+      0.93007782660714
+    ],
+    "seatHeight": 0.55,
+    "bounds": [
+      0.36,
+      0.36
+    ]
+  },
+  {
+    "room": "season",
+    "id": "season-seat-2-5",
+    "name": "2번 테이블 5번 좌석",
+    "position": [
+      -4.642654848325078,
+      0,
+      0.3924363558831727
+    ],
+    "approach": [
+      -4.404711762656368,
+      0,
+      -0.33987716166409565
+    ],
+    "message": "2번 테이블 5번 좌석에 앉았어요.",
+    "rotation": -3.4557519189487724,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      -4.642654848325078,
+      0,
+      0.3924363558831727
+    ],
+    "seatHeight": 0.55,
+    "bounds": [
+      0.36,
+      0.36
+    ]
+  },
+  {
+    "room": "season",
+    "id": "season-seat-3-1",
+    "name": "3번 테이블 1번 좌석",
+    "position": [
+      6.58,
+      0,
+      -3.6
+    ],
+    "approach": [
+      7.35,
+      0,
+      -3.6
+    ],
+    "message": "3번 테이블 1번 좌석에 앉았어요.",
+    "rotation": 1.5707963267948966,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      6.58,
+      0,
+      -3.6
+    ],
+    "seatHeight": 0.55,
+    "bounds": [
+      0.36,
+      0.36
+    ]
+  },
+  {
+    "room": "season",
+    "id": "season-seat-3-2",
+    "name": "3번 테이블 2번 좌석",
+    "position": [
+      5.557345151674922,
+      0,
+      -2.192436355883173
+    ],
+    "approach": [
+      5.795288237343631,
+      0,
+      -1.4601228383359048
+    ],
+    "message": "3번 테이블 2번 좌석에 앉았어요.",
+    "rotation": 0.3141592653589793,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      5.557345151674922,
+      0,
+      -2.192436355883173
+    ],
+    "seatHeight": 0.55,
+    "bounds": [
+      0.36,
+      0.36
+    ]
+  },
+  {
+    "room": "season",
+    "id": "season-seat-3-3",
+    "name": "3번 테이블 3번 좌석",
+    "position": [
+      3.902654848325078,
+      0,
+      -2.7300778266071397
+    ],
+    "approach": [
+      3.279711762656368,
+      0,
+      -2.2774831823419355
+    ],
+    "message": "3번 테이블 3번 좌석에 앉았어요.",
+    "rotation": -0.9424777960769379,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      3.902654848325078,
+      0,
+      -2.7300778266071397
+    ],
+    "seatHeight": 0.55,
+    "bounds": [
+      0.36,
+      0.36
+    ]
+  },
+  {
+    "room": "season",
+    "id": "season-seat-3-4",
+    "name": "3번 테이블 4번 좌석",
+    "position": [
+      3.9026548483250774,
+      0,
+      -4.4699221733928605
+    ],
+    "approach": [
+      3.2797117626563677,
+      0,
+      -4.922516817658065
+    ],
+    "message": "3번 테이블 4번 좌석에 앉았어요.",
+    "rotation": -2.199114857512855,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      3.9026548483250774,
+      0,
+      -4.4699221733928605
+    ],
+    "seatHeight": 0.55,
+    "bounds": [
+      0.36,
+      0.36
+    ]
+  },
+  {
+    "room": "season",
+    "id": "season-seat-3-5",
+    "name": "3번 테이블 5번 좌석",
+    "position": [
+      5.557345151674921,
+      0,
+      -5.007563644116828
+    ],
+    "approach": [
+      5.795288237343631,
+      0,
+      -5.739877161664095
+    ],
+    "message": "3번 테이블 5번 좌석에 앉았어요.",
+    "rotation": -3.4557519189487724,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      5.557345151674921,
+      0,
+      -5.007563644116828
+    ],
+    "seatHeight": 0.55,
+    "bounds": [
+      0.36,
+      0.36
+    ]
+  },
+  {
+    "room": "season",
+    "id": "season-seat-4-1",
+    "name": "4번 테이블 1번 좌석",
+    "position": [
+      6.58,
+      0,
+      1.8
+    ],
+    "approach": [
+      7.35,
+      0,
+      1.8
+    ],
+    "message": "4번 테이블 1번 좌석에 앉았어요.",
+    "rotation": 1.5707963267948966,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      6.58,
+      0,
+      1.8
+    ],
+    "seatHeight": 0.55,
+    "bounds": [
+      0.36,
+      0.36
+    ]
+  },
+  {
+    "room": "season",
+    "id": "season-seat-4-2",
+    "name": "4번 테이블 2번 좌석",
+    "position": [
+      5.557345151674922,
+      0,
+      3.207563644116827
+    ],
+    "approach": [
+      5.795288237343631,
+      0,
+      3.9398771616640955
+    ],
+    "message": "4번 테이블 2번 좌석에 앉았어요.",
+    "rotation": 0.3141592653589793,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      5.557345151674922,
+      0,
+      3.207563644116827
+    ],
+    "seatHeight": 0.55,
+    "bounds": [
+      0.36,
+      0.36
+    ]
+  },
+  {
+    "room": "season",
+    "id": "season-seat-4-3",
+    "name": "4번 테이블 3번 좌석",
+    "position": [
+      3.902654848325078,
+      0,
+      2.6699221733928606
+    ],
+    "approach": [
+      3.279711762656368,
+      0,
+      3.122516817658065
+    ],
+    "message": "4번 테이블 3번 좌석에 앉았어요.",
+    "rotation": -0.9424777960769379,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      3.902654848325078,
+      0,
+      2.6699221733928606
+    ],
+    "seatHeight": 0.55,
+    "bounds": [
+      0.36,
+      0.36
+    ]
+  },
+  {
+    "room": "season",
+    "id": "season-seat-4-4",
+    "name": "4번 테이블 4번 좌석",
+    "position": [
+      3.9026548483250774,
+      0,
+      0.93007782660714
+    ],
+    "approach": [
+      3.2797117626563677,
+      0,
+      0.47748318234193565
+    ],
+    "message": "4번 테이블 4번 좌석에 앉았어요.",
+    "rotation": -2.199114857512855,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      3.9026548483250774,
+      0,
+      0.93007782660714
+    ],
+    "seatHeight": 0.55,
+    "bounds": [
+      0.36,
+      0.36
+    ]
+  },
+  {
+    "room": "season",
+    "id": "season-seat-4-5",
+    "name": "4번 테이블 5번 좌석",
+    "position": [
+      5.557345151674921,
+      0,
+      0.3924363558831727
+    ],
+    "approach": [
+      5.795288237343631,
+      0,
+      -0.33987716166409565
+    ],
+    "message": "4번 테이블 5번 좌석에 앉았어요.",
+    "rotation": -3.4557519189487724,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      5.557345151674921,
+      0,
+      0.3924363558831727
+    ],
+    "seatHeight": 0.55,
+    "bounds": [
+      0.36,
+      0.36
+    ]
+  },
+  {
+    "room": "cafe",
+    "id": "cafe-seat",
+    "name": "카페 창가 의자에 앉기",
+    "position": [
+      1.7,
+      0,
+      1.65
+    ],
+    "approach": [
+      0.55,
+      0,
+      1.65
+    ],
+    "message": "카페 창가 의자에 앉기 · 로컬 체험",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      1.7,
+      0,
+      1.65
+    ],
+    "seatHeight": 0.47,
+    "bounds": [
+      0.42,
+      0.4
+    ]
+  },
+  {
+    "room": "women",
+    "id": "women-seat",
+    "name": "분홍 소파에 앉기",
+    "position": [
+      -1.65,
+      0,
+      1.85
+    ],
+    "approach": [
+      -0.5,
+      0,
+      1.2
+    ],
+    "message": "분홍 소파에 앉기 · 로컬 체험",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      -1.65,
+      0,
+      1.85
+    ],
+    "seatHeight": 0.47,
+    "bounds": [
+      0.42,
+      0.4
+    ]
+  },
+  {
+    "room": "men",
+    "id": "men-seat",
+    "name": "아지트 소파에 앉기",
+    "position": [
+      -1.7,
+      0,
+      0.7
+    ],
+    "approach": [
+      -0.45,
+      0,
+      0.7
+    ],
+    "message": "아지트 소파에 앉기 · 로컬 체험",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      -1.7,
+      0,
+      0.7
+    ],
+    "seatHeight": 0.47,
+    "bounds": [
+      0.42,
+      0.4
+    ]
+  },
+  {
+    "room": "games",
+    "id": "games-seat",
+    "name": "보드게임 의자에 앉기",
+    "position": [
+      1.6,
+      0,
+      2.4
+    ],
+    "approach": [
+      0.5,
+      0,
+      2.2
+    ],
+    "message": "보드게임 의자에 앉기 · 로컬 체험",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      1.6,
+      0,
+      2.4
+    ],
+    "seatHeight": 0.47,
+    "bounds": [
+      0.42,
+      0.4
+    ]
+  },
+  {
+    "room": "cinema",
+    "id": "cinema-seat",
+    "name": "극장 좌석에 앉기",
+    "position": [
+      1.65,
+      0,
+      0.2
+    ],
+    "approach": [
+      0.5,
+      0,
+      0.2
+    ],
+    "message": "극장 좌석에 앉기 · 로컬 체험",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      1.65,
+      0,
+      0.2
+    ],
+    "seatHeight": 0.47,
+    "bounds": [
+      0.42,
+      0.4
+    ]
+  },
+  {
+    "room": "travel",
+    "id": "travel-map",
+    "name": "여행 지도 살펴보기",
+    "position": [
+      1.7,
+      0,
+      1.25
+    ],
+    "approach": [
+      0.55,
+      0,
+      1.25
+    ],
+    "message": "여행 지도 · 채팅의 장소 추천 기능으로 여행지를 공유할 수 있어요.",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.66,
+      0.66
+    ]
+  },
+  {
+    "room": "hobby",
+    "id": "hobby-books",
+    "name": "책장 둘러보기",
+    "position": [
+      -1.9,
+      0,
+      2.48
+    ],
+    "approach": [
+      -0.9,
+      0,
+      1.9
+    ],
+    "message": "독서 코너 · 좋아하는 책을 모임에서 나눠 보세요.",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.63,
+      0.25
+    ]
+  },
+  {
+    "room": "cafe",
+    "id": "cafe-counter",
+    "name": "커피와 디저트 메뉴",
+    "position": [
+      -1.9,
+      0,
+      1.2
+    ],
+    "approach": [
+      -0.8,
+      0,
+      0.15
+    ],
+    "message": "카페 메뉴 · 커피, 차와 디저트 (가상 무료 메뉴)",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.65,
+      1.23
+    ]
+  },
+  {
+    "room": "home",
+    "id": "home-bed",
+    "name": "침대에 눕기",
+    "position": [
+      -3.35,
+      0,
+      2.45
+    ],
+    "approach": [
+      -2.1,
+      0,
+      2.45
+    ],
+    "message": "침대에 누웠어요. 일어나거나 바닥을 터치하면 다시 움직여요.",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "lie",
+    "seat": [
+      -3.35,
+      0,
+      2.45
+    ],
+    "seatHeight": 0.76,
+    "bounds": [
+      0.85,
+      1.3
+    ]
+  },
+  {
+    "room": "home",
+    "id": "home-sofa",
+    "name": "소파에 앉기",
+    "position": [
+      3.15,
+      0,
+      2.8
+    ],
+    "approach": [
+      2,
+      0,
+      2
+    ],
+    "message": "소파에 앉기 · 로컬 체험",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "sit",
+    "seat": [
+      3.15,
+      0,
+      2.8
+    ],
+    "seatHeight": 0.52,
+    "bounds": [
+      0.86,
+      0.42
+    ]
+  },
+  {
+    "room": "home",
+    "id": "home-wardrobe",
+    "name": "옷장 열기",
+    "position": [
+      3.65,
+      0,
+      -2.1
+    ],
+    "approach": [
+      2.4,
+      0,
+      -2.1
+    ],
+    "message": "옷장 열기 · 로컬 체험",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.72,
+      0.38
+    ],
+    "menu": "home-wardrobe"
+  },
+  {
+    "room": "home",
+    "id": "home-mirror",
+    "name": "프로필 거울",
+    "position": [
+      -3.7,
+      0,
+      -2.3
+    ],
+    "approach": [
+      -2.4,
+      0,
+      -2.3
+    ],
+    "message": "프로필 거울 · 로컬 체험",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.5,
+      0.22
+    ],
+    "menu": "home-profile"
+  },
+  {
+    "room": "home",
+    "id": "home-mailbox",
+    "name": "내 우편함",
+    "position": [
+      3.75,
+      0,
+      -3.6
+    ],
+    "approach": [
+      2.65,
+      0,
+      -3.6
+    ],
+    "message": "내 우편함 · 로컬 체험",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.4,
+      0.3
+    ],
+    "menu": "home-mailbox"
+  },
+  {
+    "room": "home",
+    "id": "home-decor",
+    "name": "집 꾸미기",
+    "position": [
+      0,
+      0,
+      3.8
+    ],
+    "approach": [
+      0,
+      0,
+      2.7
+    ],
+    "message": "집 꾸미기 · 로컬 체험",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.6,
+      0.25
+    ],
+    "menu": "home-decor"
   }
 ]
