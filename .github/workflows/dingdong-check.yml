@@ -3,13 +3,14 @@ on:
   push:
     branches:
       - 'develop/dingdong'
+      - 'develop/dingdong-mansion'
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,3 +20,11 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run typecheck:api
+      - name: Browser smoke tests
+        if: github.ref_name == 'develop/dingdong-mansion'
+        run: |
+          python3 -m pip install playwright
+          python3 -m playwright install --with-deps chromium
+          npm run dev -- --host 127.0.0.1 --port 4173 --strictPort > /tmp/dingdong-server.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4173 >/dev/null && break; sleep 1; done
+          python3 scripts/verify_mansion.py
