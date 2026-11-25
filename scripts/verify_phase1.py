@@ -64,6 +64,8 @@ with sync_playwright() as p:
             page.get_by_role("button",name="걸어가기",exact=True).click()
             expect(canvas).to_have_attribute("data-room",id,timeout=35000)
             if id=="season":
+                expect(canvas).to_have_attribute("data-room-seats","20")
+                expect(canvas).to_have_attribute("data-room-area","230.88")
                 page.get_by_role("button",name="파티 테이블",exact=True).click()
                 expect(canvas).to_have_attribute("data-last-prop","season-banquet",timeout=15000)
             page.get_by_role("button",name="채팅 펼치기",exact=True).click()

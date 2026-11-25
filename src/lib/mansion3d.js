@@ -6,7 +6,7 @@ const palette={wood:0x94603c,cream:0xffedcb,brass:0xffc83e,green:0x008e55,red:0x
 const skin={cat:[0xc79763,0xf5e3c8],santacat:[0xb9b0a4,0xf3e9db],bear:[0xb68a61,0xf1dec2],fox:[0xc7794c,0xf7e4d0],rabbit:[0xe3d5c3,0xfff0e2],owl:[0x9b7a56,0xf1e3c9],squirrel:[0xb17a4e,0xf3dfc3],penguin:[0x414e54,0xf5eddf],dog:[0xd0a578,0xf4e5d0],hamster:[0xe0b78a,0xf9edd7],otter:[0x9f785c,0xe8d2b6],raccoon:[0xa39f97,0xf1e9db],deer:[0xbb8c64,0xf4e2c8],panda:[0xf0e9df,0xfffaf0]}
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v))
 export function createWorld(host,opts){
- const scene=new T.Scene();scene.background=new T.Color('#25356b')
+ const scene=new T.Scene();scene.background=new T.Color('#b8dff2')
  const renderer=new T.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'})
  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.domElement.setAttribute('aria-label','딩동 3D 온라인 파티 마을');renderer.domElement.tabIndex=0;host.appendChild(renderer.domElement)
  const camera=new T.PerspectiveCamera(42,1,.1,130)
@@ -21,8 +21,8 @@ export function createWorld(host,opts){
  const cyl=(p,c,x,y,z,r,h)=>shape(p,'cylinder',c,x,y,z,r,h,r)
  const cone=(p,c,x,y,z,r,h)=>shape(p,'cone',c,x,y,z,r,h,r)
  function group(parent,x=0,y=0,z=0){const g=new T.Group();g.position.set(x,y,z);parent.add(g);return g}
- const hit=[],rooms=new Map(),labels=[],interactiveProps=[]
- function sign(parent,text,x,y,z){const c=document.createElement('canvas');c.width=512;c.height=112;const ctx=c.getContext('2d');if(!ctx)return;ctx.fillStyle='#473a32';ctx.fillRect(4,4,504,104);ctx.strokeStyle='#d6b77d';ctx.lineWidth=7;ctx.strokeRect(7,7,498,98);ctx.font='bold 38px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff1d7';ctx.fillText(text,256,56,470);const texture=new T.CanvasTexture(c);texture.colorSpace=T.SRGBColorSpace;const m=new T.SpriteMaterial({map:texture,depthTest:true,transparent:true});const s=new T.Sprite(m);s.scale.set(2.7,.59,1);s.position.set(x,y,z);parent.add(s);labels.push(s);return s}
+ const hit=[],rooms=new Map(),labels=[],interactiveProps=[],facades=[],interiorRoots=[]
+ function sign(parent,text,x,y,z){const c=document.createElement('canvas');c.width=512;c.height=112;const ctx=c.getContext('2d');if(!ctx)return;ctx.beginPath();ctx.roundRect(5,5,502,102,26);ctx.fillStyle='#fff8e9';ctx.fill();ctx.lineWidth=7;ctx.strokeStyle='#d7a3c9';ctx.stroke();ctx.font='bold 38px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#5a386a';ctx.fillText(text,256,56,470);const texture=new T.CanvasTexture(c);texture.colorSpace=T.SRGBColorSpace;const m=new T.SpriteMaterial({map:texture,depthTest:true,transparent:true});const s=new T.Sprite(m);s.scale.set(2.7,.59,1);s.position.set(x,y,z);parent.add(s);labels.push(s);return s}
  function prop(p,id,name,x,z,message,build){const g=group(p,x,0,z);g.userData.dynamic=true;g.userData.assetId=id;build(g);const marker=sign(g,name,0,2.65,0);if(marker){marker.scale.set(1.5,.33,1);marker.userData.prop=id;interactiveProps.push(marker)}return {g,id,message}}
  const propInfo=new Map();function install(p,id,build){const def=PHASE_PROPS.find(v=>v.id===id);if(!def)return;const item=prop(p,id,def.name,def.position[0],def.position[2],def.message,build);item.g.rotation.y=def.rotation;item.g.scale.setScalar(def.scale);propInfo.set(id,{...item,def,parent:p});return item}
  function chair(p,x,z,color=palette.green){box(p,color,x,.44,z,.85,.25,.8);box(p,color,x,.83,z+.34,.85,.75,.23);for(const dx of [-.3,.3])for(const dz of [-.26,.26])box(p,palette.dark,x+dx,.19,z+dz,.11,.38,.11)}
@@ -36,7 +36,7 @@ export function createWorld(host,opts){
  const spriteFactory=createSpriteFactory(),residentSprites=[]
  function animal(parent,key,coat=palette.green,look=null){return spriteFactory.create(parent,key,coat,look)}
  // A miniature town: two shopping streets connected by three alleys and a festival square.
- box(scene,0xadd9cd,0,-.18,0,43,.3,45);
+ box(scene,0x82c6a1,0,-.18,0,46,.3,48);
  const streetZ=[-10.5,10.5],laneX=[-18,-6,6,18];
  for(const z of streetZ){box(scene,0xf4d2af,0,.025,z,39,.1,4.1);for(let x=-19;x<19;x+=1.15){box(scene,0xd69da3,x,.083,z,.037,.012,4);box(scene,0xe6babe,x,.084,z-1.94,1.1,.014,.07)}}
  for(const x of laneX){box(scene,0xf4d2af,x,.029,0,3.5,.1,41);for(let z=-19;z<20;z+=1.2)box(scene,0xd5a5a5,x,.09,z,3.45,.012,.035)}
@@ -45,9 +45,30 @@ export function createWorld(host,opts){
  for(const z of [-10.5,10.5])for(const x of [-16,-8,-4,4,8,16]){const p=group(scene,x,0,z+1.85);cyl(p,0x6b557a,0,.72,0,.055,1.44);ball(p,0xffe294,0,1.53,0,.15,.19,.15);cyl(p,0xe0a73e,0,1.75,0,.12,.07)}
  const ordered=['season','cafe','hobby','travel','plaza','cinema','women','games','men','jazz','home','single'];
  const roofs=[0xd83d67,0x36a997,0xa16cde,0x3588cf,0xf1a93e,0x8453c1,0xec6c9e,0x6e8df1,0x2caba0,0xb9467e,0xf29b58,0x8a63c4];
+ const walls=[0xffdfcc,0xd5f3d9,0xf0dafb,0xd0eaf9,0xffedba,0xe0d7f5,0xffd4e4,0xd7e4ff,0xccebdc,0xf0c3de,0xffe0a8,0xe9d1ff];
+ function shopfront(s,i,x,z,side){const p=group(scene,x,0,z);p.userData.facade=s.id;facades.push(p);if(side<0)p.rotation.y=Math.PI;const r=roofs[i],w=walls[i],h=3.0+(i%3)*.38;box(p,0xe4b8a2,0,.10,0,5.95,.2,6.55);box(p,w,0,h/2,0,5.6,h,6.1);
+  // A rounded moulding, shop glazing, door panels, cornice, and individual roof silhouettes.
+  for(const dx of [-2.72,2.72])box(p,0xfff4dc,dx,h/2,-3.07,.19,h,.20);
+  box(p,0xfff4dc,0,h-.09,-3.12,5.7,.22,.23);box(p,r,0,h+.08,0,5.95,.26,6.46);
+  if(i%3===0){for(const q of [-1,1]){const roof=box(p,r,q*1.45,h+.77,0,3.4,.23,6.65);roof.rotation.z=-q*.39;for(let n=0;n<8;n++){const tile=box(p,0xffffff,q*(.2+n*.34),h+1.36-n*.14,0,.035,.04,6.65);tile.rotation.z=-q*.39;tile.material=material(r)}}box(p,r,0,h+1.38,0,.22,.17,6.65)}
+  else if(i%3===1){box(p,r,0,h+.32,0,5.8,.24,6.3);for(const dx of [-2.65,2.65])box(p,w,dx,h+.55,0,.28,.37,6.2);box(p,w,0,h+.55,2.9,5.6,.37,.28);box(p,r,1.7,h+.85,1.7,.65,1.0,.65);box(p,0xfff4dc,1.7,h+1.38,1.7,.8,.15,.8)}
+  else{box(p,r,0,h+.33,0,5.95,.40,6.45);for(let n=0;n<5;n++)box(p,w,-2.35+n*1.18,h+.7,-3.05,.62,.57,.25);cyl(p,r,-1.95,h+.8,1.9,.64,.7);cone(p,r,-1.95,h+1.56,1.9,.86,.95)}
+  // Recessed display windows with individual merchandise silhouettes.
+  for(const dx of [-1.78,1.78]){box(p,0xfff6e3,dx,1.22,-3.12,1.51,1.62,.14);box(p,0x315c85,dx,1.22,-3.22,1.31,1.42,.06);box(p,0xa8e0eb,dx,1.38,-3.26,1.17,1.05,.04);box(p,0xfff1dc,dx,1.22,-3.30,.065,1.42,.04);box(p,0xfff1dc,dx,1.24,-3.31,1.32,.06,.04);box(p,r,dx,.41,-3.28,1.65,.18,.40);for(let j=0;j<4;j++){ball(p,0x37966a,dx-.51+j*.34,.62,-3.34,.19,.14,.15);ball(p,FESTIVAL_COLORS[(i+j*2)%9],dx-.51+j*.34,.73,-3.35,.10,.10,.09)}}
+  // Door and decorative awning; its hit target covers the whole facade.
+  box(p,0xfff3d7,0,1.09,-3.13,1.40,2.18,.17);const door=box(p,r,0,1.04,-3.25,1.16,2.00,.13);door.userData.room=s.id;hit.push(door);door.userData.dynamic=true;box(p,0xb6dce6,0,1.42,-3.34,.83,.67,.035);box(p,0xffecd0,0,1.42,-3.37,.035,.68,.035);ball(p,palette.brass,.42,.99,-3.41,.07,.07,.07);box(p,0xcaa69a,0,.10,-3.52,1.85,.18,.72);
+  for(let j=0;j<10;j++){const a=box(p,j%2?0xfff7df:r,-2.43+j*.54,2.62,-3.40,.53,.14,.83);a.rotation.x=-.18;ball(p,j%2?0xfff7df:r,-2.43+j*.54,2.49,-3.79,.265,.10,.07)}
+  const name=sign(p,s.name+(opts.access?.(s.id)==='locked'?' · 잠금':opts.access?.(s.id)==='coming'?' · 준비중':''),0,h+.32,-3.5);if(name){name.userData.room=s.id;hit.push(name);name.scale.set(3.6,.70,1)}
+  const top=box(p,w,0,h*.55,0,5.5,h*.90,6.0);top.visible=false;top.userData.room=s.id;top.userData.dynamic=true;hit.push(top);
+  for(const dx of [-2.4,2.4]){const g=group(p,dx,0,-3.48);cyl(g,r,0,.18,0,.23,.33);cyl(g,0xffe3b8,0,.32,0,.25,.06);for(let n=0;n<4;n++)ball(g,0x36a66e,Math.sin(n*2)*.13,.55+n*.10,Math.cos(n*2)*.1,.17,.21,.15)}
+  return p}
+ // Street gardens and real urban detailing. Keep the main walking strips open.
+ for(const z of [-5.6,5.6])for(const x of [-18,-6,6,18]){const p=group(scene,x,0,z);cyl(p,0xf3d5b7,0,.06,0,.76,.12);cyl(p,0x986747,0,.62,0,.12,1.15);for(let i=0;i<5;i++)ball(p,i%2?0x50b888:0x379b73,Math.sin(i*2)*.32,1.55+i%2*.28,Math.cos(i*2)*.32,.6,.65,.6);for(let n=0;n<7;n++)ball(p,FESTIVAL_COLORS[n%9],Math.cos(n*.9)*.5,.18,Math.sin(n*.9)*.5,.10,.11,.10)}
+ for(const x of [-8,8])for(const z of [-1.55,1.55]){const b=group(scene,x,0,z);couch(b,0,0,0x9f7ecb);box(b,0xe6b26a,0,.12,0,2.0,.06,1.2)}
+
  for(let i=0;i<ordered.length;i++){
   const s=opts.spaces.find(v=>v.id===ordered[i]);if(!s)continue;const row=Math.floor(i/3),side=row%2===0?-1:1,x=(i%3-1)*12,street=row<2?-10.5:10.5,centerZ=street+side*5.1
-  const p=group(scene,x,0,centerZ);p.userData.roomRoot=s.id;if(side<0)p.rotation.y=Math.PI
+  const facade=shopfront(s,i,x,centerZ,side);const p=group(scene,x,0,centerZ);p.userData.roomRoot=s.id;interiorRoots.push(p);p.visible=false;if(side<0)p.rotation.y=Math.PI
   box(p,0xffecd9,0,.03,0,5.55,.13,6.3)
   for(let k=-2.5;k<2.6;k+=.55)box(p,0xb79879,k,.105,0,.025,.01,6.15)
   box(p,s.door,0,.19,2.99,5.65,.36,.16);box(p,s.wall,0,.79,2.99,5.65,1.12,.14);box(p,roofs[i],0,1.38,2.99,5.83,.18,.31);for(const x of [-1.65,1.65]){box(p,0xfff2df,x,.82,2.88,1.3,.83,.06);box(p,0x72b8db,x,.83,2.83,1.11,.66,.05);box(p,0xfff2df,x,.83,2.78,.065,.7,.04);box(p,0xfff2df,x,.83,2.77,1.14,.065,.04)}
@@ -76,10 +97,24 @@ export function createWorld(host,opts){
   else if(k==='cinema'){box(p,palette.dark,0,1.34,2.85,3.8,1.55,.16);box(p,0xa6bdbe,0,1.34,2.75,3.48,1.25,.05);for(const x of [-1.65,1.65])for(const z of [.2,1.65])chair(p,x,z,palette.red);gift(p,-2.0,-1.3)}
   else if(k==='home'){box(p,palette.wood,-1.65,.34,1.5,1.4,.5,2);box(p,0x9da991,-1.65,.66,1.5,1.36,.23,1.98);box(p,palette.cream,-1.65,.82,2.2,1.1,.2,.48);shelf(p,1.85,2.45);table(p,1.65,.35);plant(p,-2.1,-.55)}
   const res=opts.residents[s.id];if(res){const npc=animal(p,res.avatar,res.coat);npc.g.position.set(-1.2,0,1.05);npc.g.rotation.y=Math.PI;residentSprites.push(npc);sign(p,res.name+' · NPC',-1.2,1.85,1.05)}
-  rooms.set(s.id,{s,x,side,street,hinge,parent:p,inside:centerZ,doorZ:street+side*2.08})
+  rooms.set(s.id,{s,x,side,street,hinge,parent:p,facade,inside:centerZ,doorZ:street+side*2.08})
  }
  // Phase one: reusable, individually identified decor with local interaction.
  const plaza=rooms.get('plaza'),season=rooms.get('season')
+ const largeRooms=new Map();
+ // Separate spacious gathering room with 20 numbered seats and broad central aisle.
+ if(season){const p=group(scene,season.x,0,season.inside);p.rotation.y=season.parent.rotation.y;p.userData.roomRoot='season';interiorRoots.push(p);p.visible=false;
+  box(p,0xf5d6b0,0,-.025,0,15.6,.24,14.8);
+  for(let x=-7.3;x<7.4;x+=.65)box(p,0xc9946c,x,.10,0,.035,.012,14.5)
+  box(p,0xc82b53,0,.125,0,3.0,.035,13.8);for(const x of [-1.48,1.48])box(p,0xfad06b,x,.15,0,.065,.025,13.7);
+  for(const x of [-7.55,7.55]){box(p,0xf5c3d3,x,.95,0,.18,1.9,14.8);box(p,0xfedfa2,x,1.90,0,.24,.12,14.8);for(let z=-6.4;z<=6.4;z+=2.5){box(p,0xfff3df,x,1.35,z,.24,1.1,1.3);box(p,0x80b8d4,x*.989,1.35,z,.08,.88,1.05)}}
+  box(p,0xf6d0ce,0,1.15,7.25,15.2,2.3,.18);box(p,0xffe19b,0,2.35,7.25,15.4,.12,.26);
+  for(const x of [-5.1,5.1])for(const z of [-3.6,1.8]){const g=group(p,x,0,z);cyl(g,0xe9b06d,0,.28,0,.13,.56);cyl(g,0xfff1d9,0,.70,0,1.05,.18);cyl(g,0xdd4e77,0,.79,0,.92,.025);for(let n=0;n<5;n++){const a=n*Math.PI*2/5,xx=Math.cos(a)*1.48,zz=Math.sin(a)*1.48;const seat=group(g,xx,0,zz);seat.rotation.y=-a+Math.PI/2;chair(seat,0,0,[0xe95078,0x29a98c,0x8e73cb,0x4b8ed7][(n+Math.round(z+4))%4]);cyl(g,0xffeac5,Math.cos(a)*.65,.83,Math.sin(a)*.65,.14,.035);ball(g,0xffdb8b,Math.cos(a)*.65,.91,Math.sin(a)*.65,.07,.08,.07)}cyl(g,0xf2c46e,0,.88,0,.15,.22);for(let n=0;n<5;n++)ball(g,FESTIVAL_COLORS[n],Math.cos(n*1.26)*.19,1.10,Math.sin(n*1.26)*.19,.12,.13,.12)}
+  for(const x of [-5.7,5.7]){tree(p,x,5.65);gift(p,x-.8,5.2);gift(p,x+.7,5.45);lamp(p,x,-6.2)}
+  for(const x of [-7.1,7.1])for(let j=0;j<9;j++)ball(p,FESTIVAL_COLORS[j%9],x,2.15,-6+j*1.5,.13,.13,.13);
+  largeRooms.set('season',p);
+ }
+
  if(plaza){
  install(plaza.parent,'plaza-bench',g=>{});install(plaza.parent,'plaza-fountain',g=>{});
  const hub=group(scene,0,0,0);hub.userData.dynamic=true
@@ -105,9 +140,9 @@ export function createWorld(host,opts){
  const festiveMerged=[];festive.updateMatrixWorld(true);const ornamentBatches=new Map();festive.traverse(o=>{if(!o.isMesh)return;const key=o.material.uuid;if(!ornamentBatches.has(key))ornamentBatches.set(key,[]);ornamentBatches.get(key).push(o)});for(const objects of ornamentBatches.values()){if(objects.length<2)continue;const parts=objects.map(o=>o.geometry.clone().applyMatrix4(o.matrixWorld));const geo=mergeGeometries(parts,false);parts.forEach(p=>p.dispose());if(!geo)continue;const mesh=new T.Mesh(geo,objects[0].material);mesh.receiveShadow=true;mesh.castShadow=false;festive.add(mesh);festiveMerged.push(geo);objects.forEach(o=>o.removeFromParent())}
  let festiveEnabled=false;festive.visible=false;function setFestive(value){festiveEnabled=!!value;festive.visible=festiveEnabled&&!active;canvas.dataset.festive=String(festiveEnabled)}
  // Batch static geometry by material to reduce mobile draw calls. Doors, labels, and player stay independent.
- scene.updateMatrixWorld(true);const batches=new Map(),merged=[];scene.traverse(m=>{if(!m.isMesh)return;let root=scene;for(let p=m;p;p=p.parent){if(p.userData.dynamic)return;if(p.userData.roomRoot)root=p}const key=root.uuid+':'+m.material.uuid;if(!batches.has(key))batches.set(key,{root,meshes:[]});batches.get(key).meshes.push(m)});for(const {root,meshes} of batches.values()){if(meshes.length<2)continue;const inv=root.matrixWorld.clone().invert();const parts=meshes.map(m=>m.geometry.clone().applyMatrix4(inv.clone().multiply(m.matrixWorld)));const g=mergeGeometries(parts,false);parts.forEach(p=>p.dispose());if(!g)continue;const m=new T.Mesh(g,meshes[0].material);m.castShadow=true;m.receiveShadow=true;root.add(m);merged.push(g);meshes.forEach(v=>v.removeFromParent())}
+ scene.updateMatrixWorld(true);const batches=new Map(),merged=[];scene.traverse(m=>{if(!m.isMesh)return;let root=scene;for(let p=m;p;p=p.parent){if(p.userData.dynamic)return;if(p.userData.roomRoot||p.userData.facade)root=p}const key=root.uuid+':'+m.material.uuid;if(!batches.has(key))batches.set(key,{root,meshes:[]});batches.get(key).meshes.push(m)});for(const {root,meshes} of batches.values()){if(meshes.length<2)continue;const inv=root.matrixWorld.clone().invert();const parts=meshes.map(m=>m.geometry.clone().applyMatrix4(inv.clone().multiply(m.matrixWorld)));const g=mergeGeometries(parts,false);parts.forEach(p=>p.dispose());if(!g)continue;const m=new T.Mesh(g,meshes[0].material);m.castShadow=true;m.receiveShadow=true;root.add(m);merged.push(g);meshes.forEach(v=>v.removeFromParent())}
  const exterior=scene.children.filter(o=>!o.isLight&&!o.userData.roomRoot&&!o.userData.outdoorDecoration);
- function showInterior(id){for(const o of scene.children)if(o.userData.roomRoot)o.visible=!id||o.userData.roomRoot===id;for(const o of exterior)o.visible=!id;festive.visible=!id&&festiveEnabled;scene.background.set(id?'#e9dff2':'#25356b')}
+ function showInterior(id){for(const o of scene.children)if(o.userData.roomRoot)o.visible=!!id&&o.userData.roomRoot===id;for(const o of exterior)o.visible=!id;festive.visible=!id&&festiveEnabled;scene.background.set(id?'#f3dfeb':'#b8dff2')}
  let seated=null;let currentLook=opts.look;let player=animal(scene,opts.avatar,currentLook?.coat||palette.green,currentLook);player.g.position.set(0,.1,0)
  let cameraRadius=19;let angle=Math.PI/5,zoom=1,active=null,target=null,queue=[],busy=false,disposed=false,drag=null,frame=0,last=performance.now(),clock=0;
  const focus=new T.Vector3(0,0,0),ray=new T.Raycaster(),ground=new T.Plane(new T.Vector3(0,1,0),-.1),point=new T.Vector3()
@@ -126,11 +161,11 @@ export function createWorld(host,opts){
  function returnHub(){if(busy)return;const start=outdoorStart(),route=outsideRoute(...start,0,0);if(!route){status('광장 길을 찾지 못했어요.');return}const path=leavePath();path.push(...route,waypoint(0,0,()=>status('중앙 축제광장 · 도착')));enqueue(path)}
  function capture(){if(disposed||busy||active!=='season'||canvas.dataset.lastProp!=='season-photo')return null;try{renderer.render(scene,camera);const shot=document.createElement('canvas');const scale=Math.min(1,480/canvas.width,480/canvas.height);shot.width=Math.max(1,Math.round(canvas.width*scale));shot.height=Math.max(1,Math.round(canvas.height*scale));const ctx=shot.getContext('2d');if(!ctx)return null;ctx.drawImage(canvas,0,0,shot.width,shot.height);let jpeg=shot.toDataURL('image/jpeg',.65);if(jpeg.length>90000)jpeg=shot.toDataURL('image/jpeg',.35);return jpeg.startsWith('data:image/jpeg')&&jpeg.length<=90000?jpeg:null}catch{return null}}
  function interact(id){if(busy)return;const item=propInfo.get(id);if(!item||item.def.room!==(active||'hall'))return;const a=item.def.approach;const v=item.parent.localToWorld(new T.Vector3(a[0],a[1],a[2]));const r=active?rooms.get(active):null;const path=[];stand();if(r)path.push(waypoint(r.x,player.g.position.z),waypoint(r.x,v.z));else{const route=outsideRoute(player.g.position.x,player.g.position.z,v.x,v.z);if(!route)return;path.push(...route)}path.push(waypoint(v.x,v.z,()=>{const obj=item.g.getWorldPosition(new T.Vector3());player.g.rotation.y=Math.atan2(obj.x-v.x,obj.z-v.z);if(item.def.interaction==='sit'){const s=item.def.seat;const seat=item.parent.localToWorld(new T.Vector3(s[0],0,s[2]));player.g.position.set(seat.x,item.def.seatHeight,seat.z);player.g.rotation.y=item.parent.rotation.y+Math.PI;seated=item;canvas.dataset.pose='seated'}canvas.dataset.lastProp=id;status(item.message);if(item.def.menu)opts.onMenu?.(item.def.menu)}));enqueue(path);status(item.def.name+' 가까이 걸어가는 중')}
- function blocked(x,z){for(const item of propInfo.values()){if(item.def.room!==(active||'hall')||!item.def.bounds)continue;const p=item.parent.worldToLocal(new T.Vector3(x,0,z)),a=item.def.position,b=item.def.bounds;if(Math.abs(p.x-a[0])<b[0]+.18&&Math.abs(p.z-a[2])<b[1]+.18)return true}return false}
- function walk(x,z){if(busy)return;stand();delete canvas.dataset.lastProp;const r=active?rooms.get(active):null;const w=r?waypoint(clamp(x,r.x-.85,r.x+.85),clamp(z,Math.min(r.street+r.side*3.4,r.street+r.side*6.15),Math.max(r.street+r.side*3.4,r.street+r.side*6.15))):waypoint(clamp(x,-19,19),clamp(z,-20,20));if(!r){if(!streetWalkable(w.x,w.z)||blocked(w.x,w.z)){status('가게 문이나 빈 골목을 터치해 주세요.');return}const route=outsideRoute(player.g.position.x,player.g.position.z,w.x,w.z);if(route){queue=route;target=null;busy=true}return}const p=player.g.position;const steps=Math.max(1,Math.ceil(Math.hypot(w.x-p.x,w.z-p.z)/.12));for(let i=1;i<=steps;i++){if(blocked(p.x+(w.x-p.x)*i/steps,p.z+(w.z-p.z)*i/steps)){target=null;status('가구가 놓여 있어요. 빈 바닥으로 돌아가 주세요.');return}}target=w}
+ function blocked(x,z){if(active==='season'){const r=rooms.get('season'),v=r.parent.worldToLocal(new T.Vector3(x,0,z));for(const tx of [-5.1,5.1])for(const tz of [-3.6,1.8])if(Math.hypot(v.x-tx,v.z-tz)<1.12)return true}for(const item of propInfo.values()){if(item.def.room!==(active||'hall')||!item.def.bounds)continue;const p=item.parent.worldToLocal(new T.Vector3(x,0,z)),a=item.def.position,b=item.def.bounds;if(Math.abs(p.x-a[0])<b[0]+.18&&Math.abs(p.z-a[2])<b[1]+.18)return true}return false}
+ function walk(x,z){if(busy)return;stand();delete canvas.dataset.lastProp;const r=active?rooms.get(active):null;const w=r?(active==='season'?waypoint(clamp(x,r.x-7.0,r.x+7.0),clamp(z,r.inside-6.8,r.inside+6.8)):waypoint(clamp(x,r.x-2.35,r.x+2.35),clamp(z,r.inside-2.55,r.inside+2.55))):waypoint(clamp(x,-19,19),clamp(z,-20,20));if(!r){if(!streetWalkable(w.x,w.z)||blocked(w.x,w.z)){status('가게 문이나 빈 골목을 터치해 주세요.');return}const route=outsideRoute(player.g.position.x,player.g.position.z,w.x,w.z);if(route){queue=route;target=null;busy=true}return}const p=player.g.position;const steps=Math.max(1,Math.ceil(Math.hypot(w.x-p.x,w.z-p.z)/.12));for(let i=1;i<=steps;i++){if(blocked(p.x+(w.x-p.x)*i/steps,p.z+(w.z-p.z)*i/steps)){target=null;status('가구가 놓여 있어요. 빈 바닥으로 돌아가 주세요.');return}}target=w}
  function move(dx,dz){const c=Math.cos(angle),s=Math.sin(angle),p=target||player.g.position;walk(p.x+dx*c+dz*s,p.z-dx*s+dz*c)}
  function orbit(a){angle+=a}
- function setNight(night){scene.background.set(night?'#161d42':active?'#e9dff2':'#25356b');sun.intensity=night?1.05:2.6;sun.color.set(night?'#e2b789':'#ffebce')}
+ function setNight(night){scene.background.set(night?'#161d42':active?'#f3dfeb':'#b8dff2');sun.intensity=night?1.05:2.6;sun.color.set(night?'#e2b789':'#ffebce')}
  function zoomBy(a){zoom=clamp(zoom+a,.65,1.8)}
  function pointerDown(e){drag={x:e.clientX,y:e.clientY,a:angle};renderer.domElement.setPointerCapture?.(e.pointerId)}
  function pointerMove(e){if(!drag)return;if(Math.abs(e.clientX-drag.x)>8)angle=drag.a-(e.clientX-drag.x)*.012}
@@ -143,8 +178,8 @@ export function createWorld(host,opts){
   if(target){const dx=target.x-p.x,dz=target.z-p.z,dist=Math.hypot(dx,dz),step=(busy?9:5)*dt;if(dist<=step+.01){p.x=target.x;p.z=target.z;const done=target.done;target=null;done?.();if(!queue.length)busy=false}else{p.x+=dx/dist*step;p.z+=dz/dist*step;player.g.rotation.y=Math.atan2(dx,dz);walking=true}}
   for(const r of rooms.values()){const h=r.hinge;h.rotation.y+=(h.userData.target-h.rotation.y)*Math.min(1,dt*16)}
   const motion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;player.update(player.g.rotation.y,walking,clock,angle,motion,!!seated);for(const npc of residentSprites)npc.update(angle,false,clock,angle,motion)
-  focus.lerp(new T.Vector3(p.x,0,p.z),motion?1:Math.min(1,dt*5));const desired=(active?(camera.aspect<.8?9.2:7.4):(camera.aspect<.8?21:17))*zoom;cameraRadius=motion?desired:cameraRadius+(desired-cameraRadius)*Math.min(1,dt*5);const rad=cameraRadius;camera.position.set(focus.x+Math.sin(angle)*rad,rad*.88,focus.z+Math.cos(angle)*rad);camera.lookAt(focus.x,.45,focus.z)
-  canvas.dataset.view=active?'interior':'town';canvas.dataset.layout='town-grid-v1';canvas.dataset.pose=seated?'seated':'standing';canvas.dataset.position=p.x.toFixed(2)+','+p.z.toFixed(2);canvas.dataset.room=active||'hall';canvas.dataset.camera=angle.toFixed(2);canvas.dataset.avatarMode='2d-billboard';canvas.dataset.avatarKey=player.key;canvas.dataset.avatarLook=JSON.stringify(currentLook||{});canvas.dataset.npcCount=String(residentSprites.length);canvas.dataset.interactiveProps=String(propInfo.size);renderer.render(scene,camera);frame=requestAnimationFrame(tick)
+  const room=active==='season'?rooms.get('season'):null;focus.lerp(new T.Vector3(room?room.x*.65+p.x*.35:p.x,0,room?room.inside*.65+p.z*.35:p.z),motion?1:Math.min(1,dt*5));const desired=(active==='season'?(camera.aspect<.8?19:15):active?(camera.aspect<.8?10.5:8.5):(camera.aspect<.8?21:17))*zoom;cameraRadius=motion?desired:cameraRadius+(desired-cameraRadius)*Math.min(1,dt*5);const rad=cameraRadius;camera.position.set(focus.x+Math.sin(angle)*rad,rad*.88,focus.z+Math.cos(angle)*rad);camera.lookAt(focus.x,.45,focus.z)
+  canvas.dataset.view=active?'interior':'town';canvas.dataset.roomSeats=active==='season'?'20':'0';canvas.dataset.roomArea=active==='season'?'230.88':'34.965';canvas.dataset.layout='town-grid-v1';canvas.dataset.pose=seated?'seated':'standing';canvas.dataset.position=p.x.toFixed(2)+','+p.z.toFixed(2);canvas.dataset.room=active||'hall';canvas.dataset.camera=angle.toFixed(2);canvas.dataset.avatarMode='2d-billboard';canvas.dataset.avatarKey=player.key;canvas.dataset.avatarLook=JSON.stringify(currentLook||{});canvas.dataset.npcCount=String(residentSprites.length);canvas.dataset.interactiveProps=String(propInfo.size);renderer.render(scene,camera);frame=requestAnimationFrame(tick)
  }
  frame=requestAnimationFrame(tick)
  return {visit,exit,returnHub,capture,interact,stand,move,orbit,zoom:zoomBy,setAvatar,setNight,setFestive,dispose(){disposed=true;cancelAnimationFrame(frame);ro.disconnect();spriteFactory.dispose();for(const m of mat.values())m.dispose();for(const g of geo.values())g.dispose();for(const g of merged)g.dispose();for(const g of festiveMerged)g.dispose();for(const s of labels){s.material.map?.dispose();s.material.dispose()}renderer.dispose();canvas.remove()}}
