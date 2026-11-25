@@ -320,7 +320,12 @@ with sync_playwright() as p:
         festival.get_by_role("button",name="전날 이벤트").click()
         expect(festival.get_by_role("textbox",name="오늘의 축제 기록")).to_have_value("축제 기록 테스트")
         festival.get_by_label("축제 날짜").fill("2027-02-06")
+        expect(festival.get_by_text("설날 떡국 파티 (추가 회차)",exact=True)).to_have_count(0)
+        festival.get_by_label("축제 날짜").fill("2027-02-07")
         expect(festival.get_by_text("설날 떡국 파티 (추가 회차)",exact=True)).to_be_visible()
+        for date,name in (("2027-02-21","정월대보름"),("2027-06-09","단오"),("2027-09-15","추석")):
+            festival.get_by_label("축제 날짜").fill(date)
+            expect(festival.get_by_role("heading",name=name,exact=True)).to_be_visible()
         festival.get_by_role("button",name="오늘로",exact=True).click()
         expect(festival.get_by_role("textbox",name="오늘의 축제 기록")).to_have_value("축제 기록 테스트")
         page.keyboard.press("Escape")

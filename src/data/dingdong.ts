@@ -27,9 +27,18 @@ export const SPACES: Space[] = [
 ]
 
 export const MONTHLY_IDEAS = [
-  '새해 소원 · 복주머니', '설날(해당 시기) · 밸런타인 · 정월대보름', '화이트데이 · 봄맞이', '벚꽃 · 식목일 · 피크닉',
+  '새해 소원 · 복주머니', '밸런타인 · 설날과 정월대보름(해당 시기)', '화이트데이 · 봄맞이', '벚꽃 · 식목일 · 피크닉',
   '가정의 달 · 레트로 어른이날', '재즈 · 단오(해당 시기)', '여름휴가 · 영화제', '세계 여행 · 야시장',
   '가을 달빛 · 추석(해당 시기)', '한글날 · 핼러윈 · 가면무도회', '북페어 · 빼빼로데이 · 수험생 응원', '크리스마스 · 비밀 산타 · 송년회',
 ]
 
 export const DINGDONG_STORAGE = ['dd.favorites.v1','dd.topics.v1','dd.messages.v1','dd.history.v1','dd.home.v1','dd.avatar.look.v1','dd.places.v1','dd.outfits.v1','dd.savedTopics.v1','dd.memories.v1'] as const
+
+// 2027년 월력요항. 음력 명절은 해마다 날짜가 달라지므로 연도를 포함한다.
+// https://www.kasa.go.kr/prog/bbsArticle/BBSMSTR_000000000018/view.do?nttId=B000000003234Li6nD2
+export const LUNAR_FESTIVALS: Readonly<Record<string, { name: string; prompt: string; space: string }>> = {
+  '2027-02-07': { name: '설날', prompt: '올해 꼭 이루고 싶은 소원 한 가지를 적어 보세요.', space: 'plaza' },
+  '2027-02-21': { name: '정월대보름', prompt: '보름달에게 전하고 싶은 한마디를 남겨 보세요.', space: 'plaza' },
+  '2027-06-09': { name: '단오', prompt: '초여름에 즐기고 싶은 놀이를 하나 골라 보세요.', space: 'games' },
+  '2027-09-15': { name: '추석', prompt: '가을이 오면 떠오르는 맛이나 풍경을 기록해 보세요.', space: 'hobby' },
+}

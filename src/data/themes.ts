@@ -2,7 +2,7 @@ import type { PartyEvent } from '../types'
 
 /**
  * 매월의 큰 파티. 12월 → 1월 → 2월 순서로 열립니다.
- * 날짜는 실제 달력 기준이며, 2027년 설날(2월 6일)은 별도 회차로 달력에 표시합니다.
+ * 날짜는 실제 달력 기준이며, 2027년 설날(2월 7일)은 별도 회차로 달력에 표시합니다.
  */
 export const PARTIES: PartyEvent[] = [
   {
@@ -291,8 +291,8 @@ export const CALENDAR: CalendarEntry[] = [
   },
   {
     id: 'c-feb6',
-    dateISO: '2027-02-06T19:00:00+09:00',
-    label: '2.06 토',
+    dateISO: '2027-02-07T19:00:00+09:00',
+    label: '2.07 일',
     title: '설날 떡국 파티 (추가 회차)',
     detail: '19:00 · 설 당일, 가족 대신 딩동과',
     kind: 'special',

@@ -9,7 +9,7 @@ import { DEFAULT_LOOK, normalizeLook } from '../data/avatarLook'
 import { AvatarWardrobe } from './AvatarWardrobe'
 import { useEffect, useState, useRef, useMemo } from 'react'
 import type { Profile, RoomId } from '../types'
-import { MONTHLY_IDEAS, SPACES } from '../data/dingdong'
+import { LUNAR_FESTIVALS, MONTHLY_IDEAS, SPACES } from '../data/dingdong'
 import type { Space } from '../data/dingdong'
 import { usePersistentState,saveJSON } from '../lib/storage'
 import { ROOMS } from '../data/rooms'
@@ -227,6 +227,7 @@ function DailyFestival({onVisit,onCalendar}:{onVisit:(id:string)=>void;onCalenda
  const [draft,setDraft]=useState(notes[today]??''),[feedback,setFeedback]=useState('')
  const date=new Date(selected+'T00:00:00Z'),month=date.getUTCMonth(),day=date.getUTCDate(),index=day-1
  const theme=dailyThemes[month][index%dailyThemes[month].length],action=dailyActions[Math.floor(index/5)%dailyActions.length]
+ const festival=LUNAR_FESTIVALS[selected]
  const scheduled=CALENDAR.filter(event=>event.kind!=='weekly'&&event.dateISO.slice(0,10)===selected)
  function selectDate(key:string){
    setSelected(key)
@@ -266,12 +267,12 @@ function DailyFestival({onVisit,onCalendar}:{onVisit:(id:string)=>void;onCalenda
      {scheduled.map(event=><p key={event.id}>{event.title}</p>)}
      <button type="button" className="dd3-btn" onClick={onCalendar}>파티 일정 보기</button>
    </div>}
-   <h3>{theme} · {action}</h3>
-   <p>오늘의 주제를 나만의 기록으로 남겨 보세요.</p>
+   <h3>{festival?.name ?? `${theme} · ${action}`}</h3>
+   <p>{festival?.prompt ?? '오늘의 주제를 나만의 기록으로 남겨 보세요.'}</p>
    <textarea aria-label="오늘의 축제 기록" className={FIELD} maxLength={500} value={draft} onChange={e=>{setDraft(e.target.value);setFeedback('')}}/>
    <button type="button" className="dd3-btn" onClick={saveNote}>기록 저장</button>
    <p role="status">{feedback}</p>
-   <button type="button" className="dd3-btn" onClick={()=>onVisit(dailySpaces[index%dailySpaces.length])}>관련 공간 방문</button>
+   <button type="button" className="dd3-btn" onClick={()=>onVisit(festival?.space ?? dailySpaces[index%dailySpaces.length])}>관련 공간 방문</button>
  </section>
 }
 
