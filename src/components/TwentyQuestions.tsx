@@ -17,6 +17,10 @@ const questions = [
   ['rain', '비 오는 날에 쓰나요?'],
   ['light', '빛을 내나요?'],
   ['read', '읽을 수 있나요?'],
+  ['write', '글씨를 쓰는 데 쓰나요?'],
+  ['water', '물에서 사나요?'],
+  ['tall', '목이 길어요?'],
+  ['celebration', '연말 이야기에서 만날 수 있나요?'],
 ] as const
 
 type Trait = typeof questions[number][0]
@@ -29,10 +33,14 @@ const answers: { name: string; traits: Trait[] }[] = [
   { name: '스피커', traits: ['electric', 'sound'] },
   { name: '자전거', traits: ['wheels', 'outdoors'] },
   { name: '호루라기', traits: ['handheld', 'sound'] },
+  { name: '연필', traits: ['handheld', 'write'] },
+  { name: '돌고래', traits: ['animal', 'water'] },
+  { name: '기린', traits: ['animal', 'fur', 'tall'] },
+  { name: '산타클로스', traits: ['person', 'celebration'] },
 ]
 const limit = 20
 function answersYes(answer: typeof answers[number], trait: Trait) {
-  if (trait === 'object') return !answer.traits.includes('animal')
+  if (trait === 'object') return !answer.traits.includes('animal') && !answer.traits.includes('person')
   return answer.traits.includes(trait)
 }
 
@@ -58,6 +66,9 @@ export function TwentyQuestions() {
   const used = asked.length + guesses.length
   const solved = guesses.includes(answer.name)
   const finished = solved || used >= limit
+  const remaining = answers.filter(candidate =>
+    !guesses.includes(candidate.name) && asked.every(trait => answersYes(candidate, trait) === answersYes(answer, trait))
+  ).length
 
   function ask(trait: Trait) {
     if (finished) return
@@ -81,6 +92,7 @@ export function TwentyQuestions() {
   return <section aria-label="스무고개 게임">
     <p>픽셀이 고른 단어를 맞혀 보세요. 질문과 추측을 합쳐 20번까지 할 수 있어요.</p>
     <p role="status">{used}/{limit}회 사용{feedback && ' · ' + feedback}</p>
+    {!finished && asked.length > 0 && <p>지금까지의 답과 맞는 후보 {remaining}개</p>}
     {asked.length > 0 && <ol className="dd-twenty-history" aria-label="질문 기록">
       {asked.map(trait => <li key={trait}>{questions.find(([key]) => key === trait)?.[1]} <strong>{answersYes(answer, trait) ? '네' : '아니오'}</strong></li>)}
     </ol>}

@@ -445,3 +445,4 @@
 .dd-twenty-history { display:grid; gap:4px; margin:6px 0; padding:0; list-style:none; }
 .dd-twenty-history li { display:flex; justify-content:space-between; gap:8px; padding:5px 8px; border-radius:8px; background:#e4f1ea; }
 .dd-twenty-prompts summary { padding:6px 0; }
+.dd-home-save-status { flex:0 0 100%; margin:0; color:#365c4e; font-size:.78rem; }
