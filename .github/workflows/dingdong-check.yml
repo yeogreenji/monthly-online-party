@@ -1,0 +1,79 @@
+name: Dingdong development checks
+on:
+  push:
+    branches:
+      - 'develop/dingdong'
+      - 'develop/dingdong-mansion'
+      - 'develop/dingdong-3d'
+      - 'develop/dingdong-hybrid'
+      - 'loren/dingdong-phase1'
+      - 'loren/dingdong-phase2-review'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm run typecheck:api
+      - name: Browser smoke tests
+        if: github.ref_name == 'develop/dingdong-mansion'
+        run: |
+          python3 -m pip install playwright
+          python3 -m playwright install --with-deps chromium
+          npm run dev -- --host 127.0.0.1 --port 4173 --strictPort > /tmp/dingdong-server.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4173 >/dev/null && break; sleep 1; done
+          python3 scripts/verify_mansion.py
+      - name: 3D smoke tests
+        if: github.ref_name == 'develop/dingdong-3d'
+        run: |
+          python3 -m pip install playwright
+          python3 -m playwright install --with-deps chromium
+          npm run dev -- --host 127.0.0.1 --port 4173 --strictPort > /tmp/dingdong-server.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4173 >/dev/null && break; sleep 1; done
+          python3 scripts/verify_3d.py
+      - name: Save 3D screenshots
+        if: always() && github.ref_name == 'develop/dingdong-3d'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dingdong-3d-screenshots
+          path: artifacts/*.png
+          if-no-files-found: warn
+      - name: Hybrid smoke tests
+        if: github.ref_name == 'develop/dingdong-hybrid'
+        run: |
+          python3 -m pip install playwright
+          python3 -m playwright install --with-deps chromium
+          npm run dev -- --host 127.0.0.1 --port 4173 --strictPort > /tmp/dingdong-server.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4173 >/dev/null && break; sleep 1; done
+          python3 scripts/verify_hybrid.py
+      - name: Save hybrid screenshots
+        if: always() && github.ref_name == 'develop/dingdong-hybrid'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dingdong-hybrid-screenshots
+          path: artifacts/*.png
+          if-no-files-found: warn
+      - name: Phase 1 smoke tests
+        if: (github.ref_name == 'loren/dingdong-phase1' || github.ref_name == 'loren/dingdong-phase2-review')
+        run: |
+          python3 -m pip install playwright
+          python3 -m playwright install --with-deps chromium
+          npm run dev -- --host 127.0.0.1 --port 4173 --strictPort > /tmp/dingdong-server.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4173 >/dev/null && break; sleep 1; done
+          python3 scripts/verify_phase1.py
+      - name: Phase 1 screenshots
+        if: always() && (github.ref_name == 'loren/dingdong-phase1' || github.ref_name == 'loren/dingdong-phase2-review')
+        uses: actions/upload-artifact@v4
+        with:
+          name: dingdong-phase1-screenshots
+          path: artifacts/*.png
+          if-no-files-found: warn

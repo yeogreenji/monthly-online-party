@@ -13,7 +13,7 @@ function noteAt(mood: Mood, step: number): number {
 }
 
 /**
- * 살롱의 소리. 외부 음원 없이 Web Audio API로 직접 합성합니다.
+ * 딩동의 소리. 외부 음원 없이 Web Audio API로 직접 합성합니다.
  * - 잔 부딪히는 소리(짠), 박수, 하트의 작은 종소리
  * - 라운지 BGM 세 가지 무드 (로우파이 · 재즈 · 파티 비트)
  * 브라우저 정책상 사용자가 한 번 누른 뒤에만 소리가 시작됩니다.
@@ -132,6 +132,9 @@ export class SalonAudio {
     osc.start(at)
     osc.stop(at + 0.5)
   }
+
+  /** Two-note doorbell, started directly by a user gesture. */
+  doorbell(): void {const ctx=this.ensure();if(!ctx||!this.master)return;for(const [i,hz] of [880,659.25].entries()){const at=ctx.currentTime+.012+i*.18,osc=ctx.createOscillator();osc.type='sine';osc.frequency.value=hz;const gain=this.env(osc,at,.008,.36,.18);gain.connect(this.master);osc.start(at);osc.stop(at+.42)}}
 
   private noiseBurst(duration: number): AudioBufferSourceNode | null {
     const ctx = this.ctx

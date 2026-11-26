@@ -13,29 +13,29 @@ const ROOM_LABEL: Record<RoomId, string> = { wine: '혼술 타임', book: '독�
 function Frame({ post, children }: { post: FeedPost; children: React.ReactNode }) {
   if (post.frame === 'magazine') {
     return (
-      <div className="overflow-hidden" style={{ background: '#1C1A17', padding: '10px 10px 0', borderRadius: 2, boxShadow: 'var(--shadow)' }}>
+      <div className="overflow-hidden" style={{ background: 'linear-gradient(180deg,#5b3f86,#3f2a63)', padding: '10px 10px 0', borderRadius: 16, boxShadow: 'var(--shadow)' }}>
         {children}
-        <p className="serif px-1 py-3 text-[11px] leading-[1.6]" style={{ color: '#F3EDE2' }}>{post.caption}</p>
+        <p className="serif px-1 py-3 text-[11px] leading-[1.6]" style={{ color: '#fff4fb' }}>{post.caption}</p>
       </div>
     )
   }
   if (post.frame === 'postcard') {
     return (
-      <div className="relative" style={{ background: '#FBF4E7', border: '1px solid #D9C7A6', borderRadius: 2, padding: 10, boxShadow: 'var(--shadow)' }}>
-        <div style={{ border: '1px solid rgba(140,45,56,0.35)', padding: 6 }}>{children}</div>
+      <div className="relative" style={{ background: '#fff7ef', border: '2px dashed #e9c3da', borderRadius: 16, padding: 10, boxShadow: 'var(--shadow)' }}>
+        <div style={{ border: '2px solid #f3d6e6', borderRadius: 10, padding: 6 }}>{children}</div>
         <div className="mt-2 flex items-start justify-between gap-3 px-1">
-          <p className="serif text-[11px] leading-[1.6]" style={{ color: '#4A3B2A' }}>{post.caption}</p>
-          <span className="mt-0.5 flex h-7 w-6 shrink-0 items-center justify-center border border-dashed text-[7px]" style={{ borderColor: '#B99B6B', color: '#8C6B3F' }}>
-            살롱
+          <p className="serif text-[11px] leading-[1.6]" style={{ color: '#5a3a7e' }}>{post.caption}</p>
+          <span className="mt-0.5 flex h-7 w-6 shrink-0 items-center justify-center border border-dashed text-[7px]" style={{ borderColor: '#e85c8e', color: '#e85c8e', borderRadius: 4 }}>
+            딩동
           </span>
         </div>
       </div>
     )
   }
   return (
-    <div style={{ background: '#FFFDF7', padding: '11px 11px 42px', borderRadius: 2, boxShadow: 'var(--shadow)' }}>
+    <div style={{ background: '#ffffff', padding: '11px 11px 42px', borderRadius: 16, boxShadow: 'var(--shadow)' }}>
       {children}
-      <p className="serif mt-3 px-0.5 text-[11.5px] leading-[1.6]" style={{ color: '#3A332A' }}>{post.caption}</p>
+      <p className="serif mt-3 px-0.5 text-[11.5px] leading-[1.6]" style={{ color: '#493352' }}>{post.caption}</p>
     </div>
   )
 }
@@ -157,7 +157,7 @@ export function PhotoWall({
                 <Frame post={post}>
                   <div className="relative overflow-hidden" style={{ background: 'var(--surface-2)' }}>
                     <img src={post.image} alt={post.caption} className="w-full object-cover" loading="lazy" style={{ aspectRatio: post.frame === 'magazine' ? '4/5' : '4/4.4' }} />
-                    <span className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[9px]" style={{ background: 'rgba(20,26,22,0.55)', color: '#F7F1E6' }}>
+                    <span className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[9px]" style={{ background: 'rgba(74,47,106,0.62)', color: '#ffffff' }}>
                       {ROOM_LABEL[post.room]}
                     </span>
                     {post.mine && (

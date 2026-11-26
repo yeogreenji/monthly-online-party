@@ -51,7 +51,7 @@ export function CalendarSection({
               <br className="sm:hidden" /> 미리 달력에 적어둡니다
             </>
           }
-          description="12월부터 2월까지. 메인 파티 세 번과 그 사이의 작은 밤들. 알림은 이 브라우저에 저장되고, 파티 당일 살롱 입장 화면에서 먼저 보여드려요."
+          description="12월부터 2월까지. 메인 파티 세 번과 그 사이의 작은 밤들. 알림은 이 브라우저에 저장되고, 파티 당일 딩동 입장 화면에서 먼저 보여드려요."
         />
 
         <div className="grid items-start gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
@@ -199,7 +199,7 @@ export function CalendarSection({
               })}
             </ul>
             <p className="mt-2 text-[10px] leading-relaxed" style={{ color: 'var(--muted)' }}>
-              2027년 설날은 2월 6일(토)이라, 1월 파티와 별도로 ‘설날 떡국 파티’를 한 번 더 엽니다.
+              2027년 설날은 2월 7일(일)이라, 1월 파티와 별도로 ‘설날 떡국 파티’를 한 번 더 엽니다.
             </p>
           </div>
         </div>

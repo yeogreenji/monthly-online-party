@@ -58,7 +58,7 @@ export function buildICS(event: IcsEvent): string {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Monthly Salon//KO',
+    'PRODID:-//DINGDONG//KO',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',
@@ -72,7 +72,7 @@ export function buildICS(event: IcsEvent): string {
     'BEGIN:VALARM',
     'TRIGGER:-PT30M',
     'ACTION:DISPLAY',
-    'DESCRIPTION:월간살롱 파티 30분 전',
+    'DESCRIPTION:딩동 파티 30분 전',
     'END:VALARM',
     'END:VEVENT',
     'END:VCALENDAR',

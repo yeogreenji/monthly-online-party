@@ -266,7 +266,7 @@ export function RoomOverlay({
     <div className="fixed inset-0 z-[60] flex flex-col" style={{ background: 'var(--bg)' }}>
       <header className="flex shrink-0 items-center justify-between gap-3 border-b px-4 py-3 sm:px-6" style={{ borderColor: 'var(--line)' }}>
         <div className="flex min-w-0 flex-1 items-center gap-3">
-          <button type="button" onClick={onClose} className="btn btn-ghost btn-icon" aria-label="살롱으로 돌아가기">
+          <button type="button" onClick={onClose} className="btn btn-ghost btn-icon" aria-label="딩동으로 돌아가기">
             <ArrowLeft size={18} />
           </button>
           <div className="flex min-w-0 flex-1 items-center gap-2.5">
@@ -277,7 +277,7 @@ export function RoomOverlay({
               <p className="serif truncate text-[13.5px] leading-tight">{room.name}</p>
               <p className="mt-0.5 flex items-center gap-1.5 truncate text-[9.5px]" style={{ color: 'var(--muted)' }}>
                 <span className="live-dot shrink-0" style={{ width: 5, height: 5 }} />
-                {room.live}명
+                시연방
                 <span className="hidden sm:inline">· {room.hours}</span>
               </p>
             </div>
@@ -327,7 +327,7 @@ export function RoomOverlay({
                 <ItemIcon size={14} className="mt-0.5 shrink-0" style={{ color: active ? 'var(--gold)' : 'var(--muted)' }} />
                 <span className="min-w-0">
                   <span className="block truncate text-[11.5px]" style={{ color: active ? 'var(--ink)' : 'var(--ink-soft)' }}>{item.name}</span>
-                  <span className="mt-0.5 block text-[9px]" style={{ color: 'var(--muted)' }}>{item.live}명 · {item.host}</span>
+                  <span className="mt-0.5 block text-[9px]" style={{ color: 'var(--muted)' }}>시연방 · {item.host}</span>
                 </span>
               </button>
             )
@@ -336,7 +336,7 @@ export function RoomOverlay({
             <div className="border p-3" style={{ borderColor: 'var(--line)' }}>
               <p className="kicker text-[7.5px]">Preview</p>
               <p className="mt-1.5 text-[10px] leading-[1.7]" style={{ color: 'var(--muted)' }}>
-                오픈 전 시연입니다. 지난 대화는 스태프가 준비한 예시이고, 보내신 말에는 호스트가 답합니다.
+                로컬 시연입니다. 다른 실제 이용자는 연결되지 않으며, 호스트의 답변은 자동 생성 예시입니다.
               </p>
             </div>
           </div>
@@ -475,7 +475,7 @@ export function RoomOverlay({
                     {playing ? MOODS.find((mood) => mood.id === playing)?.title : '오늘 밤의 배경음'}
                   </h3>
                   <p className="mt-1 text-[11px] leading-[1.7]" style={{ color: 'var(--muted)' }}>
-                    {playing ? '살롱 오리지널 세션을 합성해 재생합니다. 볼륨은 낮게.' : '세 가지 무드 중 하나를 골라 재생해보세요.'}
+                    {playing ? '딩동 오리지널 세션을 합성해 재생합니다. 볼륨은 낮게.' : '세 가지 무드 중 하나를 골라 재생해보세요.'}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
@@ -522,8 +522,8 @@ export function RoomOverlay({
                     )}
                     <div className={`max-w-[78%] ${mine ? 'items-end text-right' : ''}`}>
                       <div className={`flex items-center gap-1.5 text-[9.5px] ${mine ? 'justify-end' : ''}`} style={{ color: 'var(--muted)' }}>
-                        <span style={{ color: host ? 'var(--burgundy)' : 'var(--ink-soft)' }}>{mine ? '나' : message.name}</span>
-                        {host && <span className="kicker text-[7px]">Host</span>}
+                        <span style={{ color: host ? 'var(--burgundy)' : 'var(--ink-soft)' }}>{mine ? '나' : '예시 · ' + message.name}</span>
+                        {host && <span className="kicker text-[7px]">자동 응답</span>}
                         <span>{message.at}</span>
                       </div>
                       <div
@@ -743,7 +743,7 @@ export function RoomOverlay({
             <p className="kicker">Here tonight</p>
             <span className="flex items-center gap-1 text-[9.5px]" style={{ color: 'var(--muted)' }}>
               <Users size={10} />
-              {room.live}
+              예시
             </span>
           </div>
           <ul className="scroll-thin min-h-0 flex-1 overflow-y-auto px-2">
@@ -800,7 +800,7 @@ export function RoomOverlay({
               ))}
             </ul>
             <div className="mt-4 border-t pt-3 text-[10px] leading-relaxed" style={{ borderColor: 'var(--line)', color: 'var(--muted)' }}>
-              신고가 접수되면 살롱지기가 확인합니다. 오픈 전 프리뷰에서는 지난 대화가 스태프 예시로 채워져 있습니다.
+              신고는 로컬 기록만 저장됩니다. 참여자와 지난 대화는 예시입니다.
             </div>
             <button type="button" className="btn btn-primary mt-5 w-full" onClick={() => setRulesOpen(false)}>알겠습니다</button>
           </div>
@@ -851,7 +851,7 @@ export function RoomOverlay({
                   쪽지 열기 요청
                 </button>
                 <p className="mt-2 text-[9.5px] leading-relaxed" style={{ color: 'var(--muted)' }}>
-                  서로 수락해야 열립니다. 연락처·SNS·주소는 이 살롱에서 주고받지 않아요.
+                  서로 수락해야 열립니다. 연락처·SNS·주소는 이 딩동에서 주고받지 않아요.
                 </p>
               </>
             )}
@@ -869,7 +869,7 @@ export function RoomOverlay({
             <p className="kicker">Report</p>
             <h3 className="serif mt-2 text-[20px]">{reportTarget}님 신고</h3>
             <p className="mt-1.5 text-[11px] leading-relaxed" style={{ color: 'var(--muted)' }}>
-              신고 내용은 저장되어 살롱 운영 검토에 쓰입니다. 상대에게 알림이 가지 않아요.
+              신고는 이 브라우저에만 저장되며 실제 운영자에게 전송되지 않습니다.
             </p>
             <div className="mt-4 space-y-2">
               {['불쾌한 언행 · 비하', '성적 접근 · 원치 않는 연락', '광고 · 홍보 목적', '연락처 · 개인정보 요구', '기타'].map((reason) => (

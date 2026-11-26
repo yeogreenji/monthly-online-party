@@ -7,6 +7,12 @@ export type AvatarKey =
   | 'owl'
   | 'squirrel'
   | 'penguin'
+  | 'dog'
+  | 'hamster'
+  | 'otter'
+  | 'raccoon'
+  | 'deer'
+  | 'panda'
 
 export type AgeBand = '20대' | '30대' | '40대' | '50대+' | '비공개'
 

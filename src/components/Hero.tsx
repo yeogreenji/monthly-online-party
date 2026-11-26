@@ -1,3 +1,5 @@
+import { RoomArtwork } from './MansionArt'
+import { SPACES } from '../data/dingdong'
 import { CalendarPlus, Check, ChevronRight, Clock3, MapPin, Sparkles } from 'lucide-react'
 import type { PartyEvent, Profile } from '../types'
 import { countdownTo, pad } from '../lib/dates'
@@ -14,6 +16,7 @@ export function Hero({
   onDownload,
   onExploreRooms,
   onBrandKit,
+  showCommercial = false,
 }: {
   party: PartyEvent
   now: number
@@ -24,6 +27,7 @@ export function Hero({
   onDownload: () => void
   onExploreRooms: () => void
   onBrandKit: () => void
+  showCommercial?: boolean
 }) {
   const cd = countdownTo(party.dateISO, now)
   const dday = cd.past ? `D+${cd.days}` : `D-${cd.days}`
@@ -69,7 +73,7 @@ export function Hero({
           })}
           <span className="ml-auto hidden shrink-0 items-center gap-1.5 pb-3.5 pl-4 text-[10.5px] sm:flex" style={{ color: 'var(--muted)' }}>
             <span className="live-dot" />
-            매일 21:00 취향방 오픈
+            12개 공간 · 개발 체험판
           </span>
         </div>
 
@@ -77,7 +81,7 @@ export function Hero({
           <div className="animate-fade-up">
             <div className="flex flex-wrap items-center gap-2.5">
               <span className="kicker" style={{ color: 'var(--burgundy)' }}>
-                {party.en} · Monthly Party
+                {party.en} · DINGDONG PARTY
               </span>
               <span className="h-3 w-px" style={{ background: 'var(--line-strong)' }} />
               <span className="text-[10.5px]" style={{ color: 'var(--muted)' }}>
@@ -149,13 +153,13 @@ export function Hero({
                 캘린더에 저장
               </button>
               <button type="button" onClick={onExploreRooms} className="btn btn-ghost">
-                취향방 둘러보기
+                12개 공간 둘러보기
                 <ChevronRight size={15} />
               </button>
             </div>
             <p className="mt-3 text-[10.5px] leading-relaxed" style={{ color: 'var(--muted)' }}>
               {rsvp
-                ? `${party.dateLabel} ${party.weekday} 20:30, 살롱에 들어오면 예약한 초대장이 먼저 보여요. (이 브라우저에 저장)`
+                ? `${party.dateLabel} ${party.weekday} 20:30, 딩동에 들어오면 예약한 초대장이 먼저 보여요. (이 브라우저에 저장)`
                 : '예약은 이 브라우저에 저장됩니다. 회원가입도 결제도 없어요.'}
             </p>
 
@@ -170,12 +174,7 @@ export function Hero({
           <div className="relative animate-fade-up">
             <div className="relative overflow-hidden" style={{ borderRadius: 2, boxShadow: 'var(--shadow)' }}>
               <div className="absolute inset-0 z-10" style={{ background: 'linear-gradient(180deg, rgba(20,26,22,0) 45%, rgba(20,26,22,0.55) 100%)' }} />
-              <img
-                src={party.heroImg}
-                alt={party.heroAlt}
-                className="animate-slow-zoom aspect-[4/5] w-full object-cover sm:aspect-[5/5.4] lg:aspect-[4/4.7]"
-                loading="eager"
-              />
+              <div className="aspect-[4/5] flex items-center justify-center bg-[#e5d6c3] sm:aspect-[5/5.4] lg:aspect-[4/4.7]"><RoomArtwork space={SPACES.find(s=>s.id===(party.id==='dec'?'season':party.id==='feb'?'cinema':'plaza'))!} className="w-full" /></div>
               <div className="absolute left-4 top-4 z-20 flex items-center gap-2 rounded-full px-3 py-1.5 text-[10px] tracking-[0.14em] uppercase" style={{ background: 'rgba(20,26,22,0.55)', color: '#F7F1E6', backdropFilter: 'blur(6px)' }}>
                 <span className="live-dot" style={{ background: '#E3C98F' }} />
                 {party.monthLabel}의 밤
@@ -210,7 +209,7 @@ export function Hero({
               </div>
             </div>
 
-            <button
+            {showCommercial && <button
               type="button"
               onClick={onBrandKit}
               className="mt-4 flex w-full items-center justify-between gap-4 border px-4 py-3 text-left transition-colors hover:bg-black/[0.02]"
@@ -230,7 +229,7 @@ export function Hero({
                 협찬 안내
                 <ChevronRight size={12} />
               </span>
-            </button>
+            </button>}
           </div>
         </div>
       </div>
