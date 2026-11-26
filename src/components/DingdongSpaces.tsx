@@ -252,7 +252,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
             <label className="block text-sm">모임 유형<select aria-label="새 모임 유형" className={FIELD} value={createKind} onChange={e=>setCreateKind(e.target.value as TopicKind)}>{Object.entries(KIND_UI).map(([k,v])=><option key={k} value={k}>{v.label}</option>)}</select></label>
             {space.id==='cinema'&&<label className="block text-sm">작품명 (선택)<input className={FIELD} maxLength={80} value={workTitle} onChange={e=>setWorkTitle(e.target.value)}/></label>}
             {isFandom&&<>
-              <label className="block text-sm">아티스트·그룹<input autoFocus className={FIELD} required maxLength={40} placeholder="예: 아이브" value={artist} onChange={e=>setArtist(e.target.value)}/></label>
+              <label className="block text-sm">아티스트·그룹<input autoFocus className={FIELD} required maxLength={40} placeholder="아티스트나 그룹 이름" value={artist} onChange={e=>setArtist(e.target.value)}/></label>
               <label className="block text-sm">모이는 이유<select className={FIELD} value={fanOccasion} onChange={e=>setFanOccasion(e.target.value as FanOccasion)}>{FAN_OCCASIONS.map(reason=><option key={reason}>{reason}</option>)}</select></label>
             </>}
             <label className="block text-sm">{isFandom?'모임 제목 (선택)':'제목'}<input autoFocus={!isFandom} placeholder={isFandom?(proposedTitle||'아티스트 이름으로 자동 생성'):'예: 금요일 저녁 영화 수다'} className={FIELD} required={!isFandom} maxLength={60} value={title} onChange={e=>setTitle(e.target.value)}/></label>
