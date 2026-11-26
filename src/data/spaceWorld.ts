@@ -112,7 +112,7 @@ export const SPACE_WORLD: Record<string, SpaceWorld> = {
   plaza: {
     story:
       '초인종이 울리면 동네가 깨어납니다. 중앙 광장은 처음 온 사람도 어색하지 않게 인사를 나누는 곳이고, 벨이 그날의 소식을 한 줄 알려 줘요. 음악지기 도레는 매주 새 노래 이야기를 가져옵니다.',
-    rules: ['처음 온 분께 먼저 인사해 주세요.', '개인정보(연락처·주소)는 적지 않아요.', '불편한 말은 신고하고 넘어가요.'],
+    rules: ['처음 온 분께 먼저 인사해 주세요.', '개인정보(연락처·주소)는 적지 않아요.', '불편한 말에는 답하지 않고 넘어가도 괜찮아요.'],
     today: [
       { title: '오늘의 인사 한 줄', question: '오늘 하루를 한 줄로 소개해 주세요. 이모지도 좋아요.', kind: 'talk' },
       { title: '요즘 듣는 노래', question: '요즘 반복 재생 중인 노래가 있나요? 좋아하는 가수의 컴백 소식도 환영이에요.', kind: 'share' },
@@ -142,8 +142,8 @@ export const SPACE_WORLD: Record<string, SpaceWorld> = {
   },
   jazz: {
     story:
-      '루이의 작은 무대에는 낮은 조명과 피아노가 있어요. 술이 없어도 한 잔의 여유면 충분하지만, 성인 이용자는 안주와 술 사진을 나누며 혼술 모임을 열 수 있어요. 연령·안전 확인이 끝나기 전까지는 입장이 잠겨 있습니다.',
-    rules: ['성인 확인 후에만 입장해요.', '과음을 권하지 않아요.', '논알콜 메뉴도 언제나 환영해요.'],
+      '루이의 작은 무대에는 낮은 조명과 피아노가 있어요. 술이 없어도 한 잔의 여유면 충분하지만, 성인 이용자는 안주와 술 사진을 나누며 혼술 모임을 열 수 있어요. 연령·안전 확인이 끝나기 전까지는 공간 구경만 할 수 있고 채팅과 모임은 잠겨 있습니다.',
+    rules: ['성인 확인 후에만 채팅과 모임에 참여해요.', '과음을 권하지 않아요.', '논알콜 메뉴도 언제나 환영해요.'],
     today: [
       { title: '오늘의 혼술 안주', question: '오늘 혼술 안주는 무엇인가요? 사진으로 보여 주세요.', kind: 'photo' },
       { title: '오늘의 재즈 한 곡', question: '퇴근길에 어울리는 재즈나 잔잔한 곡을 추천해 주세요.', kind: 'share' },
@@ -206,7 +206,7 @@ export const SPACE_WORLD: Record<string, SpaceWorld> = {
   men: {
     story:
       '테오의 아지트에는 낡은 소파와 작은 선반이 있어요. 일상과 취미를 부담 없이 이야기하고, 서로의 좋아하는 것을 하나씩 알려 주는 모임을 자주 열어요.',
-    rules: ['비교하거나 놀리지 않아요.', '취미에 정답은 없어요.', '지나친 정치·혐오 발언은 신고해요.'],
+    rules: ['비교하거나 놀리지 않아요.', '취미에 정답은 없어요.', '지나친 정치·혐오 발언은 하지 않아요.'],
     today: [
       { title: '요즘 즐기는 취미', question: '요즘 시간 가는 줄 모르고 하는 취미가 있나요?', kind: 'talk' },
       { title: '주말 계획', question: '이번 주말 계획을 한 줄로 알려 주세요.', kind: 'talk' },
@@ -218,8 +218,8 @@ export const SPACE_WORLD: Record<string, SpaceWorld> = {
   },
   single: {
     story:
-      '레터는 서로의 취향과 경계를 존중하는 느린 편지를 준비해요. 연령·안전 확인이 끝나기 전에는 입장할 수 없고, 실제 만남이나 개인 메시지 연결은 제공하지 않아요.',
-    rules: ['성인 확인 후에만 입장해요.', '연락처 교환·만남 강요는 금지예요.', '불쾌한 요청은 바로 신고해요.'],
+      '레터는 서로의 취향과 경계를 존중하는 느린 편지를 준비해요. 연령·안전 확인이 끝나기 전에는 공간 구경만 할 수 있고, 실제 만남이나 개인 메시지 연결은 제공하지 않아요.',
+    rules: ['성인 확인 후에만 채팅과 모임에 참여해요.', '연락처 교환·만남 강요는 금지예요.', '불쾌한 요청에는 답하지 않아도 괜찮아요.'],
     today: [{ title: '나를 소개하는 세 단어', question: '나를 소개하는 세 단어를 알려 주세요.', kind: 'talk' }],
     topics: [
       { title: '취향 소개', blurb: '좋아하는 것 소개', kind: 'talk', seed: [{ who: 'single', text: '좋아하는 음식이나 영화를 하나씩 소개해 봐요.' }] },
@@ -236,7 +236,7 @@ export const SPACE_WORLD: Record<string, SpaceWorld> = {
       { title: '오늘의 OX 퀴즈', question: '문어는 심장이 세 개다. O일까요 X일까요?', kind: 'play' },
     ],
     topics: [
-      { title: '끝말잇기', blurb: '단어로 잇는 한 판', kind: 'play', seed: [{ who: 'games', text: '시작할게요. 첫 단어는 “파티”!' }, { who: N[0], text: '티셔츠!' }, { who: 'games', text: '츠…츠…? 좋아요, 츠자로 이어 봐요.' }] },
+      { title: '끝말잇기', blurb: '단어로 잇는 한 판', kind: 'play', seed: [{ who: 'games', text: '시작할게요. 첫 단어는 “파티”!' }, { who: N[0], text: '티라미수!' }, { who: 'games', text: '수박! 이제 “박”으로 이어 줄 사람?' }] },
       { title: '스무고개', blurb: '예/아니오로 맞히기', kind: 'play', seed: [{ who: 'games', text: '제가 하나를 떠올렸어요. 스무 번 안에 맞혀 보세요.' }] },
       { title: 'OX 퀴즈', blurb: '상식 퀴즈 한 판', kind: 'play', seed: [{ who: 'games', text: '문어는 심장이 세 개다. O 또는 X로 답해 주세요.' }] },
       { title: '보드게임 이야기', blurb: '좋아하는 보드게임', kind: 'talk', seed: [{ who: 'games', text: '최근에 해 본 보드게임이 있나요?' }] },
@@ -274,7 +274,7 @@ export const SPACE_WORLD: Record<string, SpaceWorld> = {
     topics: [
       { title: '오늘 본 영화', blurb: '후기와 별점 남기기', kind: 'review', seed: [{ who: 'cinema', text: '오늘 상영작 후기를 받아요. 스포일러가 있으면 꼭 표시해 주세요.' }, { who: N[0], text: '★★★★☆ 잔잔하지만 오래 남는 영화였어요.' }] },
       { title: '드라마 이야기', blurb: '요즘 보는 드라마', kind: 'review', seed: [{ who: 'cinema', text: '이번 주 드라마는 몇 화까지 보셨나요? 스포 없이 이야기해요.' }] },
-      { title: '주말 영화제', blurb: '같이 볼 작품 정하기', kind: 'share', seed: [{ who: 'cinema', text: '주말 영화제 후보를 모아요. 보고 싶은 영화를 투표해 주세요.' }] },
+      { title: '주말 영화제', blurb: '같이 볼 작품 정하기', kind: 'share', seed: [{ who: 'cinema', text: '주말 영화제 후보를 모아요. 보고 싶은 영화를 댓글로 남겨 주세요.' }] },
       { title: '추억의 명장면', blurb: '다시 보고 싶은 장면', kind: 'talk', seed: [{ who: 'cinema', text: '다시 보고 싶은 장면 하나를 소개해 주세요. 이유도 함께요.' }] },
     ],
   },

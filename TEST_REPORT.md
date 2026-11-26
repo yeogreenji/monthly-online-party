@@ -1,3 +1,6 @@
+### 병합 후 검증 — 브리 (bri/phase2-merged, 390×844 headless Chromium/swiftshader)
+통과: typecheck, build, 소품 33개 접근 지점 충돌 프로브(막힘 0), 시즌 테이블 중심 차단 확인, 게임 라운지·혼술 라운지·영화관 입장(페이지 에러 없음). 미확인: 실기기, scripts/verify_phase1.py 전체, GitHub Actions, main 병합 테스트, 실제 탭 이동 경로.
+
 # 테스트 기록 — 2026-11-26
 기준 커밋 2d3101ff42d23eee22d279414e4776075c076f3b.
 정적 코드 검토 및 변경 파일 작성. 빌드/브라우저/독립 계정 테스트 아직 미실행.
