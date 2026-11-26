@@ -359,6 +359,41 @@ with sync_playwright() as p:
                 panel=page.get_by_role("dialog",name=panel_name,exact=True)
                 panel.get_by_role("button",name=topic_name,exact=True).click()
                 expect(page.get_by_role("heading",name=topic_name,exact=True)).to_be_visible()
+        if not page.locator("#dd3-dest").is_visible():
+            page.get_by_role("button",name="설정",exact=True).click()
+        page.locator("#dd3-dest").select_option("travel")
+        page.get_by_role("button",name="바로 입장",exact=True).click()
+        for prop_name,panel_name,topic_name in (
+            ("여행 지도 살펴보기","로드의 여행 지도","여행지 추천"),
+            ("엽서 진열대","로드의 엽서 진열대","여행 사진"),
+        ):
+            if not page.locator("#dd3-dest").is_visible():
+                page.get_by_role("button",name="설정",exact=True).click()
+            page.get_by_role("button",name=prop_name,exact=True).click()
+            panel=page.get_by_role("dialog",name=panel_name,exact=True)
+            panel.get_by_role("button",name=topic_name,exact=True).click()
+            expect(page.get_by_role("heading",name=topic_name,exact=True)).to_be_visible()
+        page.get_by_role("button",name="설정",exact=True).click()
+        page.locator("#dd3-dest").select_option("cinema")
+        page.get_by_role("button",name="바로 입장",exact=True).click()
+        page.get_by_role("button",name="모임 만들기",exact=True).click()
+        page.get_by_label("작품명 (선택)",exact=True).fill("달빛 극장")
+        page.get_by_label("제목",exact=True).fill("마지막 장면 이야기")
+        page.get_by_role("button",name="로컬 모임 만들기",exact=True).click()
+        expect(page.get_by_role("heading",name="마지막 장면 이야기",exact=True)).to_be_visible()
+        page.get_by_role("checkbox",name="스포일러 숨김").check()
+        page.get_by_role("textbox",name="메시지",exact=True).fill("결말 테스트")
+        page.get_by_role("button",name="전송",exact=True).click()
+        secret=page.get_by_text("결말 테스트",exact=True)
+        expect(secret).to_have_count(0)
+        page.get_by_role("button",name="스포일러 보기").click()
+        expect(secret).to_be_visible()
+        page.get_by_role("button",name="다시 숨기기").click()
+        expect(secret).to_have_count(0)
+        page.get_by_role("button",name="모임 목록",exact=True).click()
+        page.get_by_role("textbox",name="모임 검색").fill("달빛 극장")
+        expect(page.locator(".dd-room-join")).to_have_count(1)
+        expect(page.locator(".dd-room-join")).to_contain_text("마지막 장면 이야기")
         assert not errors,errors
         print(f"PASS {width}x{height}: wardrobe persistence, 3D rooms, lock, prop movement, photo, place save, sitting, hub return, decor toggle, chat collapse, fallback")
         page.close()
