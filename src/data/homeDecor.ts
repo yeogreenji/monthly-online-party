@@ -12,3 +12,21 @@ export function normalizeItems(d:Partial<HomeDecor>):HomeItem[]{if(!Array.isArra
 export function footprint(i:HomeItem):[number,number]{const [w,z]=i.kind==='🛏️'||i.kind==='daybed'?[.75,1.03]:i.kind==='🛋️'||i.kind==='loveseat'?[.95,.52]:i.kind==='📚'||i.kind==='cabinet'||i.kind==='plant'||i.kind==='dresser'?[.71,.38]:i.kind==='desk'||i.kind==='vanity'?[.82,.43]:i.kind==='table'?[.72,.72]:[.53,.53];return i.rotation%180===0?[w,z]:[z,w]}
 export function canPlace(item:HomeItem,items:HomeItem[]){const [w,z]=footprint(item);if(Math.abs(item.x)+w>5.02||Math.abs(item.z)+z>4.55)return false;const fixed=[{x:3.65,z:-2.1,w:.8,d:.5},{x:-3.7,z:-2.3,w:.6,d:.35},{x:3.75,z:-3.6,w:.5,d:.4},{x:0,z:3.8,w:.7,d:.35},{x:4.3,z:3.4,w:.3,d:.3},{x:1.15,z:3.65,w:.3,d:.3},{x:0,z:-3.9,w:1,d:.55}];return !fixed.some(v=>Math.abs(v.x-item.x)<v.w+w+.15&&Math.abs(v.z-item.z)<v.d+z+.15)&&!items.some(v=>{if(v.id===item.id)return false;const [vw,vz]=footprint(v);return Math.abs(v.x-item.x)<w+vw+.15&&Math.abs(v.z-item.z)<z+vz+.15})}
 export function newHomeItem(kind:string,color:string,items:HomeItem[]):HomeItem|null{const id='home-item-'+(globalThis.crypto?.randomUUID?.()??Date.now().toString(36));for(const z of [-.1,1.4,-1.5,2.8,-2.8])for(const x of [-1.8,1.8,-3.7,3.7,0]){const item={id,kind,color,x,z,rotation:0};if(canPlace(item,items))return item}return null}
+
+export function fitReplacement(item: HomeItem, items: HomeItem[]): HomeItem | null {
+  if (canPlace(item, items)) return item
+  let best: HomeItem | null = null
+  let bestDistance = Infinity
+  for (let z = -3.75; z <= 3.75; z += .25) {
+    for (let x = -4.25; x <= 4.25; x += .25) {
+      const distance = (x - item.x) ** 2 + (z - item.z) ** 2
+      if (distance >= bestDistance) continue
+      const next = { ...item, x, z }
+      if (canPlace(next, items)) {
+        best = next
+        bestDistance = distance
+      }
+    }
+  }
+  return best
+}
