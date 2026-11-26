@@ -176,7 +176,7 @@ export function SponsorsSection({
       {rouletteOpen && (
         <Modal onClose={() => setRouletteOpen(false)} label="스폰서 룰렛" size="sm">
           <div className="p-6 text-center" style={{ color: 'var(--ink)' }}>
-            <p className="kicker">Monthly Roulette</p>
+            <p className="kicker">Dingdong Roulette</p>
             <h3 className="serif mt-2 text-[21px]">{party.monthLabel}의 선물</h3>
             <div className="relative mx-auto mt-6 h-[230px] w-[230px]">
               <div
