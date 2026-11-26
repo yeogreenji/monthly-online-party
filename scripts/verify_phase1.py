@@ -415,11 +415,12 @@ with sync_playwright() as p:
         journal.get_by_label("홈피 제목").fill("테스트 미니홈피")
         journal.get_by_role("button",name="미니홈피 저장",exact=True).click()
         expect(journal.get_by_role("heading",name="테스트 미니홈피")).to_be_visible()
+        page.get_by_role("button",name="사진첩·참여 기록",exact=True).click()
         page.get_by_role("textbox",name="추억 검색").fill("검색 결과가 없는 문구")
         expect(page.get_by_text("조건에 맞는 기록이 없어요.",exact=True)).to_be_visible()
         page.get_by_role("textbox",name="추억 검색").fill("오늘의 추억 테스트")
         expect(page.get_by_text("오늘의 추억 테스트",exact=True).first).to_be_visible()
-        page.get_by_role("button",name="채팅 접기",exact=True).click()
+        page.get_by_role("dialog",name="사진첩과 참여 기록").get_by_role("button",name="닫기",exact=True).click()
         for room,corners in (
             ("cafe",[("커피와 디저트 메뉴","모카의 메뉴판","오늘의 차")]),
             ("hobby",[
