@@ -3,6 +3,7 @@ import { createLocalTransport, type ChatTransport, type TransportMessage } from 
 
 type Row = {
   id: string
+  user_id: string
   topic_id: string
   nickname: string
   body: string
@@ -18,6 +19,7 @@ const fromRow = (r: Row): TransportMessage => ({
   text: r.body,
   at: r.created_at,
   by: r.nickname,
+  userId: r.user_id,
   place: r.place_name ? { name: r.place_name, url: r.place_url ?? undefined } : undefined,
   spoiler: r.spoiler,
 })
@@ -30,7 +32,7 @@ export function createSupabaseTransport(): ChatTransport {
     async load(topicId, limit = 50) {
       const { data, error } = await client
         .from('messages')
-        .select('id,topic_id,nickname,body,place_name,place_url,spoiler,created_at')
+        .select('id,topic_id,user_id,nickname,body,place_name,place_url,spoiler,created_at')
         .eq('topic_id', topicId)
         .order('created_at', { ascending: false })
         .limit(limit)
@@ -48,7 +50,7 @@ export function createSupabaseTransport(): ChatTransport {
           place_url: message.place?.url ?? null,
           spoiler: message.spoiler ?? false,
         })
-        .select('id,topic_id,nickname,body,place_name,place_url,spoiler,created_at')
+        .select('id,topic_id,user_id,nickname,body,place_name,place_url,spoiler,created_at')
         .single()
       if (error) {
         if (error.message.includes('too_many_messages')) throw new Error('너무 빨리 보내고 있어요. 잠시 후 다시 보내 주세요.')
@@ -86,5 +88,25 @@ export async function reportMessage(messageId: string, reason: 'contact' | 'abus
 export async function blockUser(blockedId: string) {
   if (!supabase) return false
   const { error } = await supabase.from('blocks').upsert({ blocked_id: blockedId })
+  return !error
+}
+
+/** 내가 보낸 메시지를 서버에서 지운다(RLS가 본인 메시지만 허용). */
+export async function removeMessage(messageId: string) {
+  if (!supabase) return false
+  const { error } = await supabase.from('messages').delete().eq('id', messageId)
+  return !error
+}
+
+/** 내가 차단한 사용자 id 목록. */
+export async function listBlocks(): Promise<string[]> {
+  if (!supabase) return []
+  const { data, error } = await supabase.from('blocks').select('blocked_id')
+  return error || !data ? [] : (data as { blocked_id: string }[]).map((r) => r.blocked_id)
+}
+
+export async function unblockUser(blockedId: string) {
+  if (!supabase) return false
+  const { error } = await supabase.from('blocks').delete().eq('blocked_id', blockedId)
   return !error
 }

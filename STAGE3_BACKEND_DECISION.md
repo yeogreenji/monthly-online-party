@@ -17,6 +17,11 @@
 - 무료 프로젝트는 7일 이상 접속이 없으면 일시 중지된다는 보도가 있다(공식 페이지가 아닌 제3자 글, 가입 시 확인 필요). 공개 서비스는 Pro를 권장한다.
 - 이메일 링크 로그인은 `signInWithOtp`, 실시간은 `postgres_changes`를 쓴다. 실시간 이벤트는 RLS를 통과한 행만 전달된다.
 
+## 현재 연결 상태(2026-11-26 밤)
+- 사용 중인 프로젝트: `ksctvweuhnfjrqnuokmn`(지현님 계정). 스키마·정책 9개·Redirect URL·Vercel 환경변수 등록 완료(지현님 확인).
+- 브리가 Supabase 커넥터로 적용했던 `nxtzibalhtgxclhyyzxc`는 지현님 계정에서 접근할 수 없는 별도 프로젝트라 사용하지 않는다. 앱 설정에 넣지 않는다.
+- 화면 연결(로그인, 서버 채팅, 신고·차단)은 bri/stage3-ui에서 완료. `supabase/002_perf_hardening.sql`을 SQL Editor에서 한 번 실행하면 정책 성능·인덱스 보정이 적용된다.
+
 ## 만든 것(이 브랜치)
 - `supabase/schema.sql`: 프로필·메시지·신고·차단 테이블, RLS 정책, 서버 측 입력 제약, 도배 방지
 - `src/lib/supabase.ts`: 클라이언트, 이메일 링크 로그인, 프로필 저장. 환경변수가 없으면 서버 기능은 꺼진다.

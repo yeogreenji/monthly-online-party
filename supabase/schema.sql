@@ -18,8 +18,8 @@ create table if not exists public.profiles (
 );
 alter table public.profiles enable row level security;
 create policy "profiles_read" on public.profiles for select to authenticated using (true);
-create policy "profiles_insert_own" on public.profiles for insert to authenticated with check (id = auth.uid());
-create policy "profiles_update_own" on public.profiles for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
+create policy "profiles_insert_own" on public.profiles for insert to authenticated with check (id = (select auth.uid()));
+create policy "profiles_update_own" on public.profiles for update to authenticated using (id = (select auth.uid())) with check (id = (select auth.uid()));
 
 -- 2. 메시지 ---------------------------------------------------------------
 create table if not exists public.messages (
@@ -42,13 +42,14 @@ create table if not exists public.messages (
   )
 );
 create index if not exists messages_topic_created_idx on public.messages (topic_id, created_at desc);
+create index if not exists messages_user_idx on public.messages (user_id);
 alter table public.messages enable row level security;
 create policy "messages_read" on public.messages for select to authenticated using (true);
-create policy "messages_insert_own" on public.messages for insert to authenticated with check (user_id = auth.uid());
-create policy "messages_delete_own" on public.messages for delete to authenticated using (user_id = auth.uid());
+create policy "messages_insert_own" on public.messages for insert to authenticated with check (user_id = (select auth.uid()));
+create policy "messages_delete_own" on public.messages for delete to authenticated using (user_id = (select auth.uid()));
 
 -- 도배 방지: 같은 사용자의 연속 전송은 1초 간격 이상
-create or replace function public.messages_rate_limit() returns trigger language plpgsql as $$
+create or replace function public.messages_rate_limit() returns trigger language plpgsql set search_path = public as $$
 begin
   if exists (
     select 1 from public.messages
@@ -80,9 +81,11 @@ create table if not exists public.reports (
   status text not null default 'open' check (status in ('open','actioned','dismissed')),
   created_at timestamptz not null default now()
 );
+create index if not exists reports_reporter_idx on public.reports (reporter_id);
+create index if not exists reports_message_idx on public.reports (message_id);
 alter table public.reports enable row level security;
-create policy "reports_insert_own" on public.reports for insert to authenticated with check (reporter_id = auth.uid());
-create policy "reports_read_own" on public.reports for select to authenticated using (reporter_id = auth.uid());
+create policy "reports_insert_own" on public.reports for insert to authenticated with check (reporter_id = (select auth.uid()));
+create policy "reports_read_own" on public.reports for select to authenticated using (reporter_id = (select auth.uid()));
 -- 운영자 조회·처리는 service_role 키(서버 전용)나 대시보드에서만 한다. 클라이언트에는 열지 않는다.
 
 create table if not exists public.blocks (
@@ -92,8 +95,9 @@ create table if not exists public.blocks (
   primary key (blocker_id, blocked_id),
   check (blocker_id <> blocked_id)
 );
+create index if not exists blocks_blocked_idx on public.blocks (blocked_id);
 alter table public.blocks enable row level security;
-create policy "blocks_own" on public.blocks for all to authenticated using (blocker_id = auth.uid()) with check (blocker_id = auth.uid());
+create policy "blocks_own" on public.blocks for all to authenticated using (blocker_id = (select auth.uid())) with check (blocker_id = (select auth.uid()));
 
 -- 4. 탈퇴 시 삭제 ------------------------------------------------------------
 -- auth.users 행이 삭제되면 on delete cascade로 프로필·메시지·신고·차단이 함께 삭제된다.

@@ -19,13 +19,19 @@ import { Mansion3D } from './Mansion3D'
 import { RESIDENTS, PLACE_STORIES } from '../data/world'
 import { dailyEvent } from '../data/dailyEvents'
 import { checkChatText } from '../lib/safety'
+import { serverEnabled, signOut } from '../lib/supabase'
+import { createTransport, reportMessage, blockUser, listBlocks, removeMessage } from '../lib/supabaseTransport'
+import type { TransportMessage } from '../lib/chatTransport'
+import { useAuth, useProfileSync } from '../lib/useAuth'
+import { AuthCard } from './AuthCard'
 import { SPACE_WORLD, KIND_UI, demoReply, todayPick, whoName, seoulDate } from '../data/spaceWorld'
 import type { TopicKind } from '../data/spaceWorld'
 
 type Visibility = 'private' | 'friends' | 'public'
 type Topic = { id: string; space: string; title: string; description: string; date: string; capacity: number; age: string; kind?: TopicKind; workTitle?: string }
 type Place = {name:string;url:string}
-type Message = { id: string; text: string; image?: string; place?:Place; at: string; by?: string; spoiler?: boolean }
+type Message = { id: string; text: string; image?: string; place?:Place; at: string; by?: string; spoiler?: boolean; userId?: string }
+const REPORT_REASONS = [{ id: 'contact', label: '연락처 요구' }, { id: 'abuse', label: '불쾌한 말' }, { id: 'ad', label: '광고·홍보' }, { id: 'privacy', label: '개인정보 노출' }, { id: 'other', label: '기타' }] as const
 function safePlaceUrl(value:string){try{const u=new URL(value.trim());return ['https:','http:'].includes(u.protocol)&&!u.username&&!u.password?u.href:''}catch{return ''}}
 type History = { id: string; title: string; at: string; visibility: Visibility }
 const VISIBILITY = { private: '비공개', friends: '친구 공개(설정만)', public: '전체 공개(설정만)' }
@@ -72,6 +78,39 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   const [favorites, setFavorites] = usePersistentState<string[]>('dd.favorites.v1', [])
   const [topics, setTopics] = usePersistentState<Topic[]>('dd.topics.v1', [])
   const [messages, setMessages] = usePersistentState<Record<string, Message[]>>('dd.messages.v1', {})
+  // 서버 채팅: 서버가 설정되어 있고 로그인·프로필 동기화가 끝났을 때만 켜진다. 아니면 위의 기기 저장 대화를 쓴다.
+  const { user: authUser } = useAuth()
+  const sync = useProfileSync(authUser, profile.nickname, profile.ageBand)
+  const online = serverEnabled && !!authUser && sync === 'ok'
+  const remote = useMemo(() => (serverEnabled ? createTransport() : null), [])
+  const [remoteMsgs, setRemoteMsgs] = useState<Record<string, Message[]>>({})
+  const [blocked, setBlocked] = useState<string[]>([])
+  const [hiddenIds, setHiddenIds] = useState<string[]>([])
+  const [reportFor, setReportFor] = useState<string | null>(null)
+  const [sending, setSending] = useState(false)
+  const [connState, setConnState] = useState<'idle' | 'loading' | 'error'>('idle')
+  const toMsg = (m: TransportMessage): Message => ({ id: m.id, text: m.text, at: m.at, by: m.by, userId: m.userId, spoiler: m.spoiler, place: m.place ? { name: m.place.name, url: m.place.url ?? '' } : undefined })
+  const addRemote = (tid: string, m: Message) => setRemoteMsgs(p => { const cur = p[tid] ?? []; return cur.some(x => x.id === m.id) ? p : { ...p, [tid]: [...cur, m].slice(-50) } })
+  const shown = (tid: string) => online ? (remoteMsgs[tid] ?? []).filter(m => !hiddenIds.includes(m.id) && !(m.userId && blocked.includes(m.userId))) : (messages[tid] ?? [])
+  const isMine = (m: Message) => online ? m.userId === authUser?.id : !m.by
+  useEffect(() => { if (!online) { setBlocked([]); return } let alive = true; void listBlocks().then(ids => { if (alive) setBlocked(ids) }); return () => { alive = false } }, [online])
+  useEffect(() => {
+    if (!online || !remote || !topic) return
+    const tid = topic.id
+    let alive = true
+    setConnState('loading')
+    remote.load(tid, 50).then(list => { if (!alive) return; setRemoteMsgs(p => ({ ...p, [tid]: list.map(toMsg) })); setConnState('idle') }).catch(() => { if (alive) setConnState('error') })
+    const off = remote.subscribe(tid, m => { if (alive) addRemote(tid, toMsg(m)) })
+    return () => { alive = false; off() }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [online, topic?.id])
+  function reportPeer(m: Message, reason: typeof REPORT_REASONS[number]['id']) {
+    void reportMessage(m.id, reason).then(ok => { if (ok) { setHiddenIds(v => [...v, m.id]); setNotice('신고를 저장했어요. 이 메시지는 이 화면에서 가려요.') } else setNotice('신고를 보내지 못했어요. 잠시 후 다시 시도해 주세요.'); setReportFor(null) })
+  }
+  function blockPeer(m: Message) {
+    if (!m.userId || !window.confirm(`${m.by ?? '이 이용자'}님을 차단할까요? 이 이용자의 메시지가 보이지 않아요.`)) return
+    void blockUser(m.userId).then(ok => { if (ok) setBlocked(v => [...v, m.userId!]); setNotice(ok ? `${m.by ?? '이용자'}님을 차단했어요.` : '차단하지 못했어요. 잠시 후 다시 시도해 주세요.') })
+  }
   const [memories,setMemories]=usePersistentState<Memory[]>('dd.memories.v1',[])
   const [history, setHistory] = usePersistentState<History[]>('dd.history.v1', [])
   const [storedHome, setHome] = usePersistentState('dd.home.v1', INITIAL_HOME)
@@ -144,7 +183,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   }
   const seedFor=(t:Topic)=>{const w=SPACE_WORLD[t.space];const found=t.id.startsWith(t.space+'-')?w?.topics.find(x=>x.title===t.title):undefined;if(found)return found.seed;if(t.id.includes('-today-')||!w)return [{who:t.space,text:t.description||'새 방이 열렸어요. 첫 이야기를 남겨 주세요.'}];return [{who:t.space,text:t.description?t.description:'새 방이 열렸어요. 첫 이야기를 남겨 주세요.'}]}
   const kindOf=(t:Topic):TopicKind=>{if(t.kind)return t.kind;const w=SPACE_WORLD[t.space];const found=w?.topics.find(x=>x.title===t.title);if(found)return found.kind;const td=w?.today.find(x=>t.id.includes('-today-')&&x.title===t.title);return td?.kind??'talk'}
-  const peer=(name:string,text:string,key:string)=><div key={key} className="dd-peer-message"><div className="dd-peer-avatar" aria-hidden="true">{name.slice(0,1)}</div><div><span className="dd-peer-name">{name}<em>시연</em></span><div className="dd-message-bubble dd-peer-bubble"><p>{text}</p></div></div></div>
+  const peer=(name:string,text:string,key:string,real?:Message)=>{const hidden=!!real?.spoiler&&!revealed.includes(real.id);return <div key={key} className="dd-peer-message"><div className="dd-peer-avatar" aria-hidden="true">{name.slice(0,1)}</div><div><span className="dd-peer-name">{name}{!real&&<em>시연</em>}</span><div className="dd-message-bubble dd-peer-bubble">{hidden?<button className="dd-spoiler" onClick={()=>setRevealed(v=>[...v,real!.id])}>스포일러 보기</button>:<p>{text}</p>}{!hidden&&real?.place&&safePlaceUrl(real.place.url)&&<div className="dd-place-card"><strong><MapPin size={14}/> {real.place.name}</strong><a href={safePlaceUrl(real.place.url)} target="_blank" rel="noopener noreferrer">장소 링크 열기</a></div>}</div>{real&&<div className="dd-peer-actions"><button type="button" aria-expanded={reportFor===real.id} onClick={()=>setReportFor(v=>v===real.id?null:real.id)}>신고</button>{real.userId&&<button type="button" onClick={()=>blockPeer(real)}>차단</button>}</div>}{real&&reportFor===real.id&&<div className="dd-chip-row" role="group" aria-label="신고 사유">{REPORT_REASONS.map(r=><button type="button" key={r.id} onClick={()=>reportPeer(real,r.id)}>{r.label}</button>)}</div>}</div></div>}
   const replyTimers=useRef<Set<number>>(new Set())
   useEffect(()=>()=>{for(const timer of replyTimers.current)window.clearTimeout(timer);replyTimers.current.clear()},[])
   function openToday(){if(!space||!world)return;const pick=todayPick(world.today);enter({id:space.id+'-today-'+seoulDate(),space:space.id,title:pick.title,description:pick.question,date:'',capacity:20,age:'성인 전체',kind:pick.kind})}
@@ -164,6 +203,14 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
     const url=safePlaceUrl(placeUrl)
     if((placeName.trim()||placeUrl.trim())&&(!placeName.trim()||!url)){setNotice('장소 이름과 올바른 http 또는 https 링크를 입력해 주세요.');return}
     const place=placeName.trim()?{name:placeName.trim().slice(0,100),url}:undefined
+    if(online&&remote){
+      if(picture){setNotice('서버 채팅에는 사진을 올릴 수 없어요. 사진은 후기 사진첩에 저장해 주세요.');return}
+      if(sending)return
+      const tid=topic.id,text=(draft.trim()||place?.name||'').slice(0,1000)
+      setSending(true);setNotice('')
+      remote.send({topicId:tid,text,by:profile.nickname,place,spoiler}).then(saved=>{nearBottom.current=true;addRemote(tid,toMsg(saved));delete drafts.current[tid];setDraft('');clearPlace();setSpoiler(false);setEmojiOpen(false);setAttachOpen(false);setQuickOpen(false);composer.current?.focus()}).catch((e:unknown)=>setNotice(e instanceof Error?e.message:'메시지를 보내지 못했어요.')).finally(()=>setSending(false))
+      return
+    }
     nearBottom.current=true;
     const item = {id: uuid(), text: draft.trim().slice(0,1000), image: picture || undefined, place, spoiler, at: new Date().toISOString()}
     setMessages(prev => ({...prev, [topic.id]: [...(prev[topic.id] ?? []), item].slice(-50)}))
@@ -224,10 +271,10 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
           <p className="text-xs" style={{color:'var(--muted)'}}>벽지·가구·반려동물은 내 3D 집에 적용되고 브라우저에 자동 저장됩니다. 공개 범위는 설정만 저장되며 실제 친구 방문·편지는 계정 연결 전 제공되지 않습니다.</p>
           <button type="button" className="btn btn-outline" onClick={()=>showPanel('memories')}>사진첩·참여 기록</button>
         </div> : autoChat ? null : topic ? <div className="dd-messenger-main">
-          <header className="dd-message-header"><button className="dd-chat-icon" aria-label="모임 목록" onClick={leave}><ChevronLeft size={22}/></button><div><h3>{topic.title}</h3><p>{topic.workTitle&&<>{topic.workTitle} · </>}{space.name} <span className="dd-header-dot"/> 로컬 연습</p></div><button className="dd-chat-icon" aria-label="채팅 설정" aria-expanded={chatExtras} onClick={()=>setChatExtras(v=>!v)}><MoreHorizontal size={22}/></button></header>
+          <header className="dd-message-header"><button className="dd-chat-icon" aria-label="모임 목록" onClick={leave}><ChevronLeft size={22}/></button><div><h3>{topic.title}</h3><p>{topic.workTitle&&<>{topic.workTitle} · </>}{space.name} <span className="dd-header-dot"/> {online?'실시간 대화':'로컬 연습'}</p></div><button className="dd-chat-icon" aria-label="채팅 설정" aria-expanded={chatExtras} onClick={()=>setChatExtras(v=>!v)}><MoreHorizontal size={22}/></button></header>
           {topic.space==='games'&&<GameCorner key={topic.id}/>}
-          {chatExtras&&<div className="dd-chat-settings"><p>{topic.description}</p>{topic.space==='games'?<small>게임 질문과 정답은 위의 미니게임에서 입력해 주세요.</small>:<><label><input type="checkbox" checked={practice} onChange={e=>setPractice(e.target.checked)}/> 가상 주민 대화 연습</label><small>켜면 시연용 주민이 응답해요. 실제 이용자와의 대화는 아직 연결되지 않았어요.</small></>}<label><input type="checkbox" checked={saveHistory} onChange={e=>setSaveHistory(e.target.checked)}/> 나갈 때 참여 기록 저장</label>{saveHistory&&<select className={FIELD} aria-label="참여 기록 공개 범위" value={visibility} onChange={e=>setVisibility(e.target.value as Visibility)}>{Object.entries(VISIBILITY).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select>}<details className="dd-memory-details"><summary>사진첩·후기</summary><MemoryComposer key={topic.id} photos={(messages[topic.id]??[]).filter(m=>!m.by&&m.image&&(!m.spoiler||revealed.includes(m.id))).map(m=>({id:m.id,image:m.image!}))} onSave={saveMemory}/><MemoryAlbum key={topic.id} entries={memories} topicId={topic.id} onDelete={deleteMemory}/></details><button className="dd3-btn" onClick={leave}>모임 나가기</button></div>}
-          <div ref={messageLog} className="dd-message-log" role="log" aria-label="대화 기록" tabIndex={0} onScroll={e=>{const el=e.currentTarget;nearBottom.current=el.scrollHeight-el.scrollTop-el.clientHeight<48}}><div className="dd-chat-system"><Info size={14}/><span>아직 실제 이용자는 연결되지 않았어요.</span></div>{practice&&seedFor(topic).map((m,i)=>peer(whoName(m.who),m.text,'seed'+i))}{!practice&&!(messages[topic.id]??[]).length&&<div className="dd-chat-welcome"><span className="dd-chat-welcome-icon">{space.icon}</span><strong>이야기의 시작</strong><p>{topic.description||'첫 이야기를 남겨 보세요.'}</p>{topic.space==='games'?<button onClick={()=>{const game=messageLog.current?.parentElement?.querySelector<HTMLDetailsElement>('.dd-game-corner');if(game){game.open=true;game.querySelector('summary')?.focus()}}}>미니게임 열기</button>:<button onClick={()=>setPractice(true)}>주민과 대화 연습</button>}</div>}{(messages[topic.id]??[]).map(m=>m.by?peer(m.by,m.text,m.id):<div key={m.id} className="dd-own-message"><div className="dd-message-meta dd-own-label"><span>나</span></div><div className="dd-message-bubble">{m.spoiler&&!revealed.includes(m.id)?<button className="dd-spoiler" onClick={()=>setRevealed(v=>[...v,m.id])}>스포일러 보기</button>:<>{m.spoiler&&<button className="dd-spoiler" onClick={()=>setRevealed(v=>v.filter(id=>id!==m.id))}>다시 숨기기</button>}{m.text&&<p>{m.text}</p>}{m.image&&<img src={m.image} alt="내가 올린 사진"/>}</>}{(!m.spoiler||revealed.includes(m.id))&&m.place&&safePlaceUrl(m.place.url)&&<div className="dd-place-card"><strong><MapPin size={14}/> {m.place.name}</strong><a href={safePlaceUrl(m.place.url)} target="_blank" rel="noopener noreferrer">장소 링크 열기</a><button type="button" className="btn btn-ghost btn-sm" onClick={()=>{const place=m.place!;setSavedPlaces(p=>p.some(x=>x.url===place.url&&x.name===place.name)?p:[place,...p].slice(0,100))}}>장소 저장</button></div>}</div><div className="dd-message-time"><time dateTime={m.at}>{new Date(m.at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}</time><button onClick={()=>setMessages(p=>({...p,[topic.id]:(p[topic.id]??[]).filter(x=>x.id!==m.id)}))}>삭제</button></div></div>)}</div>
+          {chatExtras&&<div className="dd-chat-settings"><p>{topic.description}</p>{topic.space==='games'?<small>게임 질문과 정답은 위의 미니게임에서 입력해 주세요.</small>:<><label><input type="checkbox" checked={practice} onChange={e=>setPractice(e.target.checked)}/> 가상 주민 대화 연습</label><small>켜면 시연용 주민이 응답해요.{online?'':' 실제 이용자와의 대화는 로그인하면 연결돼요.'}</small></>}<label><input type="checkbox" checked={saveHistory} onChange={e=>setSaveHistory(e.target.checked)}/> 나갈 때 참여 기록 저장</label>{saveHistory&&<select className={FIELD} aria-label="참여 기록 공개 범위" value={visibility} onChange={e=>setVisibility(e.target.value as Visibility)}>{Object.entries(VISIBILITY).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select>}<details className="dd-memory-details"><summary>사진첩·후기</summary><MemoryComposer key={topic.id} photos={(messages[topic.id]??[]).filter(m=>!m.by&&m.image&&(!m.spoiler||revealed.includes(m.id))).map(m=>({id:m.id,image:m.image!}))} onSave={saveMemory}/><MemoryAlbum key={topic.id} entries={memories} topicId={topic.id} onDelete={deleteMemory}/></details><button className="dd3-btn" onClick={leave}>모임 나가기</button>{authUser&&<button className="dd3-btn" onClick={()=>void signOut()}>로그아웃</button>}</div>}
+          <div ref={messageLog} className="dd-message-log" role="log" aria-label="대화 기록" tabIndex={0} onScroll={e=>{const el=e.currentTarget;nearBottom.current=el.scrollHeight-el.scrollTop-el.clientHeight<48}}><div className="dd-chat-system"><Info size={14}/><span>{online?(connState==='error'?'대화를 불러오지 못했어요. 잠시 후 다시 열어 주세요.':'실제 이용자와 연결됐어요. 연락처·외부 연락 요청은 보낼 수 없어요.'):'아직 실제 이용자는 연결되지 않았어요.'}</span></div>{serverEnabled&&!online&&<AuthCard signedIn={!!authUser} sync={sync} onEditProfile={onEditProfile}/>}{practice&&seedFor(topic).map((m,i)=>peer(whoName(m.who),m.text,'seed'+i))}{!practice&&!shown(topic.id).length&&<div className="dd-chat-welcome"><span className="dd-chat-welcome-icon">{space.icon}</span><strong>이야기의 시작</strong><p>{topic.description||'첫 이야기를 남겨 보세요.'}</p>{topic.space==='games'?<button onClick={()=>{const game=messageLog.current?.parentElement?.querySelector<HTMLDetailsElement>('.dd-game-corner');if(game){game.open=true;game.querySelector('summary')?.focus()}}}>미니게임 열기</button>:<button onClick={()=>setPractice(true)}>주민과 대화 연습</button>}</div>}{shown(topic.id).map(m=>!isMine(m)?peer(m.by??'이웃',m.text,m.id,online?m:undefined):<div key={m.id} className="dd-own-message"><div className="dd-message-meta dd-own-label"><span>나</span></div><div className="dd-message-bubble">{m.spoiler&&!revealed.includes(m.id)?<button className="dd-spoiler" onClick={()=>setRevealed(v=>[...v,m.id])}>스포일러 보기</button>:<>{m.spoiler&&<button className="dd-spoiler" onClick={()=>setRevealed(v=>v.filter(id=>id!==m.id))}>다시 숨기기</button>}{m.text&&<p>{m.text}</p>}{m.image&&<img src={m.image} alt="내가 올린 사진"/>}</>}{(!m.spoiler||revealed.includes(m.id))&&m.place&&safePlaceUrl(m.place.url)&&<div className="dd-place-card"><strong><MapPin size={14}/> {m.place.name}</strong><a href={safePlaceUrl(m.place.url)} target="_blank" rel="noopener noreferrer">장소 링크 열기</a><button type="button" className="btn btn-ghost btn-sm" onClick={()=>{const place=m.place!;setSavedPlaces(p=>p.some(x=>x.url===place.url&&x.name===place.name)?p:[place,...p].slice(0,100))}}>장소 저장</button></div>}</div><div className="dd-message-time"><time dateTime={m.at}>{new Date(m.at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}</time><button onClick={()=>{if(online){void removeMessage(m.id).then(ok=>{if(ok)setRemoteMsgs(p=>({...p,[topic.id]:(p[topic.id]??[]).filter(x=>x.id!==m.id)}));else setNotice('메시지를 지우지 못했어요.')})}else setMessages(p=>({...p,[topic.id]:(p[topic.id]??[]).filter(x=>x.id!==m.id)}))}}>삭제</button></div></div>)}</div>
           <div className="dd-chat-compose" aria-label="메시지 작성 영역">
           {picture&&<div className="dd-chat-attachment"><img src={picture} alt="첨부 미리보기"/><button className="dd3-btn" onClick={()=>{cancelPhotoRequest();setPicture('')}}>첨부 제거</button></div>}
           {showPlace&&<div className="dd-chat-place"><label>장소 이름<input aria-label="장소 이름" className={FIELD} value={placeName} maxLength={100} onChange={e=>setPlaceName(e.target.value)}/></label><label>장소 링크<input aria-label="장소 링크" className={FIELD} value={placeUrl} maxLength={2000} onChange={e=>setPlaceUrl(e.target.value)}/></label><small>운영 여부 미검증 · 로컬 추천</small></div>}
@@ -235,7 +282,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
           {notice&&<p role="status" className="dd-chat-notice">{notice}</p>}
           {quickOpen&&<div className="dd-chip-row" role="group" aria-label="빠른 문장">{KIND_UI[kindOf(topic)].chips.map(c=><button type="button" key={c.label} onClick={()=>{setDraft(p=>((p?p+(p.endsWith(' ')?'':' '):'')+c.text).slice(0,1000));composer.current?.focus()}}>{c.label}</button>)}</div>}
           {(topic.space==='cinema'||kindOf(topic)==='review'||spoiler)&&<label className="dd-spoiler-option"><input type="checkbox" checked={spoiler} onChange={e=>setSpoiler(e.target.checked)}/> 스포일러 숨김</label>}
-          <form className="dd-message-form" onSubmit={e=>{e.preventDefault();send()}}><button type="button" className="dd-attach-plus" aria-label="첨부 메뉴" aria-expanded={attachOpen} onClick={()=>{setAttachOpen(v=>!v);setEmojiOpen(false)}}><Plus size={23}/></button><input ref={composer} aria-label="메시지" maxLength={1000} value={draft} placeholder={KIND_UI[kindOf(topic)].placeholder} onChange={e=>setDraft(e.target.value)}/><button type="button" className="dd-inline-emoji" aria-label="이모티콘" aria-expanded={emojiOpen} onClick={()=>{setEmojiOpen(v=>!v);setAttachOpen(false)}}><Smile size={22}/></button><button className="dd-send" aria-label="전송" disabled={loading||(!draft.trim()&&!picture&&!placeName.trim())}><Send size={19}/></button></form>
+          <form className="dd-message-form" onSubmit={e=>{e.preventDefault();send()}}><button type="button" className="dd-attach-plus" aria-label="첨부 메뉴" aria-expanded={attachOpen} onClick={()=>{setAttachOpen(v=>!v);setEmojiOpen(false)}}><Plus size={23}/></button><input ref={composer} aria-label="메시지" maxLength={1000} value={draft} placeholder={KIND_UI[kindOf(topic)].placeholder} onChange={e=>setDraft(e.target.value)}/><button type="button" className="dd-inline-emoji" aria-label="이모티콘" aria-expanded={emojiOpen} onClick={()=>{setEmojiOpen(v=>!v);setAttachOpen(false)}}><Smile size={22}/></button><button className="dd-send" aria-label="전송" disabled={loading||sending||(!draft.trim()&&!picture&&!placeName.trim())}><Send size={19}/></button></form>
           <div className="dd-compose-tools" hidden={!attachOpen}><button className="dd-chat-icon" aria-label="사진 첨부" title="사진 첨부" onClick={()=>fileInput.current?.click()}><ImagePlus size={21}/><small>사진</small></button><input ref={fileInput} hidden aria-label="사진 첨부 파일" type="file" accept="image/jpeg,image/png,image/webp" disabled={loading} className="block max-w-full text-xs" onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void attachPhoto(file)}}/><button className="dd-chat-icon" aria-label="빠른 문장" aria-expanded={quickOpen} onClick={()=>setQuickOpen(v=>!v)}><MessageCircle size={21}/><small>빠른 문장</small></button><button className="dd-chat-icon" aria-label={showPlace?'장소 추천 입력 접기':'장소 추천 첨부'} title="장소 추천" onClick={()=>setShowPlace(v=>!v)}><MapPin size={21}/><small>장소</small></button><details className="dd-chat-saved"><summary>저장한 장소 ({savedPlaces.length})</summary>{savedPlaces.filter(p=>safePlaceUrl(p.url)).map(p=><div key={p.name+p.url}><a href={safePlaceUrl(p.url)} target="_blank" rel="noopener noreferrer">{p.name}</a><button type="button" className="btn btn-ghost btn-sm" onClick={()=>setSavedPlaces(list=>list.filter(v=>v.url!==p.url||v.name!==p.name))}>삭제</button></div>)}</details></div>
           </div>
         </div> : <div className="space-y-4">

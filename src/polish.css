@@ -483,3 +483,16 @@
 .dd-twenty-history li { display:flex; justify-content:space-between; gap:8px; padding:5px 8px; border-radius:8px; background:#e4f1ea; }
 .dd-twenty-prompts summary { padding:6px 0; }
 .dd-home-save-status { flex:0 0 100%; margin:0; color:#365c4e; font-size:.78rem; }
+
+/* 로그인 카드 · 이웃 메시지 신고/차단 */
+.dd-auth-card{margin:8px 0 6px;padding:12px 13px;border:1.5px solid var(--dd-edge,#c9a9e8);border-radius:16px;background:linear-gradient(180deg,#fff,#faf5ff);display:grid;gap:7px;box-shadow:0 3px 0 #dccbf3;color:#4a3a63}
+.dd-auth-card strong{font-size:.92rem;color:#5b3d93}
+.dd-auth-card p,.dd-auth-card small{margin:0;font-size:.8rem;line-height:1.45}
+.dd-auth-card small{opacity:.75}
+.dd-auth-row{display:flex;gap:6px;align-items:center}
+.dd-auth-row input{flex:1;min-width:0;height:38px;padding:0 11px;border:1.5px solid var(--dd-edge,#c9a9e8);border-radius:12px;background:#fff;font-size:.88rem;color:#3d2f55}
+.dd-auth-row input:focus-visible{outline:2px solid #f4bb51;outline-offset:1px}
+.dd-auth-row .dd3-btn{white-space:nowrap}
+.dd-peer-actions{display:flex;gap:10px;margin:2px 0 0 4px}
+.dd-peer-actions button{border:0;background:none;padding:2px 0;font-size:.72rem;color:#8a7aa6;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.dd-peer-actions button:hover,.dd-peer-actions button[aria-expanded="true"]{color:#e5578f}

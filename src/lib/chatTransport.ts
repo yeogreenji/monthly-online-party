@@ -8,6 +8,7 @@ export interface TransportMessage {
   text: string
   at: string
   by?: string
+  userId?: string
   image?: string
   place?: { name: string; url?: string }
   spoiler?: boolean
