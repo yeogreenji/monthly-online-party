@@ -32,13 +32,23 @@ export function Onboarding({
   onClose: () => void
   onReset: () => void
 }) {
-  const [avatar, setAvatar] = useState<AvatarKey>(initial?.avatar ?? 'fox')
+  const [avatar, setAvatar] = useState<AvatarKey>(initial?.avatar ?? AVATARS[0].key)
   const [nickname, setNickname] = useState(initial?.nickname ?? '')
   const [ageBand, setAgeBand] = useState<AgeBand>(initial?.ageBand ?? '비공개')
   const [tags, setTags] = useState<string[]>(initial?.tags ?? [])
   const [error, setError] = useState('')
   const suggestion = useMemo(() => suggestName(), [])
   const host=useRef<HTMLDivElement>(null),gallery=useRef<ReturnType<typeof createAvatarGallery>|null>(null)
+  const characterPicker = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const picker = characterPicker.current
+    const selected = picker?.querySelector<HTMLButtonElement>('button[aria-pressed="true"]')
+    if (!picker || !selected) return
+    const bounds = picker.getBoundingClientRect()
+    const card = selected.getBoundingClientRect()
+    if (card.left < bounds.left) picker.scrollLeft += card.left - bounds.left - 4
+    if (card.right > bounds.right) picker.scrollLeft += card.right - bounds.right + 4
+  }, [avatar])
   const [fallback,setFallback]=useState(false)
   useEffect(()=>{if(!host.current)return;try{const g=createAvatarGallery(host.current,AVATARS.map(a=>a.key),setAvatar);gallery.current=g;return()=>{g.dispose();gallery.current=null}}catch{setFallback(true)}},[])
   useEffect(()=>{gallery.current?.select(avatar)},[avatar])
@@ -72,6 +82,9 @@ export function Onboarding({
     <header className="dd-entry-title"><span className="dd-entry-eyebrow">✦ 오늘도 만나서 반가워요 ✦</span><h1 className="dd-logo-heading"><DingdongLogo/></h1><p>{editMode?'캐릭터 의상실':'친구와 만나는 작은 온라인 파티'}</p>{editMode&&<button className="dd3-btn" onClick={onClose}>닫기</button>}</header>
     <div className="dd-entry-controls"><p className="dd-entry-intro">오늘의 작은 파티를 찾아 동네를 산책해요.</p>
       <div className="dd-entry-pick"><button className="dd3-btn" aria-label="이전 캐릭터" onClick={()=>choose(-1)}>‹</button><div><label htmlFor="dd-entry-avatar">내 캐릭터</label><select id="dd-entry-avatar" value={avatar} onChange={e=>setAvatar(e.target.value as AvatarKey)}>{AVATARS.map(a=><option key={a.key} value={a.key}>{a.label}</option>)}</select></div><button className="dd3-btn" aria-label="다음 캐릭터" onClick={()=>choose(1)}>›</button></div>
+      <div ref={characterPicker} className="dd-entry-characters" role="group" aria-label="동물 캐릭터 고르기">
+        {AVATARS.map(a=><button type="button" key={a.key} aria-label={a.label} aria-pressed={avatar===a.key} onClick={()=>setAvatar(a.key)}><Avatar name={a.key}/><span>{a.label}</span></button>)}
+      </div>
       <p className="dd-entry-tip">마음에 드는 동물 친구를 골라 보세요. 드래그하면 돌아봐요.</p>
       <div className="dd-entry-name"><label htmlFor="nickname">닉네임</label><input id="nickname" className="input" placeholder={suggestion} value={nickname} maxLength={12} onChange={e=>{setNickname(e.target.value);setError('')}} onKeyDown={e=>{if(e.key==='Enter')submit()}}/><button className="dd3-btn" onClick={()=>{setNickname(suggestName());setError('')}} aria-label="닉네임 제안"><Shuffle size={15}/></button></div>
       {error&&<p role="alert">{error}</p>}

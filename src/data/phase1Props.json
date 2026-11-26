@@ -972,11 +972,26 @@
     "rotation": 0,
     "scale": 1,
     "source": "딩동 자체 제작 기하 모델",
+    "menu": "corner-travelMap",
     "interaction": "approach-and-read",
     "bounds": [
       0.66,
       0.66
     ]
+  },
+  {
+    "room": "travel",
+    "id": "travel-postcards",
+    "name": "엽서 진열대",
+    "position": [-1.9, 0, 2.45],
+    "approach": [-0.9, 0, 1.8],
+    "message": "여행 엽서 진열대에 도착했어요.",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "approach-and-read",
+    "menu": "corner-travelPostcards",
+    "bounds": [0.63, 0.25]
   },
   {
     "room": "hobby",
