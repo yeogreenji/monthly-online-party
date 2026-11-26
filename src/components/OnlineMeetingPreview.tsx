@@ -1,4 +1,5 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { createClient } from '@supabase/supabase-js'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { resizeImageFile } from '../lib/image'
 
 const url = import.meta.env.VITE_DD_DEV_URL as string | undefined
@@ -63,21 +64,39 @@ function RoomChat({ room, session }: { room: string; session: Session }) {
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState('')
   const token = session.access_token
+  const pending = useRef<{ id: string; body: string; file: File | null; photoPath: string | null; uploaded: boolean } | null>(null)
   useEffect(() => {
     let active = true
     let timer: number
+    let loading = false
+    let repeat = false
+    const client = createClient(url!, key!, { accessToken: async () => token })
     async function refresh() {
+      if (!active) return
+      if (loading) { repeat = true; return }
+      loading = true
       try {
         const response = await request('/rest/v1/meeting_messages?select=id,author_id,body,photo_path&room_id=eq.' + room + '&order=created_at.desc,id.desc&limit=50', token)
         const data: Message[] = await response.json()
         if (active) setMessages(data.reverse())
       } catch {
         if (active) setNotice('채팅을 불러오지 못했어요. 세션이 만료됐다면 다시 로그인해 주세요.')
+      } finally {
+        loading = false
+        if (repeat) { repeat = false; void refresh() }
       }
-      if (active) timer = window.setTimeout(refresh, 2500)
     }
+    const channel = client.channel('meeting-' + room)
+      .on('postgres_changes', { schema: 'public', table: 'meeting_messages', event: 'INSERT', filter: 'room_id=eq.' + room }, () => void refresh())
+      .subscribe(status => {
+        if (!active) return
+        window.clearInterval(timer)
+        if (status === 'SUBSCRIBED') void refresh()
+        else if (status !== 'CLOSED') timer = window.setInterval(refresh, 5000)
+      })
+    timer = window.setInterval(refresh, 5000)
     void refresh()
-    return () => { active = false; window.clearTimeout(timer) }
+    return () => { active = false; window.clearInterval(timer); void client.removeChannel(channel) }
   }, [room, token])
 
   async function send(event: FormEvent<HTMLFormElement>) {
@@ -87,21 +106,36 @@ function RoomChat({ room, session }: { room: string; session: Session }) {
     const file = new FormData(form).get('photo')
     const hasPhoto = file instanceof File && file.size > 0
     if (!body.trim() && !hasPhoto) return
+    const attachment = hasPhoto ? file : null
+    const text = body.trim()
+    if (!pending.current || pending.current.body !== text || pending.current.file?.name !== attachment?.name || pending.current.file?.lastModified !== attachment?.lastModified || pending.current.file?.size !== attachment?.size) {
+      const id = crypto.randomUUID()
+      pending.current = { id, body: text, file: attachment, photoPath: attachment ? room + '/' + session.user.id + '/' + id + '.jpg' : null, uploaded: false }
+    }
+    const attempt = pending.current
     setBusy(true)
     setNotice('')
     try {
-      let photoPath: string | null = null
-      if (hasPhoto) {
+      if (attempt.photoPath && attempt.file && !attempt.uploaded) {
+        const file = attempt.file
         if (file.size > 5_000_000) throw new Error('size')
         const data = await resizeImageFile(file, 480, .75)
         const jpeg = await fetch(data).then(response => response.blob())
         if (jpeg.type !== 'image/jpeg') throw new Error('photo')
-        photoPath = room + '/' + session.user.id + '/' + crypto.randomUUID() + '.jpg'
-        await request('/storage/v1/object/meeting-photos/' + photoPath, token, {
+        await request('/storage/v1/object/meeting-photos/' + attempt.photoPath, token, {
           method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: jpeg,
+        }).catch(async error => {
+          // If the response was lost, confirm the object exists before retrying the message.
+          const existing = await request('/storage/v1/object/authenticated/meeting-photos/' + attempt.photoPath, token, { method: 'HEAD' }).catch(() => null)
+          if (!existing) throw error
         })
+        attempt.uploaded = true
       }
-      await request('/rest/v1/meeting_messages', token, json({ room_id: room, body: body.trim(), photo_path: photoPath }))
+      await request('/rest/v1/meeting_messages', token, json({ id: attempt.id, room_id: room, body: attempt.body, photo_path: attempt.photoPath })).catch(async error => {
+        const response = await request('/rest/v1/meeting_messages?select=id&id=eq.' + attempt.id, token).catch(() => null)
+        if (!response || !(await response.json()).length) throw error
+      })
+      pending.current = null
       setBody('')
       form.reset()
     } catch { setNotice('전송하지 못했어요. 로그인 상태와 사진 크기(5MB 이하)를 확인해 주세요.') }
@@ -118,7 +152,7 @@ function RoomChat({ room, session }: { room: string; session: Session }) {
     </div>
     <form className="grid gap-2" onSubmit={send}>
       <label>메시지<textarea className="input w-full" value={body} disabled={busy} maxLength={1000} onChange={event => setBody(event.target.value)} /></label>
-      <label>사진 <input name="photo" type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} /></label>
+      <label>사진 <input name="photo" onChange={() => { pending.current = null }} type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} /></label>
       <button className="btn btn-primary" disabled={busy}>보내기</button>
     </form>
     <p role="status">{notice}</p>
