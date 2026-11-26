@@ -10,7 +10,7 @@ export function createModelFactory(){
  function mesh(p,k,c,x,y,z,w,h,d){const m=new T.Mesh(geo[k],material(c));m.position.set(x,y,z);m.scale.set(w,h,d);m.castShadow=true;m.receiveShadow=true;p.add(m);return m}
  const ell=(p,c,x,y,z,w,h,d)=>mesh(p,'sphere',c,x,y,z,w,h,d),box=(p,c,x,y,z,w,h,d)=>mesh(p,'box',c,x,y,z,w,h,d),cyl=(p,c,x,y,z,r,h)=>mesh(p,'cyl',c,x,y,z,r,h,r),cone=(p,c,x,y,z,r,h,d=r)=>mesh(p,'cone',c,x,y,z,r,h,d)
  function combine(p,owned){p.updateMatrixWorld(true);const batches=new Map(),inv=p.matrixWorld.clone().invert();p.traverse(m=>{if(!m.isMesh)return;const key=m.material.uuid;if(!batches.has(key))batches.set(key,[]);batches.get(key).push(m)});for(const parts of batches.values()){if(parts.length<2)continue;const clones=parts.map(m=>m.geometry.clone().applyMatrix4(inv.clone().multiply(m.matrixWorld)));const geometry=mergeGeometries(clones,false);clones.forEach(g=>g.dispose());if(!geometry)continue;const m=new T.Mesh(geometry,parts[0].material);m.castShadow=true;m.receiveShadow=true;p.add(m);owned.push(geometry);parts.forEach(m=>m.removeFromParent())}}
- function create(parent,key,coat='#718675',look=null){const L=look||{},base=skins[key]||skins.cat,fur=L.fur&&L.fur!=='natural'?L.fur:base[0],cream=base[1],color=L.coat||coat,trim=shade(color,.72),light=shade(color,1.22),shoe=L.shoes||'#6c574b',style=L.style||'coat';
+ function create(parent,key,coat='#718675',look=null){const L=look||{},base=skins[key]||skins.cat,fur=L.fur&&L.fur!=='natural'?L.fur:base[0],cream=base[1],color=key==='penguin'?shade(fur,1.08):(L.coat||coat),trim=shade(color,.72),light=shade(color,1.22),shoe=L.shoes||'#6c574b',style=L.style||'coat';
  const g=group(parent);g.userData.dynamic=true;const pose=group(g);pose.scale.setScalar(.66);const trunk=group(pose);const legs=[],arms=[],owned=[];
  // Seamless overlapping neck, torso and head. Original rounded animal proportions.
  ell(trunk,fur,0,1.20,0,.37,.34,.31);ell(trunk,color,0,.88,0,.48,.53,.39);function garment(profile,paint,depth=.82){const geometry=new T.LatheGeometry(profile.map(([r,y])=>new T.Vector2(r,y)),40);const mesh=new T.Mesh(geometry,material(paint));mesh.scale.z=depth;mesh.castShadow=true;mesh.receiveShadow=true;trunk.add(mesh);owned.push(geometry);return mesh}function hem(y,r,paint){ell(trunk,paint,0,y,0,r,.055,r*.83)}
@@ -25,11 +25,16 @@ export function createModelFactory(){
  else if(style==='puffer'){for(let i=0;i<4;i++)ell(trunk,i%2?color:light,0,.52+i*.18,0,.52,.13,.43);box(trunk,trim,0,.83,.44,.06,.64,.035);ell(trunk,trim,0,1.17,0,.41,.14,.34)}
  else if(style==='cape'){garment([[.66,.48],[.58,.68],[.46,1.06],[.29,1.25]],color);hem(1.19,.32,cream);for(const x of [-.10,.10])ell(trunk,0xffd57a,x,1.03,.42,.055,.055,.035)}
  else{for(const x of [-.15,.15])ell(trunk,light,x,1.09,.33,.13,.16,.06);for(const y of [.68,.86,1.03])ell(trunk,0xffd37f,0,y,.38,.043,.045,.026)}
+ if(key==='penguin'){ell(trunk,cream,0,.80,.395,.42,.58,.10);ell(trunk,cream,0,1.19,.32,.31,.24,.09);ell(trunk,cream,0,.46,.315,.23,.18,.08)}
+ if(key==='fox'||key==='squirrel')ell(trunk,cream,0,1.02,.345,.21,.25,.075);
+ if(key==='hamster'){for(const s2 of [-1,1])ell(trunk,cream,s2*.30,.95,.30,.17,.16,.07)}
+ if(key==='squirrel')ell(trunk,fur,.47,.95,-.44,.25,.31,.22);
+ if(key==='raccoon'){for(let i=0;i<3;i++)ell(trunk,accent,.36+i*.07,.62+i*.12,-.31-i*.04,.085,.05,.14)}
  if(L.fabric==='dots')for(let i=0;i<3;i++)for(let j=0;j<3;j++)ell(trunk,cream,-.19+j*.19,.66+i*.18,.37-Math.abs(j-1)*.025,.035,.035,.018);
  if(L.fabric==='check'){for(let i=0;i<3;i++){box(trunk,light,0,.65+i*.18,.374,.44,.032,.018);box(trunk,trim,-.16+i*.16,.84,.38,.032,.42,.018)}}
  if(L.fabric==='stitch')for(let i=0;i<6;i++)ell(trunk,cream,-.23+i*.09,.55,.34,.024,.015,.018);
  if(L.fabric==='stars')for(const [x,y] of [[-.20,.71],[.15,.82],[0,1.01]]){ell(trunk,0xffdc87,x,y,.38,.05,.05,.018);box(trunk,0xffdc87,x,y,.39,.12,.022,.018)}
- for(const x of [-1,1]){const leg=group(pose,x*.23,.47,0);ell(leg,style==='dress'||style==='skirt'?fur:trim,0,-.12,0,.17,.26,.20);ell(leg,shoe,0,-.32,.11,.19,.14,.26);ell(leg,shade(shoe,1.18),0,-.38,.13,.19,.045,.24);legs.push(leg);const arm=group(pose,x*.42,1.03,0);ell(arm,color,x*.07,-.15,0,.15,.26,.16).rotation.z=x*.22;ell(arm,fur,x*.11,-.34,.04,.14,.14,.15);arms.push(arm)}
+ for(const x of [-1,1]){const peng=key==='penguin';const leg=group(pose,x*.23,.47,0);ell(leg,peng?fur:(style==='dress'||style==='skirt'?fur:trim),0,-.12,0,.17,.26,.20);if(peng){ell(leg,0xf2a23c,0,-.33,.10,.21,.09,.30);for(const dx of [-.07,.07])box(leg,0xd98c33,dx,-.365,.21,.028,.016,.09)}else{ell(leg,shoe,0,-.32,.11,.19,.14,.26);ell(leg,shade(shoe,1.18),0,-.38,.13,.19,.045,.24)}legs.push(leg);const arm=group(pose,x*.42,1.03,0);ell(arm,peng?fur:color,x*(peng?.14:.07),-0.15,0,peng?.13:.15,peng?.40:.26,peng?.10:.16).rotation.z=x*(peng?.28:.22);if(!peng)ell(arm,fur,x*.11,-.34,.04,.14,.14,.15);arms.push(arm)}
  if(['cat','santacat','fox','squirrel','raccoon','otter','dog'].includes(key)){ell(trunk,fur,.40,.70,-.35,.23,.40,.20).rotation.z=-.8;if(key==='fox'||key==='squirrel')ell(trunk,cream,.58,.89,-.43,.18,.19,.15)}
  const head=group(trunk,0,1.49,0);ell(head,fur,0,0,0,.72,.62,.58);ell(head,fur,0,-.36,0,.47,.30,.42);
  for(const side of [-1,1]){if(['cat','santacat','fox','squirrel'].includes(key)){const ear=cone(head,fur,side*.42,.57,-.02,.25,.56,.20);ear.rotation.z=-side*.20;ell(head,0xe99ab2,side*.42,.57,.12,.12,.18,.055)}
@@ -38,7 +43,15 @@ export function createModelFactory(){
  else if(key!=='penguin'){ell(head,key==='panda'?accent:fur,side*.46,.43,-.01,.24,.25,.19);ell(head,cream,side*.46,.43,.15,.12,.13,.04)}
  if(key==='deer'){ell(head,0x966039,side*.34,.69,0,.06,.33,.06).rotation.z=-side*.2;ell(head,0x966039,side*.46,.76,0,.05,.16,.05).rotation.z=-side*.6}
  if(key==='panda'||key==='raccoon')ell(head,accent,side*.22,.04,.45,.17,.18,.055);const sleepy=L.eyes==='sleepy',smile=L.eyes==='smile';ell(head,accent,side*.22,.08,.554,.090,sleepy?.035:smile?.045:.115,.048);if(!sleepy&&!smile)ell(head,0xffffff,side*.22-.021,.118,.596,.025,.027,.012);ell(head,0xef9ba9,side*.39,-.08,.487,.103,.052,.035)}
- ell(head,cream,0,-.17,.465,.30,.18,.15);ell(head,key==='penguin'||key==='owl'?0xf2ad54:accent,0,-.10,.607,.079,.055,.048);for(const x of [-1,1])ell(head,0x966575,x*.047,-.19,.602,.05,.014,.018).rotation.z=x*.18
+ if(key==='penguin'){for(const s2 of [-1,1])ell(head,cream,s2*.19,.02,.485,.155,.175,.105);ell(head,cream,0,-.20,.50,.20,.14,.09)}
+ if(['cat','santacat','otter','fox','dog','hamster'].includes(key)){for(const s2 of [-1,1])for(const [yy,tt] of [[-.03,.16],[-.10,-.05]])box(head,0x7a5646,s2*.47,yy,.42,.26,.011,.011).rotation.z=s2*tt}
+ if(key==='owl'){for(const s2 of [-1,1])mesh(head,'torus',0xffe0a0,s2*.22,.08,.50,.155,.155,.10)}
+ if(key==='hamster'){for(const s2 of [-1,1])ell(head,0xf5b9a8,s2*.40,-.10,.42,.14,.11,.06)}
+ if(key==='deer'){for(const [px,py] of [[.18,.30],[-.16,.24],[.04,.38]])ell(head,0xfff6e2,px,py,.495,.055,.045,.022)}
+ ell(head,cream,0,-.17,.465,.30,.18,.15);ell(head,key==='penguin'||key==='owl'?0xf2ad54:accent,0,-.10,.607,.079,.055,.048);
+ if(key==='penguin'){const beak=cone(head,0xf2a23c,0,-.11,.615,.072,.22,.072);beak.rotation.x=Math.PI/2}
+ if(key==='rabbit'){for(const dx of [-.042,.042])box(head,0xffffff,dx,-.175,.60,.062,.085,.028)}
+ if(key==='panda'){for(const s2 of [-1,1])ell(head,0x2a2622,s2*.44,.44,.28,.16,.16,.12)}for(const x of [-1,1])ell(head,0x966575,x*.047,-.19,.602,.05,.014,.018).rotation.z=x*.18
  if(L.pattern==='stripe')for(const x of [-.18,0,.18])ell(head,shade(fur,.67),x,.33,.49,.047,.11,.035);
  if(L.pattern==='blaze')ell(head,cream,0,.31,.51,.13,.19,.035);
  if(L.pattern==='spot')ell(head,shade(fur,.64),.17,.32,.49,.14,.11,.04);

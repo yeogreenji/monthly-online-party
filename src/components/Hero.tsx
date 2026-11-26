@@ -73,7 +73,7 @@ export function Hero({
           })}
           <span className="ml-auto hidden shrink-0 items-center gap-1.5 pb-3.5 pl-4 text-[10.5px] sm:flex" style={{ color: 'var(--muted)' }}>
             <span className="live-dot" />
-            12개 공간 · 개발 체험판
+            13개 공간 · 개발 체험판
           </span>
         </div>
 
@@ -153,7 +153,7 @@ export function Hero({
                 캘린더에 저장
               </button>
               <button type="button" onClick={onExploreRooms} className="btn btn-ghost">
-                12개 공간 둘러보기
+                13개 공간 둘러보기
                 <ChevronRight size={15} />
               </button>
             </div>

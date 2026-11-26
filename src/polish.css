@@ -496,3 +496,111 @@
 .dd-peer-actions{display:flex;gap:10px;margin:2px 0 0 4px}
 .dd-peer-actions button{border:0;background:none;padding:2px 0;font-size:.72rem;color:#8a7aa6;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
 .dd-peer-actions button:hover,.dd-peer-actions button[aria-expanded="true"]{color:#e5578f}
+
+/* Wood, enamel and fabric surfaces shared by the room menus and the messenger. */
+.dd-world-app .dd3-chat,
+.dd-world-app .dd-counter-menu,
+.dd-world-app .dd3-access-menu {
+  --room-edge: #543d3d;
+  --room-accent: #35574e;
+  --room-dark: #233b35;
+  --room-cream: #f8efdf;
+  --room-ink: #2f302e;
+  --room-line: #d9c6aa;
+}
+.dd-world-app [data-space="fandom"] {
+  --room-accent: #664776;
+  --room-dark: #463350;
+}
+.dd-world-app .dd-messenger,
+.dd-world-app .dd-home-panel,
+.dd-world-app .dd-counter-menu,
+.dd-world-app .dd3-access-menu[open] {
+  color: var(--room-ink);
+  border: 1px solid var(--room-edge);
+  background: var(--room-cream);
+  box-shadow: inset 0 0 0 2px #fffaf08c, 0 4px 0 #533f3b, 0 12px 22px #36272845;
+}
+.dd-world-app .dd-chat-topbar,
+.dd-world-app .dd-counter-menu .dd-pop-title {
+  color: #fff7e9;
+  background: linear-gradient(180deg, var(--room-accent), var(--room-dark));
+  border-bottom: 2px solid #b89665;
+}
+.dd-world-app .dd-chat-topbar :is(.dd3-collapse, .dd-chat-expand) {
+  color: inherit;
+  background: transparent;
+}
+.dd-world-app .dd-messenger .dd-message-header {
+  padding-inline: 10px;
+  color: var(--room-ink);
+  background: linear-gradient(#fdf5e8, #efdfc7);
+  border-color: var(--room-line);
+}
+.dd-world-app .dd-messenger .dd-message-header p { color: #64564c; }
+.dd-world-app .dd-messenger .dd-message-log {
+  background-color: #eee4d3;
+  background-image: radial-gradient(#77604426 .7px, transparent .8px);
+  background-size: 6px 6px;
+}
+.dd-world-app .dd-messenger .dd-chat-system {
+  padding: 5px 10px;
+  color: #5b4d40;
+  background: #fbf2e3;
+  border: 1px solid #e1cfb6;
+}
+.dd-world-app .dd-messenger .dd-message-bubble,
+.dd-world-app .dd-messenger .dd-peer-message .dd-message-bubble {
+  background: #fff8ea;
+  border: 1px solid #e2d1b7;
+  box-shadow: 0 2px 0 #82623d22;
+}
+.dd-world-app .dd-messenger .dd-own-message .dd-message-bubble {
+  background: #dbe9df;
+  border-color: #bdcebf;
+}
+.dd-world-app .dd-messenger .dd-chat-compose {
+  background: #fdf3e5;
+  border-color: var(--room-line);
+}
+.dd-world-app .dd-messenger .dd-message-form input {
+  color: var(--room-ink);
+  background: #fffaf2;
+  border-color: var(--room-line);
+}
+.dd-world-app .dd-messenger :is(.dd-chat-icon, .dd-send, .dd-attach-plus) {
+  border-radius: 11px;
+}
+.dd-world-app .dd-messenger .dd-send:not(:disabled),
+.dd-world-app .dd-create-meeting .btn-primary {
+  background: linear-gradient(var(--room-accent), var(--room-dark));
+  color: #fffaf2;
+  box-shadow: 0 2px 0 var(--room-edge);
+}
+.dd-world-app .dd-lobby-scroll,
+.dd-world-app .dd-home-panel > div {
+  background-color: var(--room-cream);
+}
+.dd-world-app .dd-home-panel > .dd-chat-topbar {
+  background: linear-gradient(var(--room-accent), var(--room-dark));
+}
+.dd-world-app .dd-lobby-scroll :is(.dd-today-card, .dd-create-meeting, .dd-room-list-item),
+.dd-world-app .dd-counter-menu li,
+.dd-world-app .dd-home-editor .dd-home-items button {
+  background: linear-gradient(170deg, #fffaf0, #f4e8d4);
+  border: 1px solid var(--room-line);
+  box-shadow: 0 2px 0 #825e3a24;
+}
+.dd-world-app .dd-counter-menu .dd-pop-title {
+  padding: 9px 12px;
+  border-radius: 10px 10px 4px 4px;
+}
+.dd-world-app .dd-counter-menu li {
+  border-radius: 10px;
+  padding: 7px;
+}
+.dd-world-app .dd3-access-menu[open] summary {
+  color: #fff7e9;
+  background: linear-gradient(var(--room-accent), var(--room-dark));
+  border-bottom: 2px solid #b89665;
+}

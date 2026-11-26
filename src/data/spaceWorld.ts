@@ -259,7 +259,19 @@ export const SPACE_WORLD: Record<string, SpaceWorld> = {
       { title: '뜨개질 모임', blurb: '코를 세는 시간', kind: 'talk', seed: [{ who: 'hobby', text: '목도리를 뜨는 분 계신가요? 실 고르는 팁을 나눠 봐요.' }] },
       { title: '책 추천', blurb: '이번 주 추천 도서', kind: 'share', seed: [{ who: 'hobby', text: '누군가에게 선물하고 싶은 책을 한 권 추천해 주세요.' }] },
       { title: '사진 이야기', blurb: '찍고 고르는 이야기', kind: 'photo', seed: [{ who: 'hobby', text: '요즘 찍은 사진 중 가장 마음에 드는 한 장은요?' }] },
-      {title:'음악·팬덤 이야기',blurb:'좋아하는 가수, 컴백, 앨범, 공연 후기와 공식 링크를 공유하는 방',kind:'share',seed:[{who:'hobby',text:'오늘 듣고 있는 음악이나 좋아하는 아티스트를 소개해 주세요. 그룹별 모임도 자유롭게 만들어 보세요.'}]},
+    ],
+  },
+  fandom: {
+    story: '공연장에 가기 전, 컴백을 기다리는 밤, 처음 입덕한 날. 같은 마음으로 응원하는 팬들이 이곳에 모여요.',
+    rules: ['공식 채널과 출처가 있는 소식을 공유해요.', '다른 팬과 아티스트를 존중해요.', '비공개 일정과 사적 위치는 공유하지 않아요.'],
+    today: [
+      { title: '입덕한 순간', question: '어떤 무대나 노래를 보고 입덕했나요?', kind: 'talk' },
+      { title: '내 최애 무대', question: '다른 팬에게 추천하고 싶은 공식 영상은 무엇인가요?', kind: 'share' },
+    ],
+    topics: [
+      { title: '컴백 같이 보기', blurb: '기대하는 신곡과 공식 공개 일정을 이야기해요.', kind: 'share', seed: [{ who: 'fandom', text: '다음에 같이 보고 싶은 컴백을 알려 주세요.' }] },
+      { title: '공연 후기', blurb: '공연에서 가장 기억에 남은 순간을 나눠요.', kind: 'review', seed: [{ who: 'fandom', text: '어떤 무대가 가장 기억에 남았나요?' }] },
+      { title: '입덕 이야기', blurb: '처음 좋아하게 된 순간을 나눠요.', kind: 'talk', seed: [{ who: 'fandom', text: '처음 마음을 뺏긴 곡이 궁금해요.' }] },
     ],
   },
   cinema: {

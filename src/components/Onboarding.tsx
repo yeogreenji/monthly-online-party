@@ -5,6 +5,8 @@ import type { AgeBand, AvatarKey, Profile } from '../types'
 import { AVATARS, Avatar } from './Avatar'
 import {DingdongLogo} from './DingdongLogo'
 import { createAvatarGallery } from '../lib/avatarGallery.js'
+import { renderModelPreview } from '../lib/animalModels.js'
+import { DEFAULT_LOOK } from '../data/avatarLook'
 
 const AGE_BANDS: AgeBand[] = ['20대', '30대', '40대', '50대+', '비공개']
 
@@ -12,6 +14,23 @@ const TAGS = ['혼술', '논알콜', '독서', '영화·드라마', '재즈·플
 
 const FIRST = ['밤의', '12월의', '느린', '조용한', '다정한', '골드', '윈터', '창가', '서재의', '한잔']
 const SECOND = ['고양이', '여우', '부엉이', '토끼', '다람쥐', '펭귄', '곰돌이', '달빛', '재즈', '이불']
+
+/** 캐릭터 선택 카드에 들어가는 실제 3D 모델 썸네일. 실패하면 입체 메달로 대체한다. */
+function CharThumb({ avatar }: { avatar: AvatarKey }) {
+  const ref = useRef<HTMLCanvasElement>(null)
+  const [ok, setOk] = useState(true)
+  useEffect(() => {
+    const canvas = ref.current
+    if (!canvas) return
+    canvas.width = 144
+    canvas.height = 184
+    let done = false
+    try { done = renderModelPreview(canvas, avatar, DEFAULT_LOOK) } catch { done = false }
+    if (!done) setOk(false)
+  }, [avatar])
+  if (!ok) return <span className="dd-entry-char-gem" aria-hidden="true" />
+  return <canvas ref={ref} className="dd-entry-char-3d" aria-hidden="true" />
+}
 
 function suggestName(): string {
   const first = FIRST[Math.floor(Math.random() * FIRST.length)]
@@ -83,9 +102,12 @@ export function Onboarding({
     <div className="dd-entry-controls"><p className="dd-entry-intro">오늘의 작은 파티를 찾아 동네를 산책해요.</p>
       <div className="dd-entry-pick"><button className="dd3-btn" aria-label="이전 캐릭터" onClick={()=>choose(-1)}>‹</button><div><label htmlFor="dd-entry-avatar">내 캐릭터</label><select id="dd-entry-avatar" value={avatar} onChange={e=>setAvatar(e.target.value as AvatarKey)}>{AVATARS.map(a=><option key={a.key} value={a.key}>{a.label}</option>)}</select></div><button className="dd3-btn" aria-label="다음 캐릭터" onClick={()=>choose(1)}>›</button></div>
       <div ref={characterPicker} className="dd-entry-characters" role="group" aria-label="동물 캐릭터 고르기">
-        {AVATARS.map(a=><button type="button" key={a.key} aria-label={a.label} aria-pressed={avatar===a.key} onClick={()=>setAvatar(a.key)}><Avatar name={a.key}/><span>{a.label}</span></button>)}
+        {AVATARS.map(a=><button type="button" key={a.key} className="dd-entry-char" aria-label={a.label} aria-pressed={avatar===a.key} onClick={()=>setAvatar(a.key)}>
+          <span className="dd-entry-char-stage"><CharThumb avatar={a.key}/></span>
+          <strong>{a.label}</strong>
+        </button>)}
       </div>
-      <p className="dd-entry-tip">마음에 드는 동물 친구를 골라 보세요. 드래그하면 돌아봐요.</p>
+      <p className="dd-entry-tip">{AVATARS.find(a=>a.key===avatar)?.hint} · 드래그하면 3D 캐릭터를 돌려 볼 수 있어요.</p>
       <div className="dd-entry-name"><label htmlFor="nickname">닉네임</label><input id="nickname" className="input" placeholder={suggestion} value={nickname} maxLength={12} onChange={e=>{setNickname(e.target.value);setError('')}} onKeyDown={e=>{if(e.key==='Enter')submit()}}/><button className="dd3-btn" onClick={()=>{setNickname(suggestName());setError('')}} aria-label="닉네임 제안"><Shuffle size={15}/></button></div>
       {error&&<p role="alert">{error}</p>}
       <details><summary>연령대·관심사 (선택)</summary><div className="dd-entry-tags">{AGE_BANDS.map(b=><button key={b} className="chip" data-on={ageBand===b} onClick={()=>setAgeBand(b)}>{b}</button>)}</div><div className="dd-entry-tags">{TAGS.map(t=><button key={t} className="chip" data-on={tags.includes(t)} onClick={()=>toggleTag(t)}>{t}</button>)}</div></details>

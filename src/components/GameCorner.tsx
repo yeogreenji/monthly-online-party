@@ -1,10 +1,29 @@
-import {useState} from 'react'
-import {BoardGame} from './BoardGame'
-import {TwentyQuestions} from './TwentyQuestions'
-const quiz=[{q:'문어의 심장은 세 개다.',answer:true,why:'문어는 아가미 쪽 심장 두 개와 몸 전체로 혈액을 보내는 심장 한 개가 있어요.'},{q:'한글날은 10월 9일이다.',answer:true,why:'우리나라 한글날은 10월 9일이에요.'},{q:'태양은 지구의 위성이다.',answer:false,why:'태양은 별이고, 지구가 태양 주위를 돌아요.'},{q:'고래는 물고기다.',answer:false,why:'고래는 포유류예요.'},{q:'한 시간은 60분이다.',answer:true,why:'60분이 한 시간이에요.'}]
-const words=['파티','티셔츠','티라미수','수박','박수','키위','위성','성냥','이불','불꽃','꽃병','병아리','리본','본드','드라마','마을','을지로','로봇','봇물','물고기','기차','차표','표지','지구','구름','자전거','거울','울타리','리듬','듬뿍','사과','과자','자동차','차돌','돌고래','래퍼','퍼즐','즐거움','음악','악기','기린','린스','스케치','치즈','즈음','음료','요리','리어카','카메라','라디오','오리','무지개','개나리','고양이','이야기','나무','무릎','역사','사탕','탕수육','육지','지도','도토리','리코더','더위','위로','로켓','책상','상자','자두','두부','부엉이']
-const riddles=[{answer:'우산',hints:['물건이에요.','비 오는 날에 자주 써요.','손에 들고 다녀요.','펴고 접을 수 있어요.']},{answer:'고양이',hints:['동물이에요.','집에서도 함께 살 수 있어요.','수염이 있어요.','야옹 하고 울어요.']},{answer:'기차',hints:['탈것이에요.','길게 연결된 칸이 있어요.','철로 위를 달려요.','역에서 타요.']}]
-export function GameCorner(){const [mode,setMode]=useState<'quiz'|'word'|'guess'|'picture'|'board'|'twenty'>('quiz'),[q,setQ]=useState(0),[picked,setPicked]=useState<boolean|null>(null),[score,setScore]=useState(0),[chain,setChain]=useState(['사과']),[wordFinished,setWordFinished]=useState(false),[entry,setEntry]=useState(''),[feedback,setFeedback]=useState(''),[riddle,setRiddle]=useState(0),[hint,setHint]=useState(0),[solved,setSolved]=useState(false);const current=quiz[q],last=chain[chain.length-1];function choose(v:boolean){if(picked!==null)return;setPicked(v);if(v===current.answer)setScore(n=>n+1)}function submit(){const value=entry.trim();setEntry('');if(!value)return;if(mode==='word'){if(wordFinished)return;if(!/^[가-힣]{2,10}$/.test(value)||value[0]!==last.slice(-1)||chain.includes(value)){setFeedback('마지막 글자로 시작하는 새 단어를 입력해 주세요.');return}if(!words.includes(value)){setFeedback('현재 연습 단어 목록에 없는 단어예요. 다른 단어로 도전해 보세요.');return}const bot=words.find(w=>w.length>=2&&w[0]===value.slice(-1)&&w!==value&&!chain.includes(w));setChain(v=>[...v,value,...(bot?[bot]:[])]);setWordFinished(!bot);setFeedback(bot?'픽셀: '+bot:'픽셀이 이어갈 단어를 찾지 못했어요. 이번 판은 이겼어요!')}else{if(value===riddles[riddle].answer){setSolved(true);setFeedback('정답이에요!')}else setFeedback('아직 정답이 아니에요. 힌트를 더 볼 수 있어요.')}}return <details className="dd-game-corner"><summary><span>픽셀의 미니게임</span><small>6가지 게임</small></summary><section><nav aria-label="미니게임 선택">{([['quiz','OX 퀴즈'],['word','끝말잇기'],['guess','힌트 맞히기'],['picture','그림 맞히기'],['board','틱택토'],['twenty','스무고개']] as const).map(([id,label])=><button key={id} aria-pressed={mode===id} onClick={()=>{setMode(id);setEntry('');setFeedback('')}}>{label}</button>)}</nav><div hidden={mode!=='twenty'}><TwentyQuestions/></div><div hidden={mode!=='board'}><BoardGame/></div><div hidden={mode!=='picture'}><PictureGame/></div>{mode==='twenty'||mode==='board'||mode==='picture'?null:mode==='quiz'?<><p>{q+1}/{quiz.length} · 정답 {score}개</p><strong>{current.q}</strong><nav><button disabled={picked!==null} aria-label="O 정답" onClick={()=>choose(true)}>O</button><button disabled={picked!==null} aria-label="X 정답" onClick={()=>choose(false)}>X</button></nav>{picked!==null&&<><p role="status" className="dd-game-feedback">{picked===current.answer?'정답!':'아쉬워요. 정답은 '+(current.answer?'O':'X')+'예요.'} {current.why}</p><button onClick={()=>{if(q===quiz.length-1){setQ(0);setScore(0)}else setQ(v=>v+1);setPicked(null)}}>{q===quiz.length-1?'다시 시작':'다음 문제'}</button></>}</>:<><p>{mode==='word'?'연습용 제한 단어 목록 · 실제 국어사전 검증은 아직 없어요.':'힌트를 하나씩 보고 물건이나 동물을 맞혀 보세요.'}</p>{mode==='word'?<p>{chain.join(' → ')}</p>:<><p>{riddles[riddle].hints.slice(0,hint+1).join(' / ')}</p><button disabled={hint>=riddles[riddle].hints.length-1||solved} onClick={()=>setHint(v=>v+1)}>힌트 더 보기</button></>}<form onSubmit={e=>{e.preventDefault();submit()}}><input aria-label="게임 답안" value={entry} disabled={mode==='word'?wordFinished:solved} maxLength={10} onChange={e=>setEntry(e.target.value)}/><button disabled={!entry.trim()||(mode==='word'?wordFinished:solved)}>답 제출</button></form><p role="status" className="dd-game-feedback">{feedback}</p><button onClick={()=>{setEntry('');setFeedback('');if(mode==='word'){setChain(['사과']);setWordFinished(false)}else{setRiddle(v=>(v+1)%riddles.length);setHint(0);setSolved(false)}}}>{mode==='word'?'새 판':'다른 문제'}</button></>}<p>로컬 게임 · 온라인 대전은 아직 연결되지 않았어요.</p></section></details>}
+import { GAMES, type GameId } from '../data/minigames'
 
-const pictures=[{answer:'우산',options:['버섯','우산','나무'],art:<><path d="M15 65 Q60 -5 105 65 Q90 50 75 65 Q60 50 45 65 Q30 50 15 65Z" fill="#e6a7b9"/><path d="M60 35 V95 Q60 108 72 100" fill="none" stroke="#76566b" strokeWidth="4"/></>},{answer:'고양이',options:['토끼','곰','고양이'],art:<><path d="M25 55 L23 17 L49 36 Q60 31 71 36 L97 17 L95 55 Q110 99 60 104 Q10 99 25 55Z" fill="#f2ce96"/><circle cx="43" cy="65" r="4"/><circle cx="77" cy="65" r="4"/><path d="M55 76 L65 76 L60 81Z" fill="#87684d"/></>},{answer:'선물',options:['선물','책','창문'],art:<><rect x="24" y="47" width="72" height="55" rx="5" fill="#a9d6c3"/><rect x="18" y="36" width="84" height="17" rx="4" fill="#bce4d3"/><path d="M60 36 V102 M60 36 C18 33 31 5 60 36 C89 5 102 33 60 36" fill="none" stroke="#cf7592" strokeWidth="7"/></>}]
-function PictureGame(){const [round,setRound]=useState(0),[choice,setChoice]=useState<string|null>(null),[points,setPoints]=useState(0);const item=pictures[round];return <section aria-label="그림 맞히기"><p>{round+1}/{pictures.length} · 정답 {points}개</p><svg viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="맞혀 볼 그림">{item.art}</svg><nav>{item.options.map(option=><button type="button" key={option} disabled={choice!==null} onClick={()=>{if(choice!==null)return;setChoice(option);if(option===item.answer)setPoints(v=>v+1)}}>{option}</button>)}</nav>{choice!==null&&<><p role="status">{choice===item.answer?'정답이에요!':'정답은 '+item.answer+'이에요.'}</p><button type="button" onClick={()=>{setChoice(null);if(round===pictures.length-1){setRound(0);setPoints(0)}else setRound(v=>v+1)}}>{round===pictures.length-1?'다시 시작':'다음 그림'}</button></>}</section>}
+/** 주제방 안에서 게임 탁자를 여는 입체 카드 진열대. 실제 플레이는 GameStage(3D 방 위 탁자)에서 진행한다. */
+export function GameCorner({ onOpen, highlight }: { onOpen: (id: GameId) => void; highlight?: GameId }) {
+  const ordered = highlight ? [GAMES.find((game) => game.id === highlight)!, ...GAMES.filter((game) => game.id !== highlight)] : GAMES
+  return <section className="ddg-corner" aria-label="픽셀의 게임 탁자">
+    <div className="ddg-corner-head">
+      <span className="ddg-corner-lamp" aria-hidden="true" />
+      <div>
+        <strong>픽셀의 게임 탁자</strong>
+        <small>{GAMES.length}가지 게임 · 3D 방 위에서 바로 시작</small>
+      </div>
+    </div>
+    <div className="ddg-corner-grid">
+      {ordered.map((game) => <button
+        type="button"
+        key={game.id}
+        className={`ddg-corner-card${highlight === game.id ? ' is-hot' : ''}`}
+        style={{ ['--chip' as string]: game.felt, ['--chip-rim' as string]: game.rim }}
+        onClick={() => onOpen(game.id)}
+        aria-label={`${game.title} 시작`}
+      >
+        <span aria-hidden="true">{game.icon}</span>
+        <strong>{game.title}</strong>
+        <small>{game.tag}</small>
+      </button>)}
+    </div>
+  </section>
+}
