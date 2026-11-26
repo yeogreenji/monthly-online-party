@@ -30,6 +30,14 @@ const VISIBILITY = { private: '비공개', friends: '친구 공개(설정만)', 
 const INITIAL_HOME = HOME_DEFAULT
 const FIELD = 'w-full rounded-xl border border-current/15 bg-transparent px-3 py-2 text-sm'
 const uuid = () => globalThis.crypto?.randomUUID?.() ?? String(Date.now()) + Math.random().toString(36).slice(2)
+const CORNERS = {
+  cafe: { space: 'cafe', title: '모카의 메뉴판', description: '카페라테 · 유자차 · 딸기 케이크. 딩동 카페의 가상 메뉴예요.', topics: ['오늘의 차', '디저트 추천', '홈카페 레시피'] },
+  reading: { space: 'hobby', title: '독서 코너', description: '함께 읽은 책과 각자의 책장을 나눠요.', topics: ['독서 토론', '책 추천'] },
+  pets: { space: 'hobby', title: '반려동물 코너', description: '동물 친구 이야기와 사진을 나눠요.', topics: ['반려동물 이야기'] },
+  craft: { space: 'hobby', title: '공예 작업대', description: '지금 만들고 있는 것과 작업 팁을 나눠요.', topics: ['그림과 손작업', '뜨개질 모임'] },
+} as const
+type CornerId = keyof typeof CORNERS
+
 export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMenu }: { profile: Profile; onLegacy: (id: RoomId) => void; onParty: () => void; onEditProfile: () => void; onMenu:(id:string)=>void }) {
   const [space, setSpace] = useState<Space | null>(null)
   const [savedLook,setLook]=usePersistentState('dd.avatar.look.v1',DEFAULT_LOOK)
@@ -37,11 +45,12 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   const [chatCollapsed,setChatCollapsed]=useState(true),[chatFull,setChatFull]=useState(false),[selectedFurniture,setSelectedFurniture]=useState<string|null>(null),[attachOpen,setAttachOpen]=useState(false),[practice,setPractice]=useState(false),[quickOpen,setQuickOpen]=useState(false)
   const [chatExtras,setChatExtras]=useState(false),[emojiOpen,setEmojiOpen]=useState(false)
   const nearBottom=useRef(true),messageLog=useRef<HTMLDivElement>(null),fileInput=useRef<HTMLInputElement>(null),composer=useRef<HTMLInputElement>(null)
+  const [cornerId,setCornerId]=useState<CornerId|null>(null)
   const [wardrobe,setWardrobe]=useState(false)
   const [yearbook,setYearbook]=useState(false)
   const [toolsOpen,setToolsOpen]=useState(false),[mapOpen,setMapOpen]=useState(false),[mailOpen,setMailOpen]=useState(false)
   const [request,setRequest]=useState<{id:string;serial:number;direct?:boolean;preview?:boolean}|null>(null)
-  function closePanels(){setWardrobe(false);setYearbook(false);setMapOpen(false);setMailOpen(false);setToolsOpen(false)}
+  function closePanels(){setCornerId(null);setWardrobe(false);setYearbook(false);setMapOpen(false);setMailOpen(false);setToolsOpen(false)}
   function showPanel(id:string){closePanels();setChatCollapsed(true);if(id==='wardrobe')setWardrobe(true);if(id==='events')setYearbook(true);if(id==='map')setMapOpen(true);if(id==='mail')setMailOpen(true)}
   function toggleTools(v:boolean){if(v){closePanels();setChatCollapsed(true)}setToolsOpen(v)}
   function visit(id:string,direct=false,preview=false){closePanels();setChatCollapsed(true);setRequest(p=>({id,serial:(p?.serial??0)+1,direct,preview}))}
@@ -114,6 +123,17 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   function enter(next:Topic){if(access(next.space)!=='open'||topic?.id===next.id)return;cancelPhotoRequest();setAttachOpen(false);setQuickOpen(false);setPractice(false);nearBottom.current=true;keepDraft();rememberExit();const prev=drafts.current[next.id];setAutoChat(false);setTopic(next);setDraft(prev?.text??'');setPicture(prev?.image??'');setPlaceName(prev?.name??'');setPlaceUrl(prev?.url??'');setShowPlace(!!prev?.name||!!prev?.url);setSpoiler(prev?.spoiler??false);setNotice('');setSaveHistory(false);setVisibility('private');setChatExtras(false);setEmojiOpen(false);setChatCollapsed(false)}
   function leave(){cancelPhotoRequest();setAttachOpen(false);setQuickOpen(false);setPractice(false);keepDraft();rememberExit();setAutoChat(false);setTopic(null);setDraft('');setPicture('');clearPlace();setSpoiler(false);setNotice('');setSaveHistory(false);setChatExtras(false)}
   const world=space?SPACE_WORLD[space.id]:undefined
+  const corner=cornerId&&CORNERS[cornerId].space===space?.id?CORNERS[cornerId]:null
+  const seedTopics: Topic[] = space
+    ? Array.from(new Set([...space.topics,...(world?.topics.map(topic=>topic.title)??[])]))
+      .map((title,index)=>({id:space.id+'-'+index,space:space.id,title,description:world?.topics.find(topic=>topic.title===title)?.blurb??'자유롭게 이야기를 나누는 시연 모임',date:'',capacity:20,age:'성인 전체'}))
+    : []
+  function openCorner(id:CornerId){
+    if(CORNERS[id].space!==space?.id)return
+    closePanels()
+    setChatCollapsed(true)
+    setCornerId(id)
+  }
   const seedFor=(t:Topic)=>{const w=SPACE_WORLD[t.space];const found=t.id.startsWith(t.space+'-')?w?.topics.find(x=>x.title===t.title):undefined;if(found)return found.seed;if(t.id.includes('-today-')||!w)return [{who:t.space,text:t.description||'새 방이 열렸어요. 첫 이야기를 남겨 주세요.'}];return [{who:t.space,text:t.description?t.description:'새 방이 열렸어요. 첫 이야기를 남겨 주세요.'}]}
   const kindOf=(t:Topic):TopicKind=>{if(t.kind)return t.kind;const w=SPACE_WORLD[t.space];const found=w?.topics.find(x=>x.title===t.title);if(found)return found.kind;const td=w?.today.find(x=>t.id.includes('-today-')&&x.title===t.title);return td?.kind??'talk'}
   const peer=(name:string,text:string,key:string)=><div key={key} className="dd-peer-message"><div className="dd-peer-avatar" aria-hidden="true">{name.slice(0,1)}</div><div><span className="dd-peer-name">{name}<em>시연</em></span><div className="dd-message-bubble dd-peer-bubble"><p>{text}</p></div></div></div>
@@ -127,7 +147,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
     document.addEventListener('pointerdown',onDown,true)
     return()=>document.removeEventListener('pointerdown',onDown,true)
   },[space,chatCollapsed])
-  useEffect(()=>{const esc=(e:KeyboardEvent)=>{if(e.key!=='Escape')return;if(wardrobe||yearbook||mapOpen||mailOpen||toolsOpen)closePanels();else if(!chatCollapsed)setChatCollapsed(true)};document.addEventListener('keydown',esc);return()=>document.removeEventListener('keydown',esc)},[wardrobe,yearbook,mapOpen,mailOpen,toolsOpen,chatCollapsed])
+  useEffect(()=>{const esc=(e:KeyboardEvent)=>{if(e.key!=='Escape')return;if(cornerId||wardrobe||yearbook||mapOpen||mailOpen||toolsOpen)closePanels();else if(!chatCollapsed)setChatCollapsed(true)};document.addEventListener('keydown',esc);return()=>document.removeEventListener('keydown',esc)},[cornerId,wardrobe,yearbook,mapOpen,mailOpen,toolsOpen,chatCollapsed])
   useEffect(()=>{if(!chatCollapsed&&messageLog.current&&nearBottom.current)messageLog.current.scrollTop=messageLog.current.scrollHeight},[chatCollapsed,topic?.id,messages]);
   function send() {
     if (!topic || (!draft.trim() && !picture && !placeName.trim())) return
@@ -147,13 +167,22 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
       <div className="dd-quick-links"><button aria-label="공지" onClick={()=>externalMenu('etiquette')}><Bell size={20}/></button><button aria-label="포토월" onClick={()=>externalMenu('wall')}><Camera size={20}/></button></div>
       {homeFeedback&&<div role="status" className="dd-save-toast">{homeFeedback}</div>}
       {space?.id==='home'&&<div className="dd-home-actions"><button onClick={()=>{closePanels();setChatCollapsed(false)}}><Paintbrush size={19}/>집 꾸미기 열기</button><button onClick={()=>showPanel('wardrobe')}><Shirt size={19}/>옷장</button><button onClick={onEditProfile}><UserRound size={19}/>프로필</button><button onClick={()=>showPanel('mail')}><Mail size={19}/>우편함</button></div>}
-      {(wardrobe||yearbook||mapOpen||mailOpen)&&<div aria-hidden="true" data-testid="dd-pop-backdrop" onClick={closePanels} style={{position:'fixed',inset:0,zIndex:22,background:'#211a4333'}}/>}
+      {(corner||wardrobe||yearbook||mapOpen||mailOpen)&&<div aria-hidden="true" data-testid="dd-pop-backdrop" onClick={closePanels} style={{position:'fixed',inset:0,zIndex:22,background:'#211a4333'}}/>}
+      {corner&&<div className="dd-world-pop" role="dialog" aria-label={corner.title}>
+        <div className="dd-pop-title"><strong>{corner.title}</strong><button className="dd3-btn" onClick={()=>setCornerId(null)}>닫기</button></div>
+        <p>{corner.description}</p>
+        <ul className="space-y-2">
+          {seedTopics.filter(topic=>corner.topics.some(title=>title===topic.title)).map(topic=><li key={topic.id}>
+            <button className="dd3-btn" onClick={()=>{setCornerId(null);setChatCollapsed(false);enter(topic)}}>{topic.title}</button>
+          </li>)}
+        </ul>
+      </div>}
       {wardrobe&&<div className="dd-world-pop dd-world-wardrobe" role="dialog" aria-label="나의 옷장"><div className="dd-pop-title"><strong>나의 작은 옷장</strong><button className="dd3-btn" onClick={()=>setWardrobe(false)}>옷장 닫기</button></div><AvatarWardrobe avatar={profile.avatar} look={look} onChange={v=>{setLook(v);saveJSON('dd.avatar.look.v1',v)}} onDone={()=>setWardrobe(false)}/></div>}
       {yearbook&&<div className="dd-world-pop" role="dialog" aria-label="연간 이벤트"><div className="dd-pop-title"><strong>딩동의 12개월 파티</strong><button className="dd3-btn" onClick={()=>setYearbook(false)}>닫기</button></div><p>월별 이벤트 기획 · 실제 날짜는 일정에서 확인</p><DailyFestival onVisit={id=>visit(id,true)} onCalendar={()=>externalMenu('calendar')}/><div className="dd-event-grid">{MONTHLY_IDEAS.map((idea,i)=><button key={i} onClick={()=>i===11?visit('season'):externalMenu('calendar')} style={{'--event-color':['#d6c5f8','#ffc8dc','#c6efdb','#f6cde1','#ffe2a6','#c5d8f6','#bde9ed','#e3caf5','#ffe0aa','#d8c2f1','#cee8d9','#f7c4d2'][i]} as React.CSSProperties}><FestivalArt month={i}/><strong>{i+1}월</strong><small>{idea}</small><span>{i===11?'시즌홀 입장':'일정 보기'}</span></button>)}</div></div>}
       {mapOpen&&<div className="dd-world-pop" role="dialog" aria-label="마을 지도"><div className="dd-pop-title"><strong>우리 동네 지도</strong><button className="dd3-btn" onClick={()=>setMapOpen(false)}>닫기</button></div><p>가게를 선택하면 바로 입장합니다. 잠긴 공간은 내부 구경만 가능합니다.</p><div className="dd-map-grid">{SPACES.map(s=><button key={s.id} onClick={()=>visit(s.id,true,access(s.id)==='locked')}><span>{s.icon}</span><strong>{s.name}</strong><small>{access(s.id)==='open'?'입장':access(s.id)==='locked'?'구경만 가능':'준비 중'}</small></button>)}</div><button className="dd3-btn" onClick={()=>setOnlyFavorites(v=>!v)}>{onlyFavorites?'전체 목적지':'즐겨찾기 목적지'}</button></div>}
       {mailOpen&&<div className="dd-world-pop" role="dialog" aria-label="나의 우편함"><div className="dd-pop-title"><strong>나의 우편함</strong><button className="dd3-btn" onClick={()=>setMailOpen(false)}>닫기</button></div><div className="dd-mail-empty"><Mail size={42}/><h3>친구의 편지가 도착하는 곳</h3><p>현재는 로컬 체험입니다. 친구 방문·편지 송수신은 실제 계정 및 권한 연결 후 제공합니다.</p></div></div>}
       <div className={'dd3-layout'+(space?' dd3-with-chat':'')+(space&&space.id!=='home'&&!chatCollapsed?' dd-chat-open':'')+(chatFull&&!chatCollapsed&&space?.id!=='home'?' dd-chat-full':'')}>
-        <Mansion3D homeEditing={space?.id==='home'&&!chatCollapsed} onMenu={id=>{if(id.startsWith('home-select:')){setSelectedFurniture(id.slice(12));return}if(id==='home-wardrobe')showPanel('wardrobe');else if(id==='home-profile')onEditProfile();else if(id==='home-mailbox')showPanel('mail');else if(id==='home-decor'){closePanels();setChatCollapsed(false)}else externalMenu(id)}} profile={profile} look={look} home={home} active={space} request={request} toolsOpen={toolsOpen} onToolsChange={toggleTools} onEnter={openSpace} onLeave={()=>{leave();setSpace(null)}} onCapture={image=>{if(!topic){setNotice('모임에 입장한 뒤 촬영해 주세요.');return}cancelPhotoRequest();setPicture(image);setChatCollapsed(false);setNotice('사진 첨부 완료 · 전송을 누르면 로컬 채팅에 저장됩니다.')}} favorites={favorites} onlyFavorites={onlyFavorites} onFavorite={id=>setFavorites(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id])}/>
+        <Mansion3D homeEditing={space?.id==='home'&&!chatCollapsed} onMenu={id=>{const key=id.slice(7);if(id.startsWith('corner-')&&Object.prototype.hasOwnProperty.call(CORNERS,key)){openCorner(key as CornerId);return}if(id.startsWith('home-select:')){setSelectedFurniture(id.slice(12));return}if(id==='home-wardrobe')showPanel('wardrobe');else if(id==='home-profile')onEditProfile();else if(id==='home-mailbox')showPanel('mail');else if(id==='home-decor'){closePanels();setChatCollapsed(false)}else externalMenu(id)}} profile={profile} look={look} home={home} active={space} request={request} toolsOpen={toolsOpen} onToolsChange={toggleTools} onEnter={openSpace} onLeave={()=>{leave();setSpace(null)}} onCapture={image=>{if(!topic){setNotice('모임에 입장한 뒤 촬영해 주세요.');return}cancelPhotoRequest();setPicture(image);setChatCollapsed(false);setNotice('사진 첨부 완료 · 전송을 누르면 로컬 채팅에 저장됩니다.')}} favorites={favorites} onlyFavorites={onlyFavorites} onFavorite={id=>setFavorites(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id])}/>
         {space&&access(space.id)==='open'&&<aside role="region" aria-label={space.name} className={"dd3-chat dd-chat-reveal"+(space.id!=="home"&&!chatCollapsed?" dd-messenger":space.id==="home"&&!chatCollapsed?" dd-home-panel":"")}>
       <div className="dd-chat-topbar"><button type="button" className="dd3-collapse" aria-expanded={!chatCollapsed} onClick={()=>{if(chatCollapsed)closePanels();setChatCollapsed(v=>!v)}}>{space.id!=='home'&&<MessageCircle size={18}/>}<span>{space.id==='home'?(chatCollapsed?'집 꾸미기':'집 꾸미기 닫기'):(chatCollapsed?'채팅 펼치기':'채팅 접기')}</span>{!chatCollapsed&&<ChevronDown size={16}/>}</button>{space.id!=='home'&&!chatCollapsed&&<button className="dd-chat-expand" aria-label={chatFull?'채팅 기본 보기':'채팅 전체 화면'} onClick={()=>setChatFull(v=>!v)}>{chatFull?<Minimize2 size={18}/>:<Maximize2 size={18}/>}</button>}</div>
       <div className={space.id!=='home'&&topic?'dd-chat-body':space.id!=='home'?'dd-lobby-scroll p-4 sm:p-5':'p-4 sm:p-5'} hidden={chatCollapsed}>
@@ -196,7 +225,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
             <div className="grid grid-cols-2 gap-2"><label className="text-sm">목표 인원<input type="number" min={1} max={20} required className={FIELD} value={capacity} onChange={e=>setCapacity(Number(e.target.value))}/></label><label className="text-sm">연령 그룹<select className={FIELD} value={age} onChange={e=>setAge(e.target.value)}>{['성인 전체','20대','30대','40대','50대 이상'].map(v=><option key={v}>{v}</option>)}</select></label></div>
             <button className="btn btn-primary">로컬 모임 만들기</button>
           </form>}
-          {(()=>{const seeds=Array.from(new Set([...space.topics,...(world?.topics.map(t=>t.title)??[])])).map((t,i):Topic=>({id:space.id+'-'+i,space:space.id,title:t,description:world?.topics.find(x=>x.title===t)?.blurb??'자유롭게 이야기를 나누는 시연 모임',date:'',capacity:20,age:'성인 전체'}));const q=roomSearch.trim().toLocaleLowerCase();const all=[...topics.filter(t=>t.space===space.id),...seeds];const filtered=all.filter(t=>(!q||[t.title,t.description].some(v=>v.toLocaleLowerCase().includes(q)))&&(roomFilter==='all'||(roomFilter==='saved'?savedTopics.includes(t.id):kindOf(t)===roomFilter)));return filtered.length?filtered.map(t=><div key={t.id} className="dd-room-list-item"><button className="dd-room-join" onClick={()=>enter(t)}><span><strong>{t.title}</strong><small>{t.description}{t.date?' · '+t.date.replace('T',' '):''} · 목표 {t.capacity}명</small></span><span className="dd-kind-badge">{KIND_UI[kindOf(t)].label}</span><ChevronRight size={18}/></button><button className="dd-room-save" aria-label={(savedTopics.includes(t.id)?'저장 해제 ':'모임 저장 ')+t.title} aria-pressed={savedTopics.includes(t.id)} onClick={()=>setSavedTopics(v=>v.includes(t.id)?v.filter(x=>x!==t.id):[...v,t.id])}><Star size={18} fill={savedTopics.includes(t.id)?'currentColor':'none'}/></button></div>):<p className="dd-room-empty">조건에 맞는 모임이 없어요. 검색 조건을 바꾸거나 새로운 방을 열어 보세요.</p>})()}
+          {(()=>{const q=roomSearch.trim().toLocaleLowerCase();const all=[...topics.filter(t=>t.space===space.id),...seedTopics];const filtered=all.filter(t=>(!q||[t.title,t.description].some(v=>v.toLocaleLowerCase().includes(q)))&&(roomFilter==='all'||(roomFilter==='saved'?savedTopics.includes(t.id):kindOf(t)===roomFilter)));return filtered.length?filtered.map(t=><div key={t.id} className="dd-room-list-item"><button className="dd-room-join" onClick={()=>enter(t)}><span><strong>{t.title}</strong><small>{t.description}{t.date?' · '+t.date.replace('T',' '):''} · 목표 {t.capacity}명</small></span><span className="dd-kind-badge">{KIND_UI[kindOf(t)].label}</span><ChevronRight size={18}/></button><button className="dd-room-save" aria-label={(savedTopics.includes(t.id)?'저장 해제 ':'모임 저장 ')+t.title} aria-pressed={savedTopics.includes(t.id)} onClick={()=>setSavedTopics(v=>v.includes(t.id)?v.filter(x=>x!==t.id):[...v,t.id])}><Star size={18} fill={savedTopics.includes(t.id)?'currentColor':'none'}/></button></div>):<p className="dd-room-empty">조건에 맞는 모임이 없어요. 검색 조건을 바꾸거나 새로운 방을 열어 보세요.</p>})()}
           {space.legacy?.map(id=><button key={id} className="card flex w-full justify-between gap-2 p-4 text-left" onClick={()=>{leave();setSpace(null);onLegacy(id)}}><span>{ROOMS.find(r=>r.id===id)?.name}</span><span className="text-xs">기존 시연방 →</span></button>)}
         </div>}
       </div>

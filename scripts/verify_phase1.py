@@ -340,6 +340,25 @@ with sync_playwright() as p:
         expect(page.get_by_text("조건에 맞는 기록이 없어요.",exact=True)).to_be_visible()
         page.get_by_role("textbox",name="추억 검색").fill("오늘의 추억 테스트")
         expect(page.get_by_text("오늘의 추억 테스트",exact=True).first).to_be_visible()
+        page.get_by_role("button",name="채팅 접기",exact=True).click()
+        for room,corners in (
+            ("cafe",[("커피와 디저트 메뉴","모카의 메뉴판","오늘의 차")]),
+            ("hobby",[
+                ("책장 둘러보기","독서 코너","독서 토론"),
+                ("반려동물 코너","반려동물 코너","반려동물 이야기"),
+                ("공예 작업대","공예 작업대","뜨개질 모임"),
+            ]),
+        ):
+            page.get_by_role("button",name="설정",exact=True).click()
+            page.locator("#dd3-dest").select_option(room)
+            page.get_by_role("button",name="바로 입장",exact=True).click()
+            for prop_name,panel_name,topic_name in corners:
+                if not page.locator("#dd3-dest").is_visible():
+                    page.get_by_role("button",name="설정",exact=True).click()
+                page.get_by_role("button",name=prop_name,exact=True).click()
+                panel=page.get_by_role("dialog",name=panel_name,exact=True)
+                panel.get_by_role("button",name=topic_name,exact=True).click()
+                expect(page.get_by_role("heading",name=topic_name,exact=True)).to_be_visible()
         assert not errors,errors
         print(f"PASS {width}x{height}: wardrobe persistence, 3D rooms, lock, prop movement, photo, place save, sitting, hub return, decor toggle, chat collapse, fallback")
         page.close()
