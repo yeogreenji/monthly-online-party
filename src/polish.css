@@ -369,3 +369,46 @@
   background: #d5eee2;
   opacity: 1;
 }
+
+/* Shared surfaces for the meeting and game controls. */
+.dd-create-meeting,.dd-chat-settings,.dd-game-corner {
+  background:#f7fbf8;
+  border:1px solid #cfdfd7;
+  border-radius:16px;
+  color:#284b40;
+}
+.dd-create-meeting { display:grid; gap:12px; padding:14px; }
+.dd-create-meeting h4 { font-size:1rem; font-weight:800; }
+.dd-create-meeting header p { font-size:.78rem; color:#49685e; }
+.dd-create-meeting input,.dd-create-meeting select,.dd-create-meeting textarea {
+  min-width:0; min-height:44px; margin-top:4px; background:#fff;
+}
+.dd-create-meeting input,.dd-create-meeting textarea,.dd-create-meeting select { font-size:16px; }
+.dd-create-meeting footer { display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap; }
+.dd-create-meeting footer button { min-height:44px; }
+.dd-game-corner summary { padding:11px; }
+.dd-game-corner summary small { margin-left:8px; color:#49685e; }
+.dd-game-corner nav[aria-label="미니게임 선택"] { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
+.dd-game-corner nav button { white-space:normal; }
+.dd-game-corner button:disabled { opacity:.65; }
+.dd-game-corner button[data-winning="true"] { opacity:1; }
+.dd-message-header { background:#f7fbf8; border-bottom:1px solid #cfdfd7; }
+.dd-chat-compose { border-top:1px solid #cfdfd7; background:#f7fbf8; }
+@media (max-width:400px) {
+  .dd-chat-open .dd-message-header h3 { overflow-wrap:anywhere; }
+  .dd-game-corner nav[aria-label="미니게임 선택"] { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+.dd-coat-palette .dd-color-tile {
+  width:100%; min-height:42px; border:1px solid #23353438; border-radius:10px;
+}
+.dd-coat-palette .dd-item[aria-pressed="true"] {
+  outline:2px solid #246451; outline-offset:1px;
+}
+.dd-message-log { background:#f9fbfa; }
+.dd-own-message .dd-message-bubble { background:#d9eee5; border:1px solid #c3e0d1; }
+.dd-peer-message .dd-message-bubble { background:#fff; border:1px solid #e1e9e4; }
+.dd-chat-compose .dd-message-form { border-radius:14px; }
+.dd-chat-settings { margin:6px 9px; }
+.dd-create-meeting :focus-visible,.dd-game-corner :focus-visible {
+  outline:2px solid #246451; outline-offset:2px;
+}
