@@ -18,6 +18,7 @@ import { resizeImageFile } from '../lib/image'
 import { Mansion3D } from './Mansion3D'
 import { RESIDENTS, PLACE_STORIES } from '../data/world'
 import { dailyEvent } from '../data/dailyEvents'
+import { checkChatText } from '../lib/safety'
 import { SPACE_WORLD, KIND_UI, demoReply, todayPick, whoName, seoulDate } from '../data/spaceWorld'
 import type { TopicKind } from '../data/spaceWorld'
 
@@ -152,6 +153,8 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   useEffect(()=>{if(!chatCollapsed&&messageLog.current&&nearBottom.current)messageLog.current.scrollTop=messageLog.current.scrollHeight},[chatCollapsed,topic?.id,messages]);
   function send() {
     if (!topic || (!draft.trim() && !picture && !placeName.trim())) return
+    const safe=checkChatText(`${draft} ${placeName}`)
+    if(!safe.ok){setNotice(safe.reason);return}
     const url=safePlaceUrl(placeUrl)
     if((placeName.trim()||placeUrl.trim())&&(!placeName.trim()||!url)){setNotice('장소 이름과 올바른 http 또는 https 링크를 입력해 주세요.');return}
     const place=placeName.trim()?{name:placeName.trim().slice(0,100),url}:undefined

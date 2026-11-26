@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { checkNickname } from '../lib/safety'
 import { ArrowRight, Shuffle, Sparkles } from 'lucide-react'
 import type { AgeBand, AvatarKey, Profile } from '../types'
 import { AVATARS, Avatar } from './Avatar'
@@ -53,8 +54,9 @@ export function Onboarding({
 
   const submit = () => {
     const name = nickname.trim() || suggestion
-    if (name.length < 2) {
-      setError('닉네임은 두 글자 이상으로 지어주세요.')
+    const nameCheck = checkNickname(name)
+    if (!nameCheck.ok) {
+      setError(nameCheck.reason)
       return
     }
     if (name.length > 12) {
