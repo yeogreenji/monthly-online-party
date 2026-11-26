@@ -16,7 +16,7 @@ export function createWorld(host,opts){
  const sun=new T.DirectionalLight(0xffebce,2.6);sun.position.set(-10,18,9);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-46,right:46,top:46,bottom:-46,near:.5,far:110});sun.shadow.bias=-.0004;scene.add(sun)
  const mat=new Map(),geo=new Map(),furniture=furnitureFactory()
  function material(color){if(!mat.has(color))mat.set(color,new T.MeshStandardMaterial({color,roughness:.8,metalness:0}));return mat.get(color)}
- function geometry(kind){if(!geo.has(kind))geo.set(kind,kind==='sphere'?new T.SphereGeometry(1,20,14):kind==='cone'?new T.ConeGeometry(1,1,18):kind==='cylinder'?new T.CylinderGeometry(1,1,1,18):new T.BoxGeometry(1,1,1));return geo.get(kind)}
+ function geometry(kind){if(!geo.has(kind))geo.set(kind,kind==='sphere'?new T.SphereGeometry(1,20,14):kind==='bloom'?new T.SphereGeometry(1,8,5):kind==='cone'?new T.ConeGeometry(1,1,18):kind==='cylinder'?new T.CylinderGeometry(1,1,1,18):new T.BoxGeometry(1,1,1));return geo.get(kind)}
  function shape(parent,kind,color,x,y,z,w,h,d,shadow=true){const m=new T.Mesh(geometry(kind),material(color));m.position.set(x,y,z);m.scale.set(w,h,d);m.castShadow=shadow;m.receiveShadow=true;parent.add(m);return m}
  const box=(p,c,x,y,z,w,h,d)=>shape(p,'box',c,x,y,z,w,h,d)
  const ball=(p,c,x,y,z,w,h,d)=>shape(p,'sphere',c,x,y,z,w,h,d)
@@ -46,10 +46,11 @@ export function createWorld(host,opts){
  cinema:{x:-27,z:5,side:1,w:1.34},women:{x:-19,z:20,side:1,w:1.02},
  games:{x:25,z:5,side:1,w:1.24},men:{x:17,z:20,side:1,w:1.05},
  jazz:{x:-9,z:29,side:1,w:1.19},home:{x:3,z:23,side:1,w:.96},
- single:{x:29,z:25,side:1,w:1.0}};
+ single:{x:29,z:25,side:1,w:1.0},fandom:{x:-2,z:-22,side:-1,w:1.13}};
  const outdoorObstacles=[];
  function pathStrip(points,width,color=0xf4dfc2){for(let i=1;i<points.length;i++){const [x,z]=points[i-1],[nx,nz]=points[i],len=Math.hypot(nx-x,nz-z),angle=Math.atan2(nx-x,nz-z);const edge=box(scene,0xd8b59d,(x+nx)/2,.022,(z+nz)/2,width+.28,.08,len+.25);edge.rotation.y=angle;const road=box(scene,color,(x+nx)/2,.070,(z+nz)/2,width,.045,len+.18);road.rotation.y=angle;for(let j=.8;j<len;j+=1.3){const tile=box(scene,0xe4c4ad,x+(nx-x)*j/len,.098,z+(nz-z)*j/len,width-.12,.012,.028);tile.rotation.y=angle}cyl(scene,color,nx,.070,nz,width/2,.045)}}
  pathStrip([[0,-9],[-9,-6],[-17,-9],[-21,-14],[-26,-14]],4.8);
+ pathStrip([[0,-10],[-2,-14],[-2,-16.9]],3.4,0xf5d9d7);
  pathStrip([[6,-8],[12,-7],[18,-10],[21,-14],[25,-14]],3.8);
  pathStrip([[-9,1],[-17,-1],[-23,0],[-27,-.1]],4.1);
  pathStrip([[9,2],[16,0],[21,-2],[25,-.1]],3.6);
@@ -63,11 +64,33 @@ export function createWorld(host,opts){
  cyl(scene,0xe2b68f,0,.065,0,10.85,.13);cyl(scene,0xffead2,0,.142,0,10.52,.045);
  for(let n=0;n<60;n++){const angle=n*Math.PI*2/60,x=Math.cos(angle)*10.05,z=Math.sin(angle)*10.05;const t=box(scene,n%3===0?0xe9a9b9:n%3===1?0x8bc6ba:0xe9c17b,x,.179,z,.70,.028,.40);t.rotation.y=-angle+Math.PI/2}
  function gardenTree(x,z,size=1){const p=group(scene,x,0,z);p.scale.setScalar(size);cyl(p,0xf1cfaa,0,.085,0,.72,.15);cyl(p,0xa67852,0,.65,0,.14,1.2);for(let n=0;n<6;n++){const angle=n*2.4;ball(p,n%2?0x62b68b:0x379d75,Math.sin(angle)*.37,1.55+(n%3)*.28,Math.cos(angle)*.35,.64,.63,.62)}for(let n=0;n<8;n++){const a=n*Math.PI/4;ball(p,FESTIVAL_COLORS[n%9],Math.cos(a)*.53,.23,Math.sin(a)*.53,.105,.12,.105)}outdoorObstacles.push([x,z,.76*size])}
+ function flowerbed(x,z,rotation,colors){
+  const planter=group(scene,x,0,z);planter.rotation.y=rotation;
+  box(planter,0xb9806a,0,.16,0,2.15,.29,.86);
+  box(planter,0xf2c9a5,0,.31,0,2.24,.09,.94);
+  box(planter,0x6e4f43,0,.364,0,1.99,.035,.70);
+  for(let index=0;index<9;index++){
+   const dx=(index%5-2)*.36, dz=index<5?-.19:.18;
+   const height=.22+(index%3)*.09, top=.38+height;
+   cyl(planter,0x3f865c,dx,.38+height/2,dz,.020,height);
+   const leaf=shape(planter,'bloom',0x6aaa76,dx+.07,top-.14,dz,.10,.027,.055);
+   leaf.rotation.z=.5;
+   for(let petal=0;petal<5;petal++){
+    const angle=petal*Math.PI*2/5;
+    shape(planter,'bloom',colors[index%colors.length],dx+Math.cos(angle)*.080,top,dz+Math.sin(angle)*.080,.068,.04,.068);
+   }
+   shape(planter,'bloom',0xffcc5a,dx,top+.025,dz,.055,.033,.055);
+  }
+  const radius=1.14;
+  outdoorObstacles.push([x,z,radius]);
+ }
+ const blooms=[[0xef7e97,0xffe7c6,0xf9ad55],[0xb889d9,0xf7d2ea,0xfff2df],[0xf9b646,0xf27a65,0xfaf2db]];
+ [[-12,-3.8,.30],[12,-3.5,-.30],[-19,3.1,-.25],[19,3.1,.25],[-23,-10,-.45],[27,-9,.6],[-16,11,.7],[15,9,-.6],[-11,18,.7],[8,19,-.55],[-5,-14,1.45],[1,-14,1.45],[-29,11,1.5],[28,11,1.5]].forEach(([x,z,rotation],index)=>flowerbed(x,z,rotation,blooms[index%blooms.length]));
  function streetLamp(x,z){const p=group(scene,x,0,z);cyl(p,0x756080,0,.66,0,.055,1.32);cyl(p,0xe0b76d,0,.12,0,.15,.15);ball(p,0xffedb2,0,1.5,0,.16,.20,.16);cyl(p,0xb28a54,0,1.72,0,.14,.085)}
  for(const [x,z,s] of [[-10,-10,1.2],[9,-10,1.1],[-12,3,1.1],[12,5,1.15],[-8,11,1.2],[6,11,.95],[-21,-5,1.2],[20,-5,1.15],[-31,-12,.92],[31,-12,1.05],[-23,13,1.05],[23,12,.98],[-2,28,1.2],[11,28,1.1],[-32,18,1.2],[33,18,1.2],[-16,-25,1.2],[7,-25,1.1]])gardenTree(x,z,s);
  for(const [x,z] of [[-8,-7],[7,-7],[-9,5],[9,5],[-18,-7],[18,-8],[-23,2],[23,2],[-13,15],[11,16],[26,16],[-6,21]])streetLamp(x,z);
- const ordered=['season','cafe','hobby','travel','plaza','cinema','women','games','men','jazz','home','single'];
- const roofs=[0xd83d67,0x36a997,0xa16cde,0x3588cf,0xf1a93e,0x8453c1,0xec6c9e,0x6e8df1,0x2caba0,0xb9467e,0xf29b58,0x8a63c4];
+ const ordered=['season','cafe','hobby','travel','plaza','cinema','women','games','men','jazz','home','single','fandom'];
+ const roofs=[0xd83d67,0x36a997,0xa16cde,0x3588cf,0xf1a93e,0x8453c1,0xec6c9e,0x6e8df1,0x2caba0,0xb9467e,0xf29b58,0x8a63c4,0x9c65b1];
  const walls=[0xffdfcc,0xd5f3d9,0xf0dafb,0xd0eaf9,0xffedba,0xe0d7f5,0xffd4e4,0xd7e4ff,0xccebdc,0xf0c3de,0xffe0a8,0xe9d1ff];
  function shopfront(s,i,x,z,side){const p=group(scene,x,0,z);p.userData.facade=s.id;facades.push(p);if(side<0)p.rotation.y=Math.PI;const r=roofs[i],w=walls[i],h=3.0+(i%3)*.38;box(p,0xe4b8a2,0,.10,0,5.95,.2,6.55);box(p,w,0,h/2,0,5.6,h,6.1);
   // A rounded moulding, shop glazing, door panels, cornice, and individual roof silhouettes.
@@ -115,6 +138,18 @@ export function createWorld(host,opts){
   });box(p,0xdcc7a5,0,1.25,2.91,2.3,.65,.06);for(let j=0;j<4;j++)box(p,0x839b7d,-.85+j*.55,1.22+(j%2)*.13,2.86,.4,.3,.07);install(p,'travel-map',g=>table(g,0,0,'map'));box(p,palette.red,-1.8,.3,.4,.78,.6,.45);plant(p,2.2,2.3)}
   else if(k==='women'||k==='single'){k==='women'?install(p,'women-seat',g=>couch(g,0,0,0xef89b1)):couch(p,-1.65,1.85,0x9c737b);couch(p,1.65,1.85,k==='women'?0xbca892:0x9c737b);table(p,1.65,.1);lamp(p,-2.1,-.5);plant(p,2.2,-.6);if(k==='single')box(p,palette.cream,-1.7,.7,.2,.45,.035,.3)}
   else if(k==='games'||k==='men'){shelf(p,-1.9,2.5);table(p,1.6,1.3,'game');k==='games'?install(p,'games-seat',g=>chair(g,0,0,0xa38bd9)):chair(p,1.6,2.4,palette.green);chair(p,1.6,.2);k==='men'?install(p,'men-seat',g=>couch(g,0,0,0x4fb7a9)):couch(p,-1.7,.7,0x9684a0)}
+  else if(k==='fandom'){
+   box(p,0x493354,0,.19,1.92,4.2,.18,1.68);
+   box(p,0xac7fc0,0,1.20,2.74,3.7,1.48,.14);
+   box(p,0x39304d,0,1.23,2.62,3.28,1.15,.13);
+   const stageSign=sign(p,'덕질 존',0,1.67,2.11);if(stageSign)stageSign.scale.set(2.15,.46,1);
+   for(const x of [-1.65,1.65]){
+    box(p,0x483851,x,1.10,2.39,.44,1.34,.44);
+    for(const y of [.85,1.30]){const speaker=cyl(p,0xc68dbe,x,y,2.14,.135,.07);speaker.rotation.x=Math.PI/2}
+    cyl(p,0x654876,x,.25,1.67,.20,.16);ball(p,0xffb3dc,x,.50,1.67,.19,.19,.19);
+   }
+   couch(p,-1.3,-.95,0x9974a9);chair(p,1.55,-.80,0x8b6d9f);table(p,.25,.08,'tea');
+  }
   else if(k==='hobby'){install(p,'hobby-books',g=>shelf(g,0,0));shelf(p,1.9,2.48);install(p,'hobby-craft',g=>table(g,0,0,'craft'));box(p,palette.wood,-1.7,.8,.8,.11,1.6,.11);box(p,palette.cream,-1.7,1.1,.8,.9,.7,.08);plant(p,2.15,-.75)}
   else if(k==='cinema'){box(p,palette.dark,0,1.34,2.85,3.8,1.55,.16);box(p,0xa6bdbe,0,1.34,2.75,3.48,1.25,.05);for(const x of [-1.65,1.65])for(const z of [.2,1.65]){if(x===1.65&&z===.2)install(p,'cinema-seat',g=>chair(g,0,0,0xa84677));else chair(p,x,z,palette.red)};gift(p,-2.0,-1.3)}
   else if(k==='home'){box(p,palette.wood,-1.65,.34,1.5,1.4,.5,2);box(p,0x9da991,-1.65,.66,1.5,1.36,.23,1.98);box(p,palette.cream,-1.65,.82,2.2,1.1,.2,.48);shelf(p,1.85,2.45);table(p,1.65,.35);plant(p,-2.1,-.55)}

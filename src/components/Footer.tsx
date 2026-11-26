@@ -92,7 +92,7 @@ export function Footer({ onBrandKit, onNavigate, showCommercial = false }: { onB
             <p className="kicker mb-3">딩동</p>
             <ul className="space-y-2 text-[11.5px]" style={{ color: 'var(--muted)' }}>
               <li><button type="button" onClick={() => onNavigate('party')} className="hover:underline">이번 달 파티</button></li>
-              <li><button type="button" onClick={() => onNavigate('rooms')} className="hover:underline">12개 공간</button></li>
+              <li><button type="button" onClick={() => onNavigate('rooms')} className="hover:underline">13개 공간</button></li>
               <li><button type="button" onClick={() => onNavigate('wall')} className="hover:underline">포토월</button></li>
               <li><button type="button" onClick={() => onNavigate('calendar')} className="hover:underline">파티 캘린더</button></li>
             </ul>

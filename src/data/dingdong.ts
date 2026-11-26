@@ -21,6 +21,7 @@ export const SPACES: Space[] = [
   { id: 'single', name: '성인 싱글 살롱', subtitle: '서로의 경계를 존중하는 만남', icon: '💌', wall: '#e6ccd1', door: '#7c445a', topics: ['취향 소개', '주말 이야기'] },
   { id: 'games', name: '게임 라운지', subtitle: '가볍게 즐기는 놀이와 퀴즈', icon: '🎲', wall: '#ded7f0', door: '#78609a', topics: ['끝말잇기', '스무고개', 'OX 퀴즈', '보드게임 이야기', '그림 맞히기 모임'] },
   { id: 'hobby', name: '취미 클럽', subtitle: '책, 그림, 반려동물, 만들기', icon: '📚', wall: '#f0e3b9', door: '#8f7940', topics: ['독서 토론', '반려동물 이야기', '그림과 손작업', '뜨개질 모임', '책 추천', '사진 이야기'], legacy: ['book'] },
+  { id: 'fandom', name: '덕질 존', subtitle: '컴백과 공연을 함께 기다리는 팬들의 아지트', icon: '🎧', wall: '#cdb9de', door: '#664776', topics: ['컴백 같이 보기', '공연 후기', '입덕 이야기'] },
   { id: 'cinema', name: '영화·드라마관', subtitle: '좋아하는 장면과 작품 이야기', icon: '🎬', wall: '#d4cbdc', door: '#63536d', topics: ['오늘 본 영화', '드라마 이야기', '주말 영화제', '추억의 명장면'], legacy: ['cinema'] },
   { id: 'home', name: '나만의 미니룸', subtitle: '나를 닮은 작은 집과 미니홈피', icon: '🏡', wall: '#e6d7c8', door: '#b17c62', topics: [] },
   { id: 'plaza', name: '중앙 축제광장', subtitle: '계절마다 만나는 작은 축제', icon: '🎠', wall: '#d7e4ca', door: '#668453', topics: ['처음 왔어요', '오늘의 수다', '축제 이야기'] },
