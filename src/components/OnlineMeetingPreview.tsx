@@ -7,6 +7,7 @@ const key = import.meta.env.VITE_DD_DEV_KEY as string | undefined
 type Session = { access_token: string; user: { id: string } }
 type Room = { id: string; title: string }
 type Message = { id: string; author_id: string; body: string; photo_path: string | null }
+const loadError = '채팅을 불러오지 못했어요. 연결을 확인해 주세요.'
 
 async function request(path: string, token?: string, init: RequestInit = {}) {
   const headers = new Headers(init.headers)
@@ -38,22 +39,54 @@ function Photo({ path, token }: { path: string; token: string }) {
 
 function Conversations({ session }: { session: Session }) {
   const [rooms, setRooms] = useState<Room[]>([])
+  const [invites, setInvites] = useState<Room[]>([])
   const [room, setRoom] = useState('')
+  const [joining, setJoining] = useState(false)
+  const [joinNotice, setJoinNotice] = useState('')
   const [error, setError] = useState('')
+  const token = session.access_token
   useEffect(() => {
     let active = true
-    request('/rest/v1/meeting_rooms?select=id,title&order=title', session.access_token)
+    request('/rest/v1/meeting_rooms?select=id,title&order=title', token)
       .then(response => response.json()).then((data: Room[]) => {
-        if (active) { setRooms(data); setRoom(data[0]?.id ?? '') }
+        if (active) { setRooms(current => [...data, ...current.filter(item => !data.some(existing => existing.id === item.id))]); setRoom(current => current || data[0]?.id || '') }
       }).catch(() => { if (active) setError('모임 목록을 불러오지 못했어요.') })
+    request('/rest/v1/rpc/list_meeting_invites', token, json({}))
+      .then(response => response.json()).then((data: Room[]) => {
+        if (active) setInvites(data)
+      }).catch(() => { if (active) setError('모임 초대를 불러오지 못했어요.') })
     return () => { active = false }
-  }, [session])
+  }, [token])
+
+  async function join(invite: Room) {
+    if (joining) return
+    setJoining(true)
+    setError('')
+    setJoinNotice('')
+    try {
+      const response = await request('/rest/v1/rpc/join_invited_meeting', token, json({ root_id: invite.id }))
+      const assignedId: string = await response.json()
+      const assignedResponse = await request('/rest/v1/meeting_rooms?select=id,title&id=eq.' + encodeURIComponent(assignedId), token)
+      const [assigned]: Room[] = await assignedResponse.json()
+      if (!assigned) throw new Error('room')
+      setRooms(current => [...current.filter(item => item.id !== assigned.id), assigned])
+      setRoom(assigned.id)
+      setJoinNotice(assigned.id === invite.id ? '모임에 입장했어요.' : `추가 방으로 이동했어요. ${assigned.title}`)
+    } catch {
+      setError('모임에 입장하지 못했어요. 초대를 확인하고 다시 시도해 주세요.')
+    } finally { setJoining(false) }
+  }
+
   return <>
     {error && <p role="alert">{error}</p>}
+    {invites.map(invite => <button key={invite.id} className="btn btn-primary" disabled={joining} onClick={() => void join(invite)}>
+      {invite.title} 참가
+    </button>)}
+    {joinNotice && <p role="status">{joinNotice}</p>}
     {rooms.length > 0 && <label className="block">모임 <select value={room} onChange={event => setRoom(event.target.value)}>
       {rooms.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}
     </select></label>}
-    {!room && !error && <p>초대받은 모임이 여기에 표시됩니다.</p>}
+    {!room && !invites.length && !error && <p>초대받은 모임이 여기에 표시됩니다.</p>}
     {room && <RoomChat key={room} room={room} session={session} />}
   </>
 }
@@ -78,9 +111,12 @@ function RoomChat({ room, session }: { room: string; session: Session }) {
       try {
         const response = await request('/rest/v1/meeting_messages?select=id,author_id,body,photo_path&room_id=eq.' + room + '&order=created_at.desc,id.desc&limit=50', token)
         const data: Message[] = await response.json()
-        if (active) setMessages(data.reverse())
+        if (active) {
+          setMessages(data.reverse())
+          setNotice(current => current === loadError ? '' : current)
+        }
       } catch {
-        if (active) setNotice('채팅을 불러오지 못했어요. 세션이 만료됐다면 다시 로그인해 주세요.')
+        if (active) setNotice(loadError)
       } finally {
         loading = false
         if (repeat) { repeat = false; void refresh() }
@@ -95,8 +131,14 @@ function RoomChat({ room, session }: { room: string; session: Session }) {
         else if (status !== 'CLOSED') timer = window.setInterval(refresh, 5000)
       })
     timer = window.setInterval(refresh, 5000)
+    window.addEventListener('online', refresh)
     void refresh()
-    return () => { active = false; window.clearInterval(timer); void client.removeChannel(channel) }
+    return () => {
+      active = false
+      window.removeEventListener('online', refresh)
+      window.clearInterval(timer)
+      void client.removeChannel(channel)
+    }
   }, [room, token])
 
   async function send(event: FormEvent<HTMLFormElement>) {
