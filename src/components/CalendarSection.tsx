@@ -199,7 +199,7 @@ export function CalendarSection({
               })}
             </ul>
             <p className="mt-2 text-[10px] leading-relaxed" style={{ color: 'var(--muted)' }}>
-              2027년 설날은 2월 6일(토)이라, 1월 파티와 별도로 ‘설날 떡국 파티’를 한 번 더 엽니다.
+              2027년 설날은 2월 7일(일)이라, 1월 파티와 별도로 ‘설날 떡국 파티’를 한 번 더 엽니다.
             </p>
           </div>
         </div>

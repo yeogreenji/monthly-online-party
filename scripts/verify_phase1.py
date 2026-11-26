@@ -1,3 +1,4 @@
+import base64
 import os
 from playwright.sync_api import sync_playwright, expect
 os.makedirs("artifacts",exist_ok=True)
@@ -259,6 +260,105 @@ with sync_playwright() as p:
         page.get_by_role("textbox",name="게임 답안").fill("우산")
         page.get_by_role("button",name="답 제출",exact=True).click()
         expect(page.locator(".dd-game-feedback")).to_have_text("정답이에요!")
+        page.get_by_role("button",name="그림 맞히기",exact=True).click()
+        picture_game=page.get_by_role("region",name="그림 맞히기",exact=True)
+        picture_game.get_by_role("button",name="우산",exact=True).click()
+        expect(picture_game.get_by_role("status")).to_have_text("정답이에요!")
+        picture_game.get_by_role("button",name="다음 그림",exact=True).click()
+        expect(picture_game.get_by_text("2/3 · 정답 1개",exact=True)).to_be_visible()
+        page.get_by_role("button",name="틱택토",exact=True).click()
+        board=page.get_by_role("region",name="틱택토",exact=True)
+        for cell in (1,4,2,5,3):
+            board.get_by_role("button",name=f"{cell}번 칸 비어 있음",exact=True).click()
+        expect(board.get_by_role("status")).to_have_text("X 승리!")
+        expect(board.get_by_role("button",name="6번 칸 비어 있음",exact=True)).to_be_disabled()
+        board.get_by_role("button",name="틱택토 새 판").click()
+        expect(board.get_by_role("status")).to_have_text("X 차례")
+        # Delay reading until after the room changes to reproduce the attachment race.
+        page.evaluate("""() => {
+            const read = FileReader.prototype.readAsDataURL;
+            FileReader.prototype.readAsDataURL = function(file) {
+                FileReader.prototype.readAsDataURL = read;
+                window.finishTestPhoto = () => {
+                    const descriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+                    Object.defineProperty(HTMLImageElement.prototype, 'src', {
+                        ...descriptor,
+                        set(value) {
+                            Object.defineProperty(HTMLImageElement.prototype, 'src', descriptor);
+                            this.addEventListener('load', () => {
+                                requestAnimationFrame(() => { window.testPhotoDecoded = true; });
+                            }, { once: true });
+                            descriptor.set.call(this, value);
+                        }
+                    });
+                    read.call(this, file);
+                };
+            };
+        }""")
+        page.get_by_role("button",name="첨부 메뉴",exact=True).click()
+        page.locator('input[type="file"][aria-label="사진 첨부 파일"]').set_input_files({
+            "name":"test.png","mimeType":"image/png","buffer":base64.b64decode(
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aG5sAAAAASUVORK5CYII="
+            )
+        })
+        page.get_by_role("button",name="모임 목록",exact=True).click()
+        page.locator(".dd-room-join").nth(1).click()
+        page.evaluate("window.finishTestPhoto()")
+        page.wait_for_function("window.testPhotoDecoded === true")
+        page.get_by_role("textbox",name="메시지",exact=True).fill("다른 모임 메시지")
+        page.get_by_role("button",name="전송",exact=True).click()
+        expect(page.get_by_alt_text("첨부 미리보기")).to_have_count(0)
+        expect(page.get_by_alt_text("내가 올린 사진")).to_have_count(0)
+        page.get_by_role("button",name="채팅 접기",exact=True).click()
+        page.get_by_role("button",name="이벤트",exact=True).click()
+        festival=page.get_by_role("region",name="매일의 딩동 이벤트")
+        festival.get_by_role("textbox",name="오늘의 축제 기록").fill("축제 기록 테스트")
+        festival.get_by_role("button",name="기록 저장",exact=True).click()
+        expect(festival.get_by_role("status")).to_have_text("이 기기에 저장했어요.")
+        festival.get_by_role("button",name="다음 날 이벤트").click()
+        expect(festival.get_by_role("textbox",name="오늘의 축제 기록")).to_have_value("")
+        festival.get_by_role("button",name="전날 이벤트").click()
+        expect(festival.get_by_role("textbox",name="오늘의 축제 기록")).to_have_value("축제 기록 테스트")
+        festival.get_by_label("축제 날짜").fill("2027-02-06")
+        expect(festival.get_by_text("설날 떡국 파티 (추가 회차)",exact=True)).to_have_count(0)
+        festival.get_by_label("축제 날짜").fill("2027-02-07")
+        expect(festival.get_by_text("설날 떡국 파티 (추가 회차)",exact=True)).to_be_visible()
+        for date,name in (("2027-02-21","정월대보름"),("2027-06-09","단오"),("2027-09-15","추석")):
+            festival.get_by_label("축제 날짜").fill(date)
+            expect(festival.get_by_role("heading",name=name,exact=True)).to_be_visible()
+        festival.get_by_role("button",name="오늘로",exact=True).click()
+        expect(festival.get_by_role("textbox",name="오늘의 축제 기록")).to_have_value("축제 기록 테스트")
+        page.keyboard.press("Escape")
+        page.get_by_role("button",name="내 집",exact=True).click()
+        page.get_by_role("button",name="집 꾸미기 열기",exact=True).click()
+        page.get_by_text("미니홈피와 프로필",exact=True).click()
+        journal=page.get_by_role("region",name="나의 미니홈피")
+        journal.get_by_label("홈피 제목").fill("테스트 미니홈피")
+        journal.get_by_role("button",name="미니홈피 저장",exact=True).click()
+        expect(journal.get_by_role("heading",name="테스트 미니홈피")).to_be_visible()
+        page.get_by_role("textbox",name="추억 검색").fill("검색 결과가 없는 문구")
+        expect(page.get_by_text("조건에 맞는 기록이 없어요.",exact=True)).to_be_visible()
+        page.get_by_role("textbox",name="추억 검색").fill("오늘의 추억 테스트")
+        expect(page.get_by_text("오늘의 추억 테스트",exact=True).first).to_be_visible()
+        page.get_by_role("button",name="채팅 접기",exact=True).click()
+        for room,corners in (
+            ("cafe",[("커피와 디저트 메뉴","모카의 메뉴판","오늘의 차")]),
+            ("hobby",[
+                ("책장 둘러보기","독서 코너","독서 토론"),
+                ("반려동물 코너","반려동물 코너","반려동물 이야기"),
+                ("공예 작업대","공예 작업대","뜨개질 모임"),
+            ]),
+        ):
+            page.get_by_role("button",name="설정",exact=True).click()
+            page.locator("#dd3-dest").select_option(room)
+            page.get_by_role("button",name="바로 입장",exact=True).click()
+            for prop_name,panel_name,topic_name in corners:
+                if not page.locator("#dd3-dest").is_visible():
+                    page.get_by_role("button",name="설정",exact=True).click()
+                page.get_by_role("button",name=prop_name,exact=True).click()
+                panel=page.get_by_role("dialog",name=panel_name,exact=True)
+                panel.get_by_role("button",name=topic_name,exact=True).click()
+                expect(page.get_by_role("heading",name=topic_name,exact=True)).to_be_visible()
         assert not errors,errors
         print(f"PASS {width}x{height}: wardrobe persistence, 3D rooms, lock, prop movement, photo, place save, sitting, hub return, decor toggle, chat collapse, fallback")
         page.close()
