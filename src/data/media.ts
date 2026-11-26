@@ -59,7 +59,7 @@ export const PACKAGES: Package[] = [
   {
     id: 'main',
     name: '월간 메인 네이밍 스폰서',
-    en: 'Monthly Naming Sponsor',
+    en: 'Main Naming Sponsor',
     price: '300만원',
     priceNote: '/ 월 · 부가세 별도',
     slots: '월 1개 브랜드',
