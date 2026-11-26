@@ -62,7 +62,7 @@ export function buildICS(event: IcsEvent): string {
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',
-    `UID:${event.id}@monthlysalon.kr`,
+    `UID:${event.id}@dingdong.local`,
     `DTSTAMP:${icsDate(new Date())}`,
     `DTSTART:${icsDate(start)}`,
     `DTEND:${icsDate(end)}`,
