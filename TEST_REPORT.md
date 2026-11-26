@@ -1,3 +1,6 @@
+### verify_phase1.py 전체 실행 — 브리 (병합된 main dd3f8ee)
+1280×900, 390×844 두 해상도에서 전체 통과(옷장 유지, 3D 방, 잠금, 소품 이동, 사진, 장소 저장, 앉기, 광장 복귀, 꾸미기 토글, 채팅 접기, 2D 대체). 내 집 화면의 버튼 이름이 ‘집 꾸미기 닫기’인데 스크립트가 ‘채팅 접기’를 찾던 343행을 수정했다(로렌 브랜치 원본에서도 동일하게 실패하던 스크립트 오류). swiftshader 환경에서 약 15분 소요. 미확인: 실기기, GitHub Actions.
+
 ### 병합 후 검증 — 브리 (bri/phase2-merged, 390×844 headless Chromium/swiftshader)
 통과: typecheck, build, 소품 33개 접근 지점 충돌 프로브(막힘 0), 시즌 테이블 중심 차단 확인, 게임 라운지·혼술 라운지·영화관 입장(페이지 에러 없음). 미확인: 실기기, scripts/verify_phase1.py 전체, GitHub Actions, main 병합 테스트, 실제 탭 이동 경로.
 

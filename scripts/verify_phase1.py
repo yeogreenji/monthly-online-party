@@ -340,7 +340,7 @@ with sync_playwright() as p:
         expect(page.get_by_text("조건에 맞는 기록이 없어요.",exact=True)).to_be_visible()
         page.get_by_role("textbox",name="추억 검색").fill("오늘의 추억 테스트")
         expect(page.get_by_text("오늘의 추억 테스트",exact=True).first).to_be_visible()
-        page.get_by_role("button",name="채팅 접기",exact=True).click()
+        page.get_by_role("button",name="집 꾸미기 닫기",exact=True).click()
         for room,corners in (
             ("cafe",[("커피와 디저트 메뉴","모카의 메뉴판","오늘의 차")]),
             ("hobby",[
