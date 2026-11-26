@@ -37,6 +37,10 @@ const answers: { name: string; traits: Trait[] }[] = [
   { name: '돌고래', traits: ['animal', 'water'] },
   { name: '기린', traits: ['animal', 'fur', 'tall'] },
   { name: '산타클로스', traits: ['person', 'celebration'] },
+  { name: '강아지', traits: ['animal', 'pet', 'fur'] },
+  { name: '펭귄', traits: ['animal', 'wings', 'water'] },
+  { name: '자동차', traits: ['wheels', 'outdoors'] },
+  { name: '공책', traits: ['paper', 'handheld', 'write'] },
 ]
 const limit = 20
 function answersYes(answer: typeof answers[number], trait: Trait) {
@@ -53,6 +57,10 @@ const questionAliases: [RegExp, Trait][] = [
   [/^(물건|사물)(인가요|입니까|이에요|이야)$/, 'object'],
   [/^(비올때|비오는날|비가올때)(쓰나요|쓰는건가요|써요|사용하나요)$/, 'rain'],
   [/^(하늘을)?(날수있나요|날아요|날아다니나요)$/, 'flies'],
+  [/^(전기|배터리)(가|를)?(필요한가요|필요해요|쓰나요|사용하나요)$/, 'electric'],
+  [/^(물속|물)(에서)?(사나요|살아요|살고있나요)$/, 'water'],
+  [/^(빛|불)(을|이)?(내나요|나나요|켜지나요)$/, 'light'],
+  [/^(한손에)?(들수있나요|들고다닐수있나요)$/, 'handheld'],
   [/^바퀴(가)?(있나요|있습니까|있어요|있어)$/, 'wheels'],
 ]
 
@@ -96,6 +104,7 @@ export function TwentyQuestions() {
     {asked.length > 0 && <ol className="dd-twenty-history" aria-label="질문 기록">
       {asked.map(trait => <li key={trait}>{questions.find(([key]) => key === trait)?.[1]} <strong>{answersYes(answer, trait) ? '네' : '아니오'}</strong></li>)}
     </ol>}
+    {guesses.length > 0 && <ol className="dd-twenty-history" aria-label="추측 기록">{guesses.map(word => <li key={word}>{word} · {word === answer.name ? '정답' : '오답'}</li>)}</ol>}
     {finished ? <p>{solved ? '정답' : '이번 판의 정답'}은 <strong>{answer.name}</strong>이에요.</p> : <>
       <form onSubmit={event => {
         event.preventDefault()
@@ -108,6 +117,10 @@ export function TwentyQuestions() {
           ask(trait)
           setDraft('')
           return
+        }
+        if (answers.some(item => item.name === question)) {
+          if (guesses.includes(question)) { setFeedback('이미 추측한 단어예요.'); return }
+          setGuesses([...guesses, question]); setDraft(''); setFeedback(question === answer.name ? '정답이에요!' : '그 단어는 아니에요.'); return
         }
         if (/[?？]/.test(guess) || /(입니까|인가요|나요|있어요|이에요|예요)$/.test(question)) {
           setFeedback('이 질문에는 답할 수 없어요. 위의 질문 중 하나를 골라 주세요.')
