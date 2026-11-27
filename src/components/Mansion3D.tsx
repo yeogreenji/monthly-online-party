@@ -12,8 +12,8 @@ import { SPACES } from '../data/dingdong'
 import { salonAudio } from '../lib/audio'
 import { RESIDENTS, WORLD_INTRO, SEASON_STORY, PLACE_STORIES } from '../data/world'
 import { createWorld } from '../lib/mansion3d.js'
-import type { WorldController } from '../lib/mansion3d.js'
-export function Mansion3D({profile,look,home,homeEditing,homeSelected,active,request,toolsOpen,onToolsChange,onEnter,onLeave,onCapture,onMenu,favorites,onFavorite,onlyFavorites,paused}:{profile:Profile;look:Look;home:import('../data/homeDecor').HomeDecor;homeEditing:boolean;homeSelected?:string|null;active:Space|null;request:{id:string;serial:number;direct?:boolean;preview?:boolean}|null;toolsOpen:boolean;onToolsChange:(v:boolean)=>void;onEnter:(s:Space)=>void;onLeave:()=>void;onCapture:(image:string)=>void;onMenu:(id:string)=>void;favorites:string[];onFavorite:(id:string)=>void;onlyFavorites:boolean;paused?:boolean}){
+import type { WorldController, WorldPeer } from '../lib/mansion3d.js'
+export function Mansion3D({profile,look,home,homeEditing,homeSelected,active,request,toolsOpen,onToolsChange,onEnter,onLeave,onCapture,onMenu,favorites,onFavorite,onlyFavorites,paused,peers,peerPositions,poseRef,bubble}:{profile:Profile;look:Look;home:import('../data/homeDecor').HomeDecor;homeEditing:boolean;homeSelected?:string|null;active:Space|null;request:{id:string;serial:number;direct?:boolean;preview?:boolean}|null;toolsOpen:boolean;onToolsChange:(v:boolean)=>void;onEnter:(s:Space)=>void;onLeave:()=>void;onCapture:(image:string)=>void;onMenu:(id:string)=>void;favorites:string[];onFavorite:(id:string)=>void;onlyFavorites:boolean;paused?:boolean;peers?:WorldPeer[];peerPositions?:{current:Map<string,{x:number;z:number;pose:string}>};poseRef?:{current:(()=>{x:number;z:number;pose:'standing'|'seated'|'lying'})|null};bubble?:{id:string;text:string;nonce:number}|null}){
  const host=useRef<HTMLDivElement>(null),world=useRef<WorldController|null>(null),callbacks=useRef({onEnter,onLeave,onMenu});callbacks.current={onEnter,onLeave,onMenu}
  const [status,setStatus]=useState('중앙 축제광장'),[error,setError]=useState(false),[low,setLow]=useState(false),[destination,setDestination]=useState(''),[story,setStory]=useState(false),[timeMode,setTimeMode]=useState<'auto'|'day'|'sunset'|'night'>('auto'),[sound,setSound]=useState(false),[festive,setFestive]=useState(false),[bellBurst,setBellBurst]=useState(0)
  const [roofsOpen,setRoofsOpen]=useState(true),[overview,setOverview]=useState(false)
@@ -21,6 +21,10 @@ export function Mansion3D({profile,look,home,homeEditing,homeSelected,active,req
  const soundRef=useRef(sound);soundRef.current=sound
  useEffect(()=>{if(low||!host.current)return;try{const w=createWorld(host.current,{spaces:SPACES,residents:RESIDENTS,avatar:profile.avatar,look,access,onResident:id=>setResident(id),onBell:()=>{try{salonAudio.doorbell()}catch{/* audio unavailable */}setBellBurst(v=>v+1)},onMenu:id=>callbacks.current.onMenu(id),onEnter:id=>{const s=SPACES.find(v=>v.id===id);if(s)callbacks.current.onEnter(s)},onLeave:()=>callbacks.current.onLeave(),onStatus:s=>{setStatus(s);if(soundRef.current&&s.includes('문 열림')){try{salonAudio.chime()}catch{/* optional */}}}});world.current=w;return()=>{w.dispose();world.current=null}}catch(e){console.error('3D 초기화 실패',e);setError(true)}},[low])
  useEffect(()=>{world.current?.setAvatar(profile.avatar,look)},[profile.avatar,look,low])
+ useEffect(()=>{world.current?.setPresence(peers??[])},[peers,low])
+ useEffect(()=>{if(peerPositions)world.current?.setPeerPositions(peerPositions.current)},[peerPositions,low])
+ useEffect(()=>{if(!poseRef)return;poseRef.current=()=>world.current?.getSelf()??{x:0,z:0,space:'plaza',pose:'standing'};return()=>{poseRef.current=null}},[poseRef,low])
+ useEffect(()=>{if(bubble&&bubble.text)world.current?.showPeerBubble(bubble.id,bubble.text)},[bubble,low])
  useEffect(()=>{world.current?.setFestive(festive)},[festive,low])
  useEffect(()=>{world.current?.setRoofs(roofsOpen)},[roofsOpen,low])
  useEffect(()=>{world.current?.setHome(home)},[home,low])

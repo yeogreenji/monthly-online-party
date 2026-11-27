@@ -123,6 +123,8 @@ export type SharedTopic = {
   age: string
   kind: 'talk' | 'review' | 'photo' | 'play' | 'share'
   workTitle?: string
+  artist?: string
+  fanOccasion?: string
   creatorId: string
 }
 
@@ -134,10 +136,15 @@ type TopicRow = {
   description: string
   kind: SharedTopic['kind']
   work_title: string | null
+  artist?: string | null
+  fan_occasion?: string | null
   scheduled_at: string | null
   capacity: number
   age_group: string
 }
+
+const TOPIC_COLUMNS = 'id,space_id,creator_id,title,description,kind,work_title,artist,fan_occasion,scheduled_at,capacity,age_group'
+const TOPIC_COLUMNS_BASIC = 'id,space_id,creator_id,title,description,kind,work_title,scheduled_at,capacity,age_group'
 
 const fromTopicRow = (r: TopicRow): SharedTopic => ({
   id: r.id,
@@ -149,24 +156,37 @@ const fromTopicRow = (r: TopicRow): SharedTopic => ({
   age: r.age_group,
   kind: r.kind,
   workTitle: r.work_title ?? undefined,
+  artist: r.artist ?? undefined,
+  fanOccasion: r.fan_occasion ?? undefined,
   creatorId: r.creator_id,
 })
 
+/** 004 마이그레이션 전 서버(artist 열 없음)에서도 모임 목록이 비지 않도록 한 번 더 시도한다. */
+function isMissingColumn(message: string | undefined) {
+  const text = (message ?? '').toLowerCase()
+  return text.includes('artist') || text.includes('fan_occasion') || text.includes('column') || text.includes('schema cache')
+}
+
 export async function listSharedTopics(spaceId: string): Promise<SharedTopic[]> {
   if (!supabase) return []
-  const { data, error } = await supabase
-    .from('topics')
-    .select('id,space_id,creator_id,title,description,kind,work_title,scheduled_at,capacity,age_group')
-    .eq('space_id', spaceId)
-    .order('created_at', { ascending: false })
-    .limit(50)
-  return error || !Array.isArray(data) ? [] : (data as TopicRow[]).map(fromTopicRow)
+  const client = supabase
+  const query = (cols: string) =>
+    client
+      .from('topics')
+      .select(cols)
+      .eq('space_id', spaceId)
+      .order('created_at', { ascending: false })
+      .limit(50)
+  let { data, error } = await query(TOPIC_COLUMNS)
+  if (error && isMissingColumn(error.message)) ({ data, error } = await query(TOPIC_COLUMNS_BASIC))
+  return error || !Array.isArray(data) ? [] : (data as unknown as TopicRow[]).map(fromTopicRow)
 }
 
 /** 성공하면 null, 실패하면 사용자에게 보여 줄 문장. */
 export async function createSharedTopic(t: Omit<SharedTopic, 'creatorId'>): Promise<string | null> {
   if (!supabase) return '서버에 연결되어 있지 않아요.'
-  const { error } = await supabase.from('topics').insert({
+  const client = supabase
+  const base = {
     id: t.id,
     space_id: t.space,
     title: t.title,
@@ -176,11 +196,39 @@ export async function createSharedTopic(t: Omit<SharedTopic, 'creatorId'>): Prom
     scheduled_at: t.date || null,
     capacity: t.capacity,
     age_group: t.age,
-  })
+  }
+  const full = { ...base, artist: t.artist?.trim() || null, fan_occasion: t.fanOccasion || null }
+  let { error } = await client.from('topics').insert(full)
+  if (error && isMissingColumn(error.message)) ({ error } = await client.from('topics').insert(base))
   if (!error) return null
   if (error.message.includes('too_many_topics')) return '모임을 너무 빨리 만들고 있어요. 잠시 후 다시 시도해 주세요.'
-  if (error.code === '23514') return '제목이나 설명에 연락처 교환이 의심되는 내용이 있어요. 수정해 주세요.'
+  if (error.code === '23514') {
+    if (error.message.includes('space_id')) return '이 공간에는 아직 서버 모임을 열 수 없어요. (덕질 존 서버 설정 필요)'
+    return '제목이나 설명에 연락처 교환이 의심되는 내용이 있어요. 수정해 주세요.'
+  }
   return '모임을 서버에 저장하지 못했어요. 잠시 후 다시 시도해 주세요.'
+}
+
+/** 내가 연 모임 고치기. 성공하면 null, 실패하면 보여 줄 문장. */
+export async function updateSharedTopic(
+  id: string,
+  patch: { title: string; description: string; date: string; capacity: number; artist?: string; fanOccasion?: string },
+): Promise<string | null> {
+  if (!supabase) return '서버에 연결되어 있지 않아요.'
+  const client = supabase
+  const base = {
+    title: patch.title,
+    description: patch.description,
+    scheduled_at: patch.date || null,
+    capacity: patch.capacity,
+  }
+  const full = { ...base, artist: patch.artist?.trim() || null, fan_occasion: patch.fanOccasion || null }
+  let { error } = await client.from('topics').update(full).eq('id', id)
+  if (error && isMissingColumn(error.message)) ({ error } = await client.from('topics').update(base).eq('id', id))
+  if (!error) return null
+  if (error.code === '23514') return '제목이나 설명에 연락처 교환이 의심되는 내용이 있어요. 수정해 주세요.'
+  if (error.code === '42501' || error.message.toLowerCase().includes('policy')) return '이 모임을 고칠 권한이 없어요. 내가 연 모임만 고칠 수 있습니다.'
+  return '모임을 고치지 못했어요. 잠시 후 다시 시도해 주세요.'
 }
 
 export async function removeSharedTopic(id: string) {
@@ -195,6 +243,7 @@ export function subscribeSharedTopics(spaceId: string, onTopic: (t: SharedTopic)
   const channel = client
     .channel(`topics:${spaceId}`)
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'topics', filter: `space_id=eq.${spaceId}` }, (p) => onTopic(fromTopicRow(p.new as TopicRow)))
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'topics', filter: `space_id=eq.${spaceId}` }, (p) => onTopic(fromTopicRow(p.new as TopicRow)))
     .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'topics' }, (p) => onRemove((p.old as { id: string }).id))
     .subscribe()
   return () => {
