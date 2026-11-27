@@ -123,7 +123,7 @@ export function ResidentConversation({ id, onClose, onToast }: { id: string; onC
           <Brain size={14} /> 대화 주제 기억하기 (기본 꺼짐 · 이 기기에만 저장)
         </label>
         {consent && <button type="button" onClick={clearMemory}>기억 지우기</button>}
-        <small>로컬 문맥·주제 기반 대화 · 생성형 AI 및 실제 이용자 아님</small>
+        <small>가상 주민 · 로컬 문맥 대화 · 생성형 AI 아님</small>
       </footer>
     </section>
   )
