@@ -9,3 +9,7 @@ dist-ssr
 test-results
 playwright-report
 __pycache__
+
+# E2E 검증 스크린샷(로컬 산출물)
+artifacts/games/
+artifacts/home/

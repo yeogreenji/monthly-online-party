@@ -618,3 +618,286 @@
   .dd3-shell .dd3-title .dd3-btn { font-size: 11.5px; padding: 6px 10px; }
   .dd3-shell .dd3-access-menu summary { font-size: 11.5px; padding: 7px 11px; }
 }
+
+/* ════════════════════════════════════════
+   8. 톤 통일 — 3D 마을·나무 콘솔과 어긋나는 2D/연보라 UI 정리
+   크림 종이 #fff8ec · 잉크 #4a3320 · 우드 #8b5c34 · 놋쇠 #f0c160
+   ════════════════════════════════════════ */
+
+/* 하단 탭바: 흰 알약 → 나무 테두리 크림 콘솔 */
+.dd-world-app .dd-world-nav {
+  background: linear-gradient(#fffaf0, #f3e3c6);
+  border: 2px solid #b98a55;
+  box-shadow: 0 3px 0 #8a5c34, 0 10px 24px #4a332033;
+}
+.dd-world-app .dd-world-nav button { color: #7a5220; }
+.dd-world-app .dd-world-nav button span { color: #5f421f; }
+.dd-world-app .dd-world-nav button:hover { background: #fffdf6; }
+.dd-world-app .dd-world-nav button[aria-pressed='true'],
+.dd-world-app .dd-world-nav button:focus-visible { background: #ffe9b8; box-shadow: inset 0 0 0 2px #e0b263; }
+
+/* 떠 있는 버튼들(알림·포토월·카메라·내 집 동작) */
+.dd-world-app .dd-quick-links button,
+.dd-world-app .dd-home-actions button,
+.dd-world-app .dd-camera-control button,
+.dd-world-app .dd-room-actions button {
+  background: linear-gradient(#fffaf0, #f2e2c5);
+  color: #6b4a1e;
+  border: 2px solid #c49a63;
+  box-shadow: 0 3px 0 #9a6f3d, 0 6px 14px #4a332022;
+}
+.dd-world-app .dd-home-actions button svg,
+.dd-world-app .dd-quick-links button svg { color: #8a5a1e; }
+.dd-world-app .dd-home-actions button:first-child {
+  background: linear-gradient(#ffd98a, #eeb44f 60%, #d79a34);
+  color: #4a2c0f;
+  border-color: #a97a2c;
+  box-shadow: 0 3px 0 #8a5f1c, inset 0 1px 0 #fff3cf;
+}
+.dd-world-app .dd-home-actions button:first-child svg { color: #5a3608; }
+
+/* 내 집 꾸미기 패널: 흰 카드 → 나무 액자 + 크림 종이 */
+.dd-world-app .dd-home-panel {
+  background:
+    linear-gradient(#fff9ec, #f7e8cb);
+  border: 3px solid #8b5c34;
+  border-radius: 20px;
+  box-shadow: 0 10px 0 #5d3a20, 0 20px 40px #33231a55, inset 0 0 0 3px #ffe9be;
+  color: #4a3320;
+  z-index: 19;
+}
+.dd-world-app:has(.dd-home-panel) .dd-quick-links { visibility: hidden; }
+.dd-world-app .dd-home-panel .dd3-collapse {
+  background: linear-gradient(#a9713f, #7f4f2b);
+  color: #fff4e0;
+  border-radius: 15px 15px 0 0;
+  border-bottom: 2px solid #5d3a20;
+}
+.dd-world-app .dd-home-panel .dd-chat-expand {
+  background: #6f4726;
+  color: #ffe6bd;
+  border-left: 1px solid #ffdfa855;
+}
+.dd-world-app .dd-home-panel .dd-lobby-story {
+  background: #fff6e2;
+  border: 1px solid #e0c39a;
+  border-radius: 12px;
+  color: #5c421f;
+  padding: 8px 10px;
+}
+.dd-world-app .dd-home-panel .dd-lobby-story strong { color: #4a3018; }
+
+/* 인테리어 스튜디오 */
+.dd-world-app .dd-home-editor header h3,
+.dd-world-app .dd-home-editor h4 { color: #4a3018; }
+.dd-world-app .dd-home-editor header p,
+.dd-world-app .dd-home-editor section > p,
+.dd-world-app .dd-home-tip { color: #7d5c33; }
+.dd-world-app .dd-editor-kicker { color: #a2763c; }
+.dd-world-app .dd-home-editor nav {
+  background: transparent;
+  gap: 6px;
+}
+.dd-world-app .dd-home-editor nav button {
+  background: #fff6e4;
+  border: 2px solid #d9bd94;
+  color: #6b4a1e;
+  border-radius: 13px;
+}
+.dd-world-app .dd-home-editor nav button[aria-pressed='true'] {
+  background: linear-gradient(#ffdf9f, #eebc60);
+  border-color: #a97a2c;
+  color: #4a2c0f;
+  box-shadow: 0 3px 0 #8a5f1c;
+}
+.dd-world-app .dd-home-editor .dd-home-items button,
+.dd-world-app .dd-home-editor .dd-home-swatches button,
+.dd-world-app .dd-home-editor .dd-home-pets button {
+  background: #fffaf0;
+  border: 2px solid #e2cbab;
+  border-radius: 12px;
+  color: #5c421f;
+  position: relative;
+}
+.dd-world-app .dd-home-editor .dd-home-items button[aria-pressed='true'],
+.dd-world-app .dd-home-editor .dd-home-swatches button[aria-pressed='true'],
+.dd-world-app .dd-home-editor .dd-home-pets button[aria-pressed='true'] {
+  border-color: #b8862f;
+  box-shadow: 0 0 0 2px #ffe0a1, 0 3px 0 #c79a4e;
+}
+.dd-world-app .dd-home-items canvas { background: radial-gradient(circle at 50% 35%, #fffdf6, #f3e3c6); border-radius: 9px; }
+.dd-world-app .dd-home-items small,
+.dd-world-app .dd-home-swatches small { color: #5f421f; }
+.dd-home-check {
+  position: absolute; top: 4px; right: 4px;
+  display: grid; place-items: center;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: linear-gradient(#ffd98a, #deac47); color: #4a2c0f;
+  box-shadow: 0 2px 0 #9c7326;
+}
+.dd-world-app .dd-home-editor .dd-home-save {
+  background: linear-gradient(#fdf3df, #f5e3c4);
+  border-top: 2px solid #dec19b;
+}
+.dd-world-app .dd-home-editor .dd-home-save button {
+  background: #fff6e4;
+  border: 2px solid #d9bd94;
+  color: #6b4a1e;
+  border-radius: 12px;
+  min-height: 44px;
+}
+.dd-world-app .dd-home-editor .dd-home-save button:last-child {
+  background: linear-gradient(#ffdc93, #eab54e 62%, #d79a34);
+  border-color: #a97a2c;
+  color: #42280c;
+  font-weight: 900;
+  box-shadow: 0 3px 0 #8a5f1c, inset 0 1px 0 #fff6d8;
+}
+.dd-world-app .dd-home-save-status { color: #6b4a1e; }
+.dd-world-app .dd-home-quick { display: flex; gap: 7px; flex-wrap: wrap; margin: 4px 0 8px; }
+.dd-world-app .dd-home-quick .dd-home-rotate,
+.dd-world-app .dd-home-quick .dd-home-remove { flex: 1; justify-content: center; border-radius: 11px; min-height: 42px; }
+.dd-world-app .dd-home-remove { background: #fbe7e4; border: 2px solid #dfb3a9; color: #9d3f31; }
+.dd-world-app .dd-home-section-head { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.dd-world-app .dd-home-new {
+  background: linear-gradient(#ffdf9f, #eebc60);
+  border: 2px solid #a97a2c;
+  color: #4a2c0f;
+  border-radius: 11px;
+  min-height: 38px;
+  padding: 0 11px;
+  font-size: 11.5px;
+  font-weight: 800;
+  box-shadow: 0 2px 0 #8a5f1c;
+}
+.dd-world-app .dd-home-selected {
+  background: #fff6e2;
+  border: 2px dashed #d9b98b;
+  border-radius: 14px;
+  padding: 8px 10px;
+  margin-top: 10px;
+}
+
+/* 옷장·지도·연간 이벤트 등 팝업도 같은 나무 액자 */
+.dd-world-app .dd-world-pop {
+  background: linear-gradient(#fff9ec, #f7e8cb);
+  border: 3px solid #8b5c34;
+  color: #4a3320;
+  border-radius: 20px;
+  box-shadow: 0 10px 0 #5d3a20, 0 20px 44px #33231a55, inset 0 0 0 3px #ffe9be;
+}
+.dd-world-app .dd-world-pop .dd-pop-title strong { color: #4a3018; }
+.dd-world-app .dd-world-pop p,
+.dd-world-app .dd-world-pop small { color: #6b4a1e; }
+.dd-world-app .dd-world-pop .dd3-btn {
+  background: linear-gradient(#ffdc93, #eab54e 62%, #d79a34);
+  color: #42280c;
+  border: 2px solid #a97a2c;
+  box-shadow: 0 3px 0 #8a5f1c;
+}
+.dd-world-app .dd-map-grid button { background: #fff6e4; border: 1px solid #e0c39a; color: #5c421f; }
+
+/* 옷장 스테이지: 민트 그라디언트 → 따뜻한 크림·모래 조명 */
+.dd-world-app .dd-dress-stage {
+  background: radial-gradient(ellipse at 50% 32%, #fffdf6 0, #f7ead2 45%, #e2c9a4 100%);
+  border: 2px solid #d9bd94;
+  box-shadow: inset 0 -18px 34px #a9814a26;
+}
+.dd-world-app .dd-dress-pedestal {
+  background: linear-gradient(#fff6e7, #cfa877);
+  box-shadow: 0 12px 0 #a87f4f, 0 17px 20px #6b4a1e33;
+}
+.dd-world-app .dd-dress-caption { color: #7a5220; }
+.dd-world-app .dd-stage-rotate { background: #fffaf0; color: #8a5a1e; border: 2px solid #d9bd94; }
+.dd-world-app .dd-dress-tabs button,
+.dd-world-app .dd-item-types button {
+  background: #fff6e4;
+  border: 2px solid #d9bd94;
+  color: #6b4a1e;
+  border-radius: 11px;
+}
+.dd-world-app .dd-dress-tabs button[aria-pressed='true'],
+.dd-world-app .dd-item-types button[aria-pressed='true'] {
+  background: linear-gradient(#ffdf9f, #eebc60);
+  border-color: #a97a2c;
+  color: #4a2c0f;
+  box-shadow: 0 2px 0 #8a5f1c;
+}
+.dd-world-app .dd-item {
+  background: #fffaf0;
+  border: 2px solid #e2cbab;
+  color: #5c421f;
+  border-radius: 12px;
+}
+.dd-world-app .dd-item[aria-pressed='true'] {
+  border-color: #b8862f;
+  box-shadow: 0 0 0 2px #ffe0a1, 0 2px 0 #c79a4e;
+}
+.dd-world-app .dd-item i { background: #c9922f; }
+.dd-world-app .dd-lookbook h3 { color: #4a3018; }
+.dd-world-app .dd-lookbook p { color: #7d5c33; }
+.dd-world-app .dd-text-action { color: #8a5a1e; font-weight: 700; }
+.dd-world-app .dd-dress-actions button {
+  background: linear-gradient(#fff6e4, #eed9b6);
+  color: #5c421f;
+  border: 2px solid #d9bd94;
+  box-shadow: 0 2px 0 #c3a173;
+  border-radius: 12px;
+}
+.dd-world-app .dd-finish-look {
+  background: linear-gradient(#ffdc93, #eab54e 62%, #d79a34);
+  color: #42280c;
+  border: 2px solid #a97a2c;
+  box-shadow: 0 3px 0 #8a5f1c, inset 0 1px 0 #fff6d8;
+  font-weight: 900;
+}
+.dd-world-app .dd-save-status { color: #6b4a1e; }
+.dd-world-app .dd-dress-access summary { color: #6b4a1e; }
+.dd-world-app .dd-wardrobe-fields select { background: #fffaf0; border: 1px solid #d9bd94; color: #4a3320; border-radius: 8px; }
+
+/* 채팅 헤더 인원 계기판: 노란 칸 글씨 대비 확보 */
+.dd-chat-open .dd3-chat .dd-topic-meter {
+  background: #f6e3bd;
+  border: 1px solid #b98a55;
+  min-height: 19px;
+  padding: 0 10px;
+}
+.dd-chat-open .dd3-chat .dd-topic-meter em {
+  color: #3f2a12;
+  font-size: 10.5px;
+  font-weight: 900;
+  text-shadow: none;
+}
+
+/* 닫기(×)·필터 등 흰 배경 위 연한 글씨 보정 */
+.dd-world-app .dd-create-x,
+.dd-world-app .dd-create-meeting .dd-create-x {
+  color: #5c3a18;
+  background: #ffe9c4;
+  border: 1px solid #d9b98b;
+  border-radius: 50%;
+  font-size: 18px;
+  font-weight: 900;
+  min-width: 32px;
+  min-height: 32px;
+}
+.dd-world-app .dd-room-filters button[aria-pressed='true'] {
+  background: #35624f;
+  color: #fffdf4;
+}
+.dd-world-app .dd-room-filters button { color: #4a3320; background: #f5ecd9; }
+
+/* 모바일: 내 집 패널이 화면 밖으로 넘치지 않게 */
+@media (max-width: 760px) {
+  .dd-world-app .dd3-chat.dd-home-panel {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    width: auto;
+    max-height: 62dvh;
+    overflow: auto;
+    border-radius: 18px;
+  }
+  .dd-world-app .dd3-chat.dd-home-panel .dd-home-save { position: sticky; bottom: 0; }
+  .dd-world-app:has(.dd-home-panel) .dd-room-actions { visibility: hidden; }
+}

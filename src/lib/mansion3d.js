@@ -83,6 +83,47 @@ export function createWorld(host,opts){
  // ── 마을 조경: 꽃길·화분·벤치·장미 아치·현수막·야외 테라스·꽃수레 ──
  const FLOWER_SETS=[[0xef7e97,0xffd36e,0xfff2da],[0xab89de,0xf8cbe7,0xfff3de],[0xf9b646,0xef7f65,0xfff5e2],[0x74c9a5,0xffe08a,0xfff7e8],[0x82b4e9,0xf7d3ea,0xfff4e8],[0xe98ab6,0xc6a9ee,0xfff0dc]];
  const TUFT_BLOOMS=[0xfff7ef,0xfae3e7,0xf6ecf7];
+ // 잔디에 바로 피는 꽃밭 팔레트 — 연분홍·크림화이트·라벤더·노랑·살구·로즈
+ const BED_SETS=[[0xf56f9d,0xffc3d8,0xffe9a2],[0xb08ae8,0xe8dcff,0xfff5fb],[0xffb52e,0xffe08a,0xff9a6a],[0xffffff,0xf9c6d8,0xffcf4d],[0xe2558a,0xc9a4ef,0xfff0d6],[0xff8a5c,0xffc9a8,0xfff3df]];
+ const BED_PETAL=new T.SphereGeometry(1,7,5),BED_STEM=new T.CylinderGeometry(1,1,1,6);
+ let lawnPlaced=0;
+ const bedMats=new Map();
+ function bedMaterial(color){if(!bedMats.has(color))bedMats.set(color,new T.MeshStandardMaterial({color,roughness:.62,metalness:0}));return bedMats.get(color)}
+ // 잔디 위에 바로 핀 꽃 한 무더기: 꽃잎 다섯 장과 꽃술이 또렷한 들꽃 + 라벤더 같은 이삭꽃.
+ function flowerBed(cx,cz,count,set,radius=1.4,scale=1,seed=0){
+  const buckets=new Map();
+  const add=(color,geo)=>{const list=buckets.get(color);if(list)list.push(geo);else buckets.set(color,[geo])};
+  let placed=0;
+  for(let i=0;i<count;i++){
+   const a=seed*.7+i*2.399,r=radius*Math.sqrt((i+.35)/count);
+   const x=cx+Math.cos(a)*r,z=cz+Math.sin(a)*r;
+   if(!lawnFree(x,z,.3))continue;
+   const s=1.30*scale*(.86+((seed+i*5)%3)*.12),h=(.17+(i%3)*.05)*s;
+   const stem=BED_STEM.clone();stem.scale(.013*s,h,.013*s);stem.translate(x,h*.5,z);add(0x5fa271,stem);
+   for(const [da,tilt] of [[.7,.55],[-.5,-.6]]){
+    const leaf=BED_PETAL.clone();leaf.scale(.082*s,.016*s,.044*s);leaf.rotateZ(tilt);leaf.translate(x+Math.cos(a+da)*.07*s,h*.58,z+Math.sin(a+da)*.06*s);add(0x6cb87d,leaf);
+   }
+   const color=set[i%set.length],y=h+.02*s;
+   if(i%4===3){
+    // 이삭꽃: 줄기 위에 작은 꽃송이가 층층이
+    for(let k=0;k<5;k++){const bs=(.050-k*.006)*s;const b=BED_PETAL.clone();b.scale(bs,bs*.85,bs);b.translate(x+Math.sin(k*.9+seed)*.014*s,y+.02*s+k*.055*s,z+Math.cos(k*.9+seed)*.014*s);add(color,b)}
+   }else{
+    const headR=.076*s,petal=.070*s;
+    for(let k=0;k<5;k++){
+     const pa=seed*.9+i*1.3+k*Math.PI*2/5;
+     const p=BED_PETAL.clone();p.scale(petal,.017*s,petal*.92);p.translate(x+Math.cos(pa)*headR,y,z+Math.sin(pa)*headR);add(color,p);
+    }
+    const core=BED_PETAL.clone();core.scale(.032*s,.026*s,.032*s);core.translate(x,y+.015*s,z);add(i%5===0?0xf6a75e:0xffcf60,core);
+   }
+   lawnPlaced++;placed++;
+  }
+  for(const [color,list] of buckets){
+   const merged=list.length>1?mergeGeometries(list,false):list[0];
+   if(!merged)continue;
+   const mesh=new T.Mesh(merged,bedMaterial(color));mesh.castShadow=false;mesh.receiveShadow=false;scene.add(mesh);
+  }
+  return placed;
+ }
  function tuft(x,z,set,scale=1){
   const g=group(scene,x,0,z);g.scale.setScalar(scale);
   const base=Math.abs(x*7.3+z*11.7);
@@ -169,6 +210,8 @@ export function createWorld(host,opts){
     tuft(x+nx*spread,z+nz*spread,set,.95+((Math.round(t)+i)%3)*.10);
     if(flip)tuft(x-nx*spread,z-nz*spread,FLOWER_SETS[(index+3)%FLOWER_SETS.length],.95);
     if((Math.round(t)+index*3)%7===0)flowerPot(x+nx*(spread+.45),z+nz*(spread+.45),.9);
+    // 길가 잔디에도 꽃무리 — 걷다 보면 발밑에 꽃이 보이도록
+    if((Math.round(t)+index)%2===0)flowerBed(x+nx*(spread+.55),z+nz*(spread+.55),4,BED_SETS[(index+i)%BED_SETS.length],.62,1.0,Math.round(t*9+i));
    }
   }
  }
@@ -198,16 +241,16 @@ export function createWorld(host,opts){
   }
   return outdoorObstacles.every(([a,b,r])=>Math.hypot(x-a,z-b)>r+margin);
  }
- let lawnPlaced=0;
  function lawnTuft(x,z,set=LAWN_SET[0],scale=1){
   if(!lawnFree(x,z,.35))return false;
   const g=group(scene,x,0,z);g.scale.setScalar(scale);
   const seed=Math.abs(x*3.7+z*5.9);
   for(let i=0;i<3;i++){
    const a=seed+i*2.3,r=.05+(i%2)*.07,top=.18+(i%3)*.06;
-   cyl(g,0x5c9c6e,Math.cos(a)*r,top*.55,Math.sin(a)*r,.013,top);
-   if(i===0)ball(g,set[0],Math.cos(a)*r,top+.02,Math.sin(a)*r,.030,.036,.030);
-   if(i===1)ball(g,0x74b787,Math.cos(a)*r,top*.8,Math.sin(a)*r,.030,.020,.036);
+   cyl(g,0x6aae7b,Math.cos(a)*r,top*.55,Math.sin(a)*r,.013,top);
+   if(i===0)ball(g,set[0],Math.cos(a)*r,top+.02,Math.sin(a)*r,.042,.034,.042);
+   if(i===1)ball(g,0x7cc08c,Math.cos(a)*r,top*.8,Math.sin(a)*r,.034,.022,.040);
+   if(i===2)ball(g,set[1],Math.cos(a)*r,top+.01,Math.sin(a)*r,.034,.028,.034);
   }
   lawnPlaced++;return true;
  }
@@ -291,6 +334,32 @@ export function createWorld(host,opts){
  steppingStones([[-15.8,-27.6],[-16.9,-23.9]]);
  steppingStones([[-17.4,-26.4],[-20.2,-24.6]]);
  steppingStones([[8.0,26.2],[9.2,24.0]]);
+ // ── 잔디 꽃밭: 잔디 위에 바로 피어난 예쁜 꽃무리 (가득 채우지 않고 군데군데) ──
+ // 1) 연못·벤치·피크닉·우체통·표지판 옆 꽃밭
+ flowerBed(-14.6,-29.6,9,BED_SETS[0],1.7,1.12,3);
+ flowerBed(-24.6,-23.0,8,BED_SETS[2],1.5,1.04,7);
+ flowerBed(-12.8,-21.6,7,BED_SETS[3],1.3,1.0,11);
+ flowerBed(8.4,-19.8,8,BED_SETS[1],1.5,1.08,5);
+ flowerBed(6.2,-12.4,6,BED_SETS[4],1.2,1.0,9);
+ flowerBed(10.8,25.4,8,BED_SETS[0],1.5,1.1,13);
+ flowerBed(-8.4,25.6,7,BED_SETS[2],1.4,1.04,17);
+ flowerBed(12.0,10.4,6,BED_SETS[3],1.2,1.0,19);
+ flowerBed(-12.8,9.6,7,BED_SETS[1],1.3,1.05,23);
+ flowerBed(-20.8,25.0,6,BED_SETS[4],1.3,1.0,29);
+ // 2) 광장을 한 바퀴 둘러싼 잔디 테두리 꽃밭(사이사이 여백)
+ for(const [deg,si] of [[12,0],[54,2],[92,1],[130,3],[172,0],[206,4],[244,2],[282,1],[318,5],[350,3]]){
+  const rad=deg*Math.PI/180;flowerBed(Math.cos(rad)*13.6,Math.sin(rad)*13.6,9,BED_SETS[si],1.55,1.06,deg);
+ }
+ // 3) 바깥 잔디 곳곳에 흩뿌린 꽃무리 — 서로 4m 이상 떨어뜨려 여백을 남긴다
+ {let rs=20261127;const rnd=()=>{rs=(rs*1664525+1013904223)>>>0;return rs/4294967296};const beds=[];
+  for(let n=0;n<320&&beds.length<26;n++){
+   const a=rnd()*Math.PI*2,r=15.5+rnd()*17.5,x=Math.cos(a)*r,z=Math.sin(a)*r;
+   if(!lawnFree(x,z,2.1))continue;
+   if(beds.some(([bx,bz])=>Math.hypot(x-bx,z-bz)<4.2))continue;
+   beds.push([x,z,rnd()]);
+  }
+  for(const [i,[x,z,q]] of beds.entries())flowerBed(x,z,7+Math.round(q*5),BED_SETS[i%BED_SETS.length],1.4+q*1.0,1.02,Math.round(x*11+z*5+i*7));
+ }
  // 광장을 둘러싼 잔디에 들꽃 군락을 드문드문 (한 바퀴를 다 채우지 않는다)
  for(const [a,r,count,si] of [[18,12.6,7,0],[62,13.4,6,1],[105,12.2,5,2],[158,13.0,6,3],[214,12.8,5,0],[268,12.4,6,1],[312,13.2,5,2],[344,12.9,4,3]]){
   const rad=a*Math.PI/180;meadow(Math.cos(rad)*r,Math.sin(rad)*r,1.7,count,LAWN_SET[si]);
@@ -520,7 +589,10 @@ export function createWorld(host,opts){
  install(room,'season-chair',g=>chair(g,0,0,palette.red))
  install(room,'season-photo',g=>{box(g,0x687f70,0,1.04,.28,1.15,1.95,.09);for(let j=0;j<5;j++)ball(g,j%2?palette.brass:palette.cream,-.42+j*.21,1.81,.18,.055,.055,.055);gift(g,-.37,.07);gift(g,.37,.08)})
  }
- const own=rooms.get('home');let homeRoom=null,homeWall=[],homeSlot=null,homePet=null,homeConfig=null,homeFloor=null,homeRug=null,homeLamp=null,homeDecor=null,homeEditing=false;function setHomeEditing(v){homeEditing=!!v}
+ const own=rooms.get('home');let homeRoom=null,homeWall=[],homeSlot=null,homePet=null,homeConfig=null,homeFloor=null,homeRug=null,homeLamp=null,homeDecor=null,homeEditing=false,homeSelected=null,homeRing=null;
+ function setHomeEditing(v){homeEditing=!!v;if(!homeEditing){homeSelected=null;if(homeRing)homeRing.visible=false}}
+ function setHomeSelected(id){homeSelected=id||null;if(!homeRoom)return;if(!homeRing){homeRing=new T.Mesh(new T.RingGeometry(.42,.56,40),new T.MeshBasicMaterial({color:0xffc83e,transparent:true,opacity:.9,side:T.DoubleSide,depthWrite:false}));homeRing.rotation.x=-Math.PI/2;homeRing.position.y=.145;homeRoom.add(homeRing)}
+  if(!homeSelected){homeRing.visible=false;return}const info=propInfo.get(homeSelected);if(!info||info.g.parent!==homeSlot){homeRing.visible=false;return}const [bx,bz]=info.def.bounds||[.5,.5];homeRing.scale.set(Math.max(1,bx*1.15),Math.max(1,bz*1.15),1);homeRing.position.set(info.def.position[0],.145,info.def.position[2]);homeRing.visible=true;canvas.dataset.homeSelected=homeSelected}
  if(own){homeRoom=group(scene,own.x,0,own.inside);homeRoom.rotation.y=own.parent.rotation.y;homeRoom.userData.roomRoot='home';homeRoom.visible=false;largeRooms.set('home',homeRoom);
  homeFloor=box(homeRoom,0xe8b98a,0,-.025,0,10.6,.24,9.8);homeFloor.userData.dynamic=true;for(let x=-5.0;x<5.1;x+=.5)box(homeRoom,0xc89974,x,.10,0,.023,.013,9.6);
  for(const x of [-5.22,5.22]){const wall=box(homeRoom,0xf3dfc8,x,1.05,0,.16,2.1,9.7);wall.userData.dynamic=true;homeWall.push(wall);box(homeRoom,0xfff5de,x,2.10,0,.24,.1,9.7)}
@@ -534,7 +606,7 @@ export function createWorld(host,opts){
  install(homeRoom,'home-decor',g=>{box(g,0xe3b07e,0,.52,0,1.2,1.04,.45);box(g,0xffe7bb,0,1.08,0,1.25,.12,.52);for(let j=0;j<4;j++)box(g,FESTIVAL_COLORS[(j+3)%9],-.42+j*.28,1.27,0,.18,.27,.19)});
  homeSlot=group(homeRoom,-3.4,0,-.2);homeSlot.userData.dynamic=true;homePet=group(homeRoom,.4,0,2.5);homePet.userData.dynamic=true;
  }
- function setHome(config){if(!homeRoom||!config)return;homeConfig={...config};const wall=/^#[0-9a-f]{6}$/i.test(config.wallpaper)?config.wallpaper:'#f3dfc8';for(const mesh of homeWall)mesh.material=material(wall);if(homeFloor)homeFloor.material=material(config.floor||'#e8b98a');if(homeRug)homeRug.material=material(config.rug||'#efb5cf');if(homeLamp)homeLamp.visible=config.lamp!==false;homeSlot.position.set(0,0,0);homeSlot.rotation.y=0;homeDecor?.clear();if(homeDecor&&config.accessory!=='없음'){cyl(homeDecor,0xe9b888,0,.30,0,.20,.60);if(config.accessory==='🌷'){for(let n=0;n<5;n++){cyl(homeDecor,0x4c9d71,Math.sin(n*2)*.14,.81,Math.cos(n*2)*.14,.025,.47);ball(homeDecor,FESTIVAL_COLORS[n],Math.sin(n*2)*.14,1.07,Math.cos(n*2)*.14,.12,.14,.11)}}else{ball(homeDecor,0xe8a7c7,0,.71,0,.25,.12,.22);ball(homeDecor,0xd6a3e4,0,.83,0,.17,.17,.16)}}if(seated?.def.room==='home'&&seated.g.parent===homeSlot)stand();for(const [id,item] of propInfo)if(item.g.parent===homeSlot)propInfo.delete(id);homeSlot.clear();for(const v of config.items||[]){const g=group(homeSlot,v.x,0,v.z);g.userData.dynamic=true;g.userData.prop=v.id;g.rotation.y=v.rotation*Math.PI/180;furniture.build(g,v.kind,v.color);const lying=['🛏️','daybed'].includes(v.kind),sitting=['🛋️','🪑','loveseat','pouf'].includes(v.kind),rot=g.rotation.y,ww=lying?.75:sitting?.95:.75,zz=lying?1.03:.55;const dx=Math.sin(rot)*-1.25,dz=Math.cos(rot)*-1.25;const def={id:v.id,room:'home',name:lying?'침대에 눕기':sitting?'가구에 앉기':'가구 보기',position:[v.x,0,v.z],approach:[v.x+dx,0,v.z+dz],rotation:rot,seat:[v.x,0,v.z],seatHeight:lying?.72:v.kind==='pouf'?.48:.52,interaction:lying?'lie':sitting?'sit':'approach-and-read',bounds:v.rotation%180?[zz,ww]:[ww,zz]};propInfo.set(v.id,{id:v.id,g,def,parent:homeRoom,message:lying?'침대에 누웠어요.':sitting?'편하게 앉았어요.':'가구를 살펴봤어요.'})}canvas.dataset.homeItems=String(homeSlot.children.length);homePet.clear();if(config.pet!=='없음'){const pet=group(homePet);const color=config.pet==='🐈'?0xe7b26d:config.pet==='🐕'?0xb88867:config.pet==='🐇'?0xf7e9e4:0xeab682;ball(pet,color,0,.22,0,.24,.24,.31);ball(pet,color,0,.46,.12,.23,.22,.21);for(const x of [-.13,.13]){ball(pet,color,x,.64,.12,.09,config.pet==='🐇'?.20:.11,.08);ball(pet,0x493352,x*.65,.47,.31,.032,.038,.023)}ball(pet,0xd59a9e,0,.40,.32,.045,.027,.025)}if(typeof canvas!=='undefined')canvas.dataset.homeConfig=JSON.stringify(homeConfig)}
+ function setHome(config){if(!homeRoom||!config)return;homeConfig={...config};const wall=/^#[0-9a-f]{6}$/i.test(config.wallpaper)?config.wallpaper:'#f3dfc8';for(const mesh of homeWall)mesh.material=material(wall);if(homeFloor)homeFloor.material=material(config.floor||'#e8b98a');if(homeRug)homeRug.material=material(config.rug||'#efb5cf');if(homeLamp)homeLamp.visible=config.lamp!==false;homeSlot.position.set(0,0,0);homeSlot.rotation.y=0;homeDecor?.clear();if(homeDecor&&config.accessory!=='없음'){cyl(homeDecor,0xe9b888,0,.30,0,.20,.60);if(config.accessory==='🌷'){for(let n=0;n<5;n++){cyl(homeDecor,0x4c9d71,Math.sin(n*2)*.14,.81,Math.cos(n*2)*.14,.025,.47);ball(homeDecor,FESTIVAL_COLORS[n],Math.sin(n*2)*.14,1.07,Math.cos(n*2)*.14,.12,.14,.11)}}else{ball(homeDecor,0xe8a7c7,0,.71,0,.25,.12,.22);ball(homeDecor,0xd6a3e4,0,.83,0,.17,.17,.16)}}if(seated?.def.room==='home'&&seated.g.parent===homeSlot)stand();for(const [id,item] of propInfo)if(item.g.parent===homeSlot)propInfo.delete(id);homeSlot.clear();for(const v of config.items||[]){const g=group(homeSlot,v.x,0,v.z);g.userData.dynamic=true;g.userData.prop=v.id;g.rotation.y=v.rotation*Math.PI/180;furniture.build(g,v.kind,v.color);const lying=['🛏️','daybed'].includes(v.kind),sitting=['🛋️','🪑','loveseat','pouf'].includes(v.kind),rot=g.rotation.y,ww=lying?.75:sitting?.95:.75,zz=lying?1.03:.55;const dx=Math.sin(rot)*-1.25,dz=Math.cos(rot)*-1.25;const def={id:v.id,room:'home',name:lying?'침대에 눕기':sitting?'가구에 앉기':'가구 보기',position:[v.x,0,v.z],approach:[v.x+dx,0,v.z+dz],rotation:rot,seat:[v.x,0,v.z],seatHeight:lying?.72:v.kind==='pouf'?.48:.52,interaction:lying?'lie':sitting?'sit':'approach-and-read',bounds:v.rotation%180?[zz,ww]:[ww,zz]};propInfo.set(v.id,{id:v.id,g,def,parent:homeRoom,message:lying?'침대에 누웠어요.':sitting?'편하게 앉았어요.':'가구를 살펴봤어요.'})}canvas.dataset.homeItems=String(homeSlot.children.length);homePet.clear();if(config.pet!=='없음'){const pet=group(homePet);const color=config.pet==='🐈'?0xe7b26d:config.pet==='🐕'?0xb88867:config.pet==='🐇'?0xf7e9e4:0xeab682;ball(pet,color,0,.22,0,.24,.24,.31);ball(pet,color,0,.46,.12,.23,.22,.21);for(const x of [-.13,.13]){ball(pet,color,x,.64,.12,.09,config.pet==='🐇'?.20:.11,.08);ball(pet,0x493352,x*.65,.47,.31,.032,.038,.023)}ball(pet,0xd59a9e,0,.40,.32,.045,.027,.025)}if(homeSelected)setHomeSelected(homeSelected);else if(homeRing)homeRing.visible=false;if(typeof canvas!=='undefined')canvas.dataset.homeConfig=JSON.stringify(homeConfig)}
  const festive=group(scene);festive.userData.dynamic=true;festive.userData.outdoorDecoration=true;
  function garland(p,x,y,z){for(let i=0;i<9;i++){const dx=(i-4)*.18;ball(p,0x52705a,x+dx,y-.09*Math.sin(i*Math.PI/8),z,.13,.09,.10);if(i%2===0)ball(p,0xa85355,x+dx,y-.05,z+.07,.045,.045,.045)}ball(p,palette.brass,x,y-.14,z+.1,.08,.1,.06)}
  const hallDecor=group(festive,0,0,0);garland(hallDecor,0,2.65,-1.6);garland(hallDecor,0,2.65,1.6);for(let i=0;i<13;i++){const x=-2.5+i*.42;for(const z of [-1.65,1.65])ball(hallDecor,FESTIVAL_COLORS[i%9],x,2.48-.22*Math.sin(i*Math.PI/12),z,.095,.095,.095)}
@@ -586,7 +658,7 @@ export function createWorld(host,opts){
  function zoomBy(a){if(overview){overview=false;zoom=2.8}zoom=clamp(zoom+a,.50,4.0)}
  const pointers=new Map();let pinch=null;function pointerDown(e){pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});renderer.domElement.setPointerCapture?.(e.pointerId);if(pointers.size===2){const [a,b]=[...pointers.values()];pinch={distance:Math.max(1,Math.hypot(a.x-b.x,a.y-b.y)),zoom};overview=false;drag=null;return}if(pointers.size===1)drag={x:e.clientX,y:e.clientY,a:angle}}
  function pointerMove(e){if(pointers.has(e.pointerId))pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pinch&&pointers.size===2){const [a,b]=[...pointers.values()];zoom=clamp(pinch.zoom*pinch.distance/Math.max(1,Math.hypot(a.x-b.x,a.y-b.y)),.50,4);return}if(!drag)return;if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>6)drag.moved=true;if(drag.moved){if(e.shiftKey||(e.buttons&2)!==0){angle=drag.a-(e.clientX-drag.x)*.012;return}drag.dx=e.clientX-drag.x;drag.dz=e.clientY-drag.y}}
- function pointerUp(e){pointers.delete(e.pointerId);if(pinch){if(!pointers.size)pinch=null;drag=null;return}if(!drag)return;const d=drag;drag=null;if(d.moved||Math.hypot(e.clientX-d.x,e.clientY-d.y)>9){if(!busy)target=null;return}if(busy)return;if(Date.now()-(window.__ddSwallowTap||0)<900){window.__ddSwallowTap=0;return}const rect=renderer.domElement.getBoundingClientRect();ray.setFromCamera(new T.Vector2((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1),camera);const shown=o=>{for(let p=o.parent;p;p=p.parent)if(!p.visible)return false;return true};const targets=[...residentTargets.filter(({id,npc})=>shown(npc.g)&&(active===id||active==='plaza'&&id.startsWith('plaza')||!active&&id.startsWith('plaza'))).map(v=>v.npc.g),...hit.filter(o=>(!active||active==='plaza'||o.userData.room===active)&&shown(o)),...interactiveProps.filter(o=>o.visible&&propInfo.get(o.userData.prop)?.def.room===(active||'hall')&&shown(o)),...[...propInfo.values()].filter(o=>(o.def.room===(active||'hall')||(!active&&o.def.room==='plaza')||(active==='plaza'&&o.def.id==='hub-bell'))&&shown(o.g)).map(o=>o.g)];const h=ray.intersectObjects(targets,true).find(v=>v.object.visible&&shown(v.object)||v.object.userData.room&&shown(v.object));if(h){let obj=h.object;while(obj&&!obj.userData.prop&&!obj.userData.room&&!obj.userData.resident)obj=obj.parent;if(obj?.userData.resident){if(active&&opts.access?.(active)==='locked'){status('이 공간은 구경만 가능해요.');return}const id=obj.userData.resident;canvas.dataset.residentSelected=id;opts.onResident?.(id);return}if(obj?.userData.prop){canvas.dataset.clickedProp=obj.userData.prop;if(active==='home'&&homeEditing&&propInfo.get(obj.userData.prop)?.g.parent===homeSlot){opts.onMenu?.('home-select:'+obj.userData.prop);return}if(seated?.def.id===obj.userData.prop){stand();return}interact(obj.userData.prop);return}if(obj?.userData.room){visit(obj.userData.room);return}}if(ray.ray.intersectPlane(ground,point)){if(active&&active!=='plaza'){const r=rooms.get(active);if(r){const hx=(active==='season'?7:active==='home'?4.85:2.35*r.w)+.6,hz=(active==='season'?6.8:active==='home'?4.4:2.55)+.6;if(Date.now()-(window.__ddSwallowTap||0)<900)return;if(Math.abs(point.x-r.x)>hx||Math.abs(point.z-r.inside)>hz){exit();return}}}walk(point.x,point.z)}}
+ function pointerUp(e){pointers.delete(e.pointerId);if(pinch){if(!pointers.size)pinch=null;drag=null;return}if(!drag)return;const d=drag;drag=null;if(d.moved||Math.hypot(e.clientX-d.x,e.clientY-d.y)>9){if(!busy)target=null;return}if(busy)return;if(Date.now()-(window.__ddSwallowTap||0)<900){window.__ddSwallowTap=0;return}const rect=renderer.domElement.getBoundingClientRect();ray.setFromCamera(new T.Vector2((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1),camera);const shown=o=>{for(let p=o.parent;p;p=p.parent)if(!p.visible)return false;return true};const targets=[...residentTargets.filter(({id,npc})=>shown(npc.g)&&(active===id||active==='plaza'&&id.startsWith('plaza')||!active&&id.startsWith('plaza'))).map(v=>v.npc.g),...hit.filter(o=>(!active||active==='plaza'||o.userData.room===active)&&shown(o)),...interactiveProps.filter(o=>o.visible&&propInfo.get(o.userData.prop)?.def.room===(active||'hall')&&shown(o)),...[...propInfo.values()].filter(o=>(o.def.room===(active||'hall')||(!active&&o.def.room==='plaza')||(active==='plaza'&&o.def.id==='hub-bell'))&&shown(o.g)).map(o=>o.g)];const h=ray.intersectObjects(targets,true).find(v=>v.object.visible&&shown(v.object)||v.object.userData.room&&shown(v.object));if(h){let obj=h.object;while(obj&&!obj.userData.prop&&!obj.userData.room&&!obj.userData.resident)obj=obj.parent;if(obj?.userData.resident){if(active&&opts.access?.(active)==='locked'){status('이 공간은 구경만 가능해요.');return}const id=obj.userData.resident;canvas.dataset.residentSelected=id;opts.onResident?.(id);return}if(obj?.userData.prop){canvas.dataset.clickedProp=obj.userData.prop;if(active==='home'&&homeEditing&&propInfo.get(obj.userData.prop)?.g.parent===homeSlot){opts.onMenu?.('home-select:'+obj.userData.prop);return}if(seated?.def.id===obj.userData.prop){stand();return}interact(obj.userData.prop);return}if(obj?.userData.room){visit(obj.userData.room);return}}if(ray.ray.intersectPlane(ground,point)){if(active==='home'&&homeEditing&&homeSelected&&homeRoom){const local=homeRoom.worldToLocal(point.clone());canvas.dataset.homeMove=local.x.toFixed(2)+','+local.z.toFixed(2);opts.onMenu?.('home-move:'+local.x.toFixed(2)+','+local.z.toFixed(2));return}if(active&&active!=='plaza'){const r=rooms.get(active);if(r){const hx=(active==='season'?7:active==='home'?4.85:2.35*r.w)+.6,hz=(active==='season'?6.8:active==='home'?4.4:2.55)+.6;if(Date.now()-(window.__ddSwallowTap||0)<900)return;if(Math.abs(point.x-r.x)>hx||Math.abs(point.z-r.inside)>hz){exit();return}}}walk(point.x,point.z)}}
  function key(e){const dirs={ArrowLeft:[-1,0],a:[-1,0],ArrowRight:[1,0],d:[1,0],ArrowUp:[0,-1],w:[0,-1],ArrowDown:[0,1],s:[0,1]};if(dirs[e.key]){e.preventDefault();move(...dirs[e.key])}else if(e.key==='q'||e.key==='e'){e.preventDefault();orbit(e.key==='q'?-.55:.55)}}
  const canvas=renderer.domElement;canvas.addEventListener('pointerdown',pointerDown);canvas.addEventListener('pointermove',pointerMove);canvas.addEventListener('pointerup',pointerUp);canvas.addEventListener('pointercancel',e=>{pointers.delete(e.pointerId);pinch=null;drag=null});canvas.addEventListener('keydown',key);canvas.addEventListener('wheel',e=>{e.preventDefault();zoomBy(Math.sign(e.deltaY)*.12)},{passive:false})
  function resize(){const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);const ratio=Math.min(window.devicePixelRatio||1,w<600?1:1.5);if(renderer.getPixelRatio()!==ratio)renderer.setPixelRatio(ratio);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
@@ -613,5 +685,5 @@ export function createWorld(host,opts){
   canvas.dataset.view=active&&active!=='plaza'?'interior':'town';canvas.dataset.roofs=roofsOpen?'open':'closed';canvas.dataset.overview=String(overview&&!active);canvas.dataset.zoom=zoom.toFixed(2);canvas.dataset.roomSeats=active==='season'?'20':'0';canvas.dataset.roomArea=active==='season'?'230.88':active==='home'?'103.88':'34.965';canvas.dataset.layout='town-plaza-v2';canvas.dataset.plazaDiameter='21.7';canvas.dataset.townSize='74x72';canvas.dataset.pose=seated?(seated.def.interaction==='lie'?'lying':'seated'):'standing';canvas.dataset.position=p.x.toFixed(2)+','+p.z.toFixed(2);canvas.dataset.room=active||'hall';canvas.dataset.roomMode=active&&opts.access?.(active)==='locked'?'preview':'open';canvas.dataset.camera=angle.toFixed(2);canvas.dataset.avatarMode='3d-model';canvas.dataset.avatarKey=player.key;canvas.dataset.avatarLook=JSON.stringify(currentLook||{});canvas.dataset.npcCount=String(residentSprites.length);canvas.dataset.npcMoving=String(npcMoving);canvas.dataset.interactiveProps=String(propInfo.size);renderer.render(scene,camera);const bellTarget=propInfo.get('hub-bell');if(bellTarget&&(!active||active==='plaza')){const v=bellTarget.g.localToWorld(new T.Vector3(0,1.9,0)).project(camera);canvas.dataset.bellPoint=JSON.stringify([(v.x+1)/2,(1-v.y)/2])}else delete canvas.dataset.bellPoint;if(active==='home'){const seat=propInfo.get('home-sofa');if(seat){const v=seat.g.localToWorld(new T.Vector3(0,.65,0)).project(camera);canvas.dataset.sofaPoint=JSON.stringify([(v.x+1)/2,(1-v.y)/2])}}else delete canvas.dataset.sofaPoint;frame=requestAnimationFrame(tick)
  }
  frame=requestAnimationFrame(tick)
- return {setPaused(v){paused=!!v;if(!paused)last=performance.now()},visit,enterDirect,exit,returnHub,capture,interact,stand,releaseItem,move,orbit,zoom:zoomBy,setOverview,setRoofs,setHome,setHomeEditing,setAvatar,setNight,setTime,setFestive,dispose(){disposed=true;cancelAnimationFrame(frame);ro.disconnect();spriteFactory.dispose();for(const m of mat.values())m.dispose();for(const g of geo.values())g.dispose();for(const g of merged)g.dispose();for(const g of festiveMerged)g.dispose();for(const s of labels){s.material.map?.dispose();s.material.dispose()}furniture.dispose();sky.dispose();renderer.dispose();canvas.remove()}}
+ return {setPaused(v){paused=!!v;if(!paused)last=performance.now()},visit,enterDirect,exit,returnHub,capture,interact,stand,releaseItem,move,orbit,zoom:zoomBy,setOverview,setRoofs,setHome,setHomeEditing,setHomeSelected,setAvatar,setNight,setTime,setFestive,dispose(){disposed=true;cancelAnimationFrame(frame);ro.disconnect();spriteFactory.dispose();for(const m of mat.values())m.dispose();for(const g of geo.values())g.dispose();for(const g of merged)g.dispose();for(const g of festiveMerged)g.dispose();for(const s of labels){s.material.map?.dispose();s.material.dispose()}furniture.dispose();sky.dispose();renderer.dispose();canvas.remove()}}
 }
