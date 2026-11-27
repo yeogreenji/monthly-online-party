@@ -6,7 +6,7 @@
 -- 1. 사용자 모임 ---------------------------------------------------------
 create table if not exists public.topics (
   id uuid primary key,
-  space_id text not null check (space_id in ('season','jazz','cafe','travel','women','men','single','games','hobby','cinema','home','plaza')),
+  space_id text not null check (space_id ~ '^[a-z][a-z0-9-]{1,31}$'), -- 공간이 늘어도 SQL을 고치지 않도록 형식만 검사(앱의 공간 id와 일치)
   creator_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   title text not null check (char_length(btrim(title)) between 1 and 60),
   description text not null default '' check (char_length(description) <= 300),
@@ -25,6 +25,9 @@ create table if not exists public.topics (
     and (title || description) !~ '(.)\1{11,}'
   )
 );
+-- 이미 이전 버전을 실행한 프로젝트용: 공간 id 고정 목록 제약을 형식 검사로 교체
+alter table public.topics drop constraint if exists topics_space_id_check;
+alter table public.topics add constraint topics_space_id_check check (space_id ~ '^[a-z][a-z0-9-]{1,31}$');
 create index if not exists topics_space_created_idx on public.topics (space_id, created_at desc);
 create index if not exists topics_creator_idx on public.topics (creator_id);
 alter table public.topics enable row level security;

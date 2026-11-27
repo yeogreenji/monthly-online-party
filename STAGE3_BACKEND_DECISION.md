@@ -51,3 +51,5 @@
 - SQL Editor에서 `supabase/003_topics_admin.sql` 실행(002는 선택, 003은 schema.sql 이후 언제든).
 - 운영자 지정: 같은 SQL Editor에서 `insert into public.admins (user_id) select id from auth.users where email = '본인 이메일';` 한 번 실행. 이후 해당 계정으로 로그인하면 채팅 설정 안에 신고 확인 패널이 나타난다.
 - 한계: 모임을 만든 사람이 직접 지우는 화면은 아직 없다(DB에서 본인·운영자 삭제는 가능).
+
+- 2026-11-27 수정: 독립 덕질 공간(fandom) 등 새 공간에서 모임 저장이 막히지 않도록 `topics.space_id`를 고정 목록 대신 형식 검사로 바꿨다. 이미 003을 실행했다면 같은 파일을 다시 실행하면 적용된다.
