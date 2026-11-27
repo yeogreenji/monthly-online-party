@@ -1,5 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { GAMES, GAME_BY_ID, type GameId } from '../../data/minigames'
+import { MultiTable } from './MultiTable'
+import type { PartyPlayer } from '../../lib/partyGame'
 import {
   BalanceBoard, BingoBoard, DiceBoard, PictureBoard, QuizBoard, RiddleBoard, RouletteBoard, TicTacToeBoard, TwentyBoard, WordBoard,
 } from './boards'
@@ -10,11 +12,16 @@ export type GameStageProps = {
   onClose: () => void
   /** 게임을 열어 준 공간 이름 (예: 게임 라운지) */
   roomLabel?: string
+  /** 같은 방(모임) id — 있으면 참여자끼리 함께 플레이할 수 있다. */
+  topicId?: string | null
+  me?: PartyPlayer | null
+  players?: PartyPlayer[]
 }
 
 /** 3D 방 위에 놓인 게임 탁자. 바깥 3D 월드는 그대로 살아 있고, 탁자와 소품만 입체로 얹힌다. */
-export function GameStage({ game, onChange, onClose, roomLabel = '게임 라운지' }: GameStageProps) {
+export function GameStage({ game, onChange, onClose, roomLabel = '게임 라운지', topicId = null, me = null, players = [] }: GameStageProps) {
   const meta = GAME_BY_ID[game]
+  const [mode, setMode] = useState<'solo' | 'multi'>(players.length >= 2 ? 'multi' : 'solo')
   const shell = useRef<HTMLDivElement>(null)
   const closeRef = useRef<HTMLButtonElement>(null)
 
@@ -54,6 +61,10 @@ export function GameStage({ game, onChange, onClose, roomLabel = '게임 라운�
           <h2><span aria-hidden="true">{meta.icon}</span> {meta.title}</h2>
         </div>
         <div className="ddg-head-tools">
+          <span className="ddg-mode-switch" role="group" aria-label="플레이 방식">
+            <button type="button" aria-pressed={mode === 'solo'} onClick={() => setMode('solo')}>혼자 놀기</button>
+            <button type="button" aria-pressed={mode === 'multi'} onClick={() => setMode('multi')}>함께 놀기{players.length ? ` ${players.length}` : ''}</button>
+          </span>
           <span className="ddg-tag">{meta.tag}</span>
           <button type="button" className="ddg-x" onClick={onClose} ref={closeRef} aria-label="게임 탁자 닫기">닫기</button>
         </div>
@@ -61,7 +72,7 @@ export function GameStage({ game, onChange, onClose, roomLabel = '게임 라운�
 
       <div className="ddg-table">
         <div className="ddg-felt">
-          <div className="ddg-board">{board}</div>
+          <div className="ddg-board">{mode === 'multi' ? <MultiTable game={game} topicId={topicId} me={me} players={players}/> : board}</div>
           <div className="ddg-table-corner" aria-hidden="true"><i /><i /><i /></div>
         </div>
       </div>
