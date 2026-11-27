@@ -75,32 +75,27 @@ export type FriendSpace = {
 /** 친구(또는 전체 공개) 집을 연다. 공개 범위가 막으면 null. */
 export async function loadFriendSpace(userId: string): Promise<FriendSpace | null> {
   if (!supabase) return null
-  const { data, error } = await supabase
-    .from('user_spaces')
-    .select('user_id,look,home,minihome,visibility,profiles!inner(nickname,status)')
-    .eq('user_id', userId)
-    .maybeSingle()
-  if (!error && data) {
-    const row = data as unknown as {
-      user_id: string; look: Partial<Look>; home: Partial<HomeDecor>; minihome: Partial<MiniHome>
-      visibility: FriendSpace['visibility']; profiles: { nickname: string; status: FriendSpace['status'] } | { nickname: string; status: FriendSpace['status'] }[]
-    }
-    const p = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles
-    return {
-      userId: row.user_id,
-      nickname: p?.nickname ?? '이웃',
-      look: row.look ?? {},
-      home: row.home ?? {},
-      minihome: { ...MINIHOME_DEFAULT, ...(row.minihome ?? {}) },
-      visibility: row.visibility ?? 'private',
-      status: p?.status ?? 'online',
-    }
-  }
-  // user_spaces 행이 아직 없는 계정(가입만 한 상태)은 프로필만으로 연다.
-  const { data: prof } = await supabase.from('profiles').select('id,nickname,status').eq('id', userId).maybeSingle()
+  // user_spaces와 profiles 는 auth.users 를 통해서만 이어져 있어 조인 대신 두 번 읽는다.
+  const [{ data: spaceRow }, { data: prof }] = await Promise.all([
+    supabase.from('user_spaces').select('user_id,look,home,minihome,visibility').eq('user_id', userId).maybeSingle(),
+    supabase.from('profiles').select('id,nickname,status').eq('id', userId).maybeSingle(),
+  ])
   if (!prof) return null
   const p = prof as { id: string; nickname: string; status: FriendSpace['status'] }
-  return { userId: p.id, nickname: p.nickname, look: {}, home: {}, minihome: { ...MINIHOME_DEFAULT }, visibility: 'private', status: p.status ?? 'online' }
+  if (!spaceRow) {
+    // 아직 자기 집을 저장한 적 없는 계정: 프로필만 있는 '빈 집'
+    return { userId: p.id, nickname: p.nickname, look: {}, home: {}, minihome: { ...MINIHOME_DEFAULT }, visibility: 'private', status: p.status ?? 'online' }
+  }
+  const row = spaceRow as { user_id: string; look: Partial<Look>; home: Partial<HomeDecor>; minihome: Partial<MiniHome>; visibility: FriendSpace['visibility'] }
+  return {
+    userId: row.user_id,
+    nickname: p.nickname,
+    look: row.look ?? {},
+    home: row.home ?? {},
+    minihome: { ...MINIHOME_DEFAULT, ...(row.minihome ?? {}) },
+    visibility: row.visibility ?? 'private',
+    status: p.status ?? 'online',
+  }
 }
 
 export async function setMyStatus(status: 'online' | 'away' | 'dnd'): Promise<boolean> {

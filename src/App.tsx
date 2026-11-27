@@ -315,7 +315,7 @@ const pendingNotes = notes.incoming.filter((item) => item.status === 'pending').
         onNavigate={navigate}
         onEditProfile={() => setEditing(true)}
         onToggleNight={() => setNight((prev) => !prev)}
-        onOpenNotes={() => toast('친구·쪽지는 실제 계정과 안전 확인 후 제공됩니다.')}
+        onOpenNotes={() => toast('친구·쪽지는 마을의 친구 버튼에서 이용할 수 있어요. 서로 수락한 친구와만 대화가 열립니다.')}
       />
 
       {(view === 'home' || !COMMERCIAL_PREVIEW) ? (

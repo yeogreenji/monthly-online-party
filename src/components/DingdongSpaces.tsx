@@ -180,7 +180,6 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   const mySpaceView=useMemo<MySpace>(()=>({look,outfits:[],home,minihome:mini,visibility:home.visibility}),[look,home,mini])
   // 로그인하면 계정에 저장된 캐릭터·옷장·미니룸·미니홈피를 이 기기로 가져온다(없으면 지금 모습을 올린다).
   const spaceLoadedFor=useRef<string|null>(null)
-  const saveTimer=useRef<number|null>(null)
   function changeMySpace(patch:Partial<MySpace>){
     if(patch.home)setHome(normalizeHome({...home,...patch.home}))
     if(patch.minihome)setMini(patch.minihome)
@@ -196,6 +195,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   async function openFriendHome(userId:string){
     const space=await loadFriendSpace(userId)
     if(!space){setNotice('이 집은 아직 비공개예요. 친구가 되면 놀러 갈 수 있어요.');return}
+    if(space.visibility==='private'){setNotice(`${space.nickname}님의 미니홈피는 비공개예요. 공개 범위를 '친구 공개'로 바꾸면 놀러 갈 수 있어요.`);return}
     closePanels();setChatCollapsed(true);setVisiting(space);setBellText('딩동! 친구가 놀러 왔어요.')
   }
   async function inviteFriend(friend:FriendEntry){
@@ -216,15 +216,23 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
     void setMyStatus(myStatus)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[online,authUser?.id])
+  // 저장은 2.5초마다 '바뀐 게 있을 때만' 보낸다. look/home은 매 렌더 새 객체라
+  // 의존성 배열로 묶으면 타이머가 계속 취소되어 저장이 누락된다(2026-11-27 실제 확인).
+  const latestSpace=useRef({look,home,mini,visibility:home.visibility})
+  latestSpace.current={look,home,mini,visibility:home.visibility}
+  const spaceDirty=useRef(true)
+  useEffect(()=>{spaceDirty.current=true},[look,storedHome,mini])
   useEffect(()=>{
-    if(!online||!authUser||spaceLoadedFor.current!==authUser.id)return
-    if(saveTimer.current)window.clearTimeout(saveTimer.current)
-    saveTimer.current=window.setTimeout(()=>{
-      void saveMySpace({look,home,minihome:mini,visibility:home.visibility,outfits:loadJSON<{id:string;look:Look}[]>('dd.outfits.v1',[])})
-    },1200)
-    return ()=>{if(saveTimer.current)window.clearTimeout(saveTimer.current)}
+    if(!online||!authUser)return
+    const timer=window.setInterval(()=>{
+      if(!spaceDirty.current||spaceLoadedFor.current!==authUser.id)return
+      spaceDirty.current=false
+      const p=latestSpace.current
+      void saveMySpace({look:p.look,home:p.home,minihome:p.mini,visibility:p.visibility,outfits:loadJSON<{id:string;look:Look}[]>('dd.outfits.v1',[])}).then(ok=>{if(!ok)spaceDirty.current=true})
+    },2500)
+    return ()=>window.clearInterval(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[online,authUser?.id,look,storedHome,mini,home.visibility])
+  },[online,authUser?.id])
   useEffect(()=>{
     if(!online)return
     return subscribeBells(e=>{setBellText(e.text);window.setTimeout(()=>setBellText(''),5000)})
@@ -397,7 +405,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
       {bellText&&<p className="dd-bell-banner" role="status"><Bell size={15}/>{bellText}</p>}
       {homeFeedback&&<div role="status" className="dd-save-toast">{homeFeedback}</div>}
       {space?.id==='games'&&access(space.id)==='open'&&!game&&<button type="button" className="ddg-float-launch" aria-label="게임 탁자 열기" onClick={()=>openGame()}><span aria-hidden="true">🎲</span><small>게임 탁자<em>{GAMES.length}가지</em></small></button>}
-      {space?.id==='home'&&<div className="dd-home-actions"><button onClick={()=>{closePanels();setChatCollapsed(false)}}><Paintbrush size={19}/>집 꾸미기 열기</button><button onClick={()=>showPanel('wardrobe')}><Shirt size={19}/>옷장</button><button onClick={()=>showPanel('minihome')}><Sparkles size={19}/>미니홈피</button><button onClick={onEditProfile}><UserRound size={19}/>프로필</button><button onClick={()=>showPanel('mail')}><Mail size={19}/>우편함<NoteBadge count={inboxBadge}/></button></div>}
+      {space?.id==='home'&&<div className="dd-home-actions"><button onClick={()=>{closePanels();setChatCollapsed(false)}}><Paintbrush size={19}/>집 꾸미기 열기</button><button onClick={()=>showPanel('wardrobe')}><Shirt size={19}/>옷장</button><button onClick={()=>showPanel('minihome')}><Sparkles size={19}/>미니홈피</button><button onClick={onEditProfile}><UserRound size={19}/>프로필</button><button aria-label={inboxBadge?`우편함 · 읽지 않은 우편 ${inboxBadge}건`:'우편함'} onClick={()=>showPanel('mail')}><Mail size={19}/>우편함<NoteBadge count={inboxBadge}/></button></div>}
       {(memoriesOpen||corner||wardrobe||yearbook||mapOpen||mailOpen||socialPanel||visiting)&&<div aria-hidden="true" data-testid="dd-pop-backdrop" onClick={closePanels} style={{position:'fixed',inset:0,zIndex:22,background:'#211a4333'}}/>}
       {corner&&<div className="dd-world-pop" role="dialog" aria-label={corner.title}>
         <div className="dd-pop-title"><strong>{corner.title}</strong><button className="dd3-btn" onClick={()=>setCornerId(null)}>닫기</button></div>
@@ -463,8 +471,8 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
         {space.id==='season' && !topic && <button className="btn btn-outline mb-3" onClick={onParty}>크리스마스 파티 일정 보기</button>}
         {space.id==='home' ? <div className="space-y-4">
           <HomeEditor home={home} selected={selectedFurniture} onSelect={setSelectedFurniture} onChange={updateHome} onDone={doneHome} onClose={()=>setChatCollapsed(true)} moveTo={homeMove}/><div className="dd-home-profile-card"><div><strong>{mini.title}</strong><small>오늘의 기분 · {mini.mood}</small><p>{mini.intro||'미니홈피에 소개를 남겨 보세요.'}</p></div><div className="dd-row"><button type="button" className="dd3-btn" onClick={()=>showPanel('minihome')}>미니홈피 열기</button><button type="button" className="dd3-btn" onClick={()=>{leave();setSpace(null);onEditProfile()}}>프로필 수정</button></div><label className="dd-status-select">내 상태<select aria-label="내 접속 상태" value={myStatus} onChange={e=>{const v=e.target.value as 'online'|'away'|'dnd';setMyStatusState(v);void setMyStatus(v);setNotice(v==='online'?'접속 중으로 바꿨어요.':v==='away'?'자리비움으로 바꿨어요.':'방해금지로 바꿨어요. 알림 소리를 끕니다.')}}><option value="online">접속 중</option><option value="away">자리비움</option><option value="dnd">방해금지</option></select></label></div>
-          <label className="text-sm">미니홈피 공개 범위<select className={FIELD} value={home.visibility} onChange={e=>setHome(p=>({...p,visibility:e.target.value as Visibility}))}>{Object.entries(VISIBILITY).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>
-          <p className="text-xs" style={{color:'var(--muted)'}}>벽지·가구·반려동물은 내 3D 집에 적용되고 브라우저에 자동 저장됩니다. 공개 범위는 설정만 저장되며 실제 친구 방문·편지는 계정 연결 전 제공되지 않습니다.</p>
+          <button type="button" className="btn btn-outline" onClick={()=>showPanel('minihome')}>미니홈피·공개 범위 설정</button>
+          <p className="text-xs" style={{color:'var(--muted)'}}>벽지·가구·반려동물은 내 3D 집에 적용됩니다. 로그인하면 계정에 저장되어 다른 기기에서도 같은 집이 열리고, 공개 범위(비공개·친구·전체)에 따라 친구가 놀러 와 방명록과 선물을 남길 수 있어요.</p>
           <button type="button" className="btn btn-outline" onClick={()=>showPanel('memories')}>사진첩·참여 기록</button>
         </div> : autoChat ? null : topic ? <div className="dd-messenger-main">
           <header className="dd-message-header" data-topic-id={topic.id}><button className="dd-chat-icon" aria-label="모임 목록" onClick={leave}><ChevronLeft size={22}/></button><div><h3>{topic.title}</h3><p>{topic.artist&&<>{topic.artist}{topic.fanOccasion?' · '+topic.fanOccasion:''} · </>}{topic.workTitle&&<>{topic.workTitle} · </>}{space.name}{topic.fanOccasion&&!topic.artist&&' · '+topic.fanOccasion}{topic.date&&<> · <span className="dd-user-schedule">이용자 등록 일정</span></>} <span className="dd-header-dot"/> {online?(presence.connected?'실시간 대화':'연결 중'):'로컬 연습'}</p><span className={`dd-topic-meter${roomIsFull(topic)?' is-full':''}`} style={{['--p' as string]:Math.min(100,Math.round((roomCount(topic)/Math.max(1,topic.capacity))*100))+'%'}} aria-label={`참여 ${roomCount(topic)}명, 정원 ${topic.capacity}명`}><em>{roomCount(topic)}/{topic.capacity}명{practice?' · 시연':''}</em></span></div><button className="dd-chat-icon" aria-label="채팅 설정" aria-expanded={chatExtras} onClick={()=>setChatExtras(v=>!v)}><MoreHorizontal size={22}/></button></header>

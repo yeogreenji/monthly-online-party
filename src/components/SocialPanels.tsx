@@ -50,6 +50,8 @@ export function FriendsPanel({ online, onClose, onVisit, onInvite, onToast }: {
   const [notes, setNotes] = useState<{ threads: NoteThread[]; messages: Record<string, NoteMessage[]> }>({ threads: [], messages: {} })
   const [noteDraft, setNoteDraft] = useState<Record<string, string>>({})
   const [tab, setTab] = useState<'friends' | 'notes'>('friends')
+  const [noteFor, setNoteFor] = useState<FriendEntry | null>(null)
+  const [noteText, setNoteText] = useState('')
 
   const refresh = async () => {
     if (!online) return
@@ -82,13 +84,15 @@ export function FriendsPanel({ online, onClose, onVisit, onInvite, onToast }: {
     onToast(ok ? '친구 목록에서 지웠어요.' : '잠시 후 다시 시도해 주세요.')
     await refresh()
   }
-  const askNote = async (friend: FriendEntry) => {
-    const text = window.prompt(`${friend.nickname}님에게 보낼 첫 쪽지를 적어 주세요. 상대가 수락하면 대화가 열립니다.`)
-    if (!text?.trim()) return
+  const askNote = (friend: FriendEntry) => { setNoteFor(friend); setNoteText('') }
+  const sendNoteRequest = async () => {
+    const friend = noteFor
+    const text = noteText.trim()
+    if (!friend || !text) return
     const err = await requestNote(friend.userId, text)
     onToast(err ?? '쪽지 요청을 보냈어요. 수락하면 대화가 열립니다.', err ? 'default' : 'success')
+    if (!err) { setNoteFor(null); setNoteText(''); setTab('notes') }
     await refresh()
-    setTab('notes')
   }
   const answerNote = async (id: string, accept: boolean) => {
     const err = await respondNote(id, accept)
@@ -147,6 +151,11 @@ export function FriendsPanel({ online, onClose, onVisit, onInvite, onToast }: {
         <ul className="ddm-list">{data.outgoing.map((f) => <li key={f.id}><span className="ddm-name">{f.nickname}<small>수락을 기다리는 중</small></span><button type="button" onClick={() => void drop(f)}>취소</button></li>)}</ul>
       </section>}
 
+      {noteFor && <div className="ddm-letter" role="group" aria-label="쪽지 요청 쓰기">
+        <strong className="ddm-note-title">{noteFor.nickname}님에게 첫 쪽지</strong>
+        <textarea aria-label="쪽지 요청 내용" maxLength={500} placeholder="짧은 인사와 함께 쪽지를 청해 보세요. 상대가 수락하면 대화가 열립니다." value={noteText} onChange={(e) => setNoteText(e.target.value)}/>
+        <div className="ddm-row"><button type="button" onClick={() => setNoteFor(null)}>취소</button><button type="button" className="is-primary" disabled={!noteText.trim()} onClick={() => void sendNoteRequest()}>쪽지 요청 보내기</button></div>
+      </div>}
       <section className="ddm-section">
         <h4>내 친구 {data.friends.length}</h4>
         {data.friends.length === 0 ? <p className="ddm-hint">아직 친구가 없어요. 닉네임으로 찾아 신청해 보세요.</p> : <ul className="ddm-list">
@@ -383,7 +392,7 @@ export function MiniHomePanel({ online, me, space, visiting, onClose, onVisitClo
 }
 
 export function NoteBadge({ count }: { count: number }) {
-  return count > 0 ? <span className="ddm-badge" aria-label={`새 소식 ${count}건`}>{count > 9 ? '9+' : count}</span> : null
+  return count > 0 ? <span className="ddm-badge" aria-hidden="true">{count > 9 ? '9+' : count}</span> : null
 }
 
 export function HeartHint() {

@@ -40,7 +40,7 @@ drop policy if exists "user_spaces_update_own" on public.user_spaces;
 -- 3. 친구 ------------------------------------------------------------------
 create table if not exists public.friendships (
   id uuid primary key default gen_random_uuid(),
-  requester uuid not null references auth.users (id) on delete cascade,
+  requester uuid not null default auth.uid() references auth.users (id) on delete cascade,
   addressee uuid not null references auth.users (id) on delete cascade,
   status text not null default 'pending' check (status in ('pending','accepted','declined')),
   created_at timestamptz not null default now(),
@@ -218,9 +218,12 @@ create trigger letters_guard_trg before insert on public.letters
   for each row execute function public.letters_guard();
 
 -- 6. 상호 동의 1:1 쪽지 -----------------------------------------------------
+--    requester는 기본값 auth.uid(): 클라이언트가 requester를 보내지 않아도 본인으로 기록된다.
+alter table if exists public.note_threads alter column requester set default auth.uid();
+
 create table if not exists public.note_threads (
   id uuid primary key default gen_random_uuid(),
-  requester uuid not null references auth.users (id) on delete cascade,
+  requester uuid not null default auth.uid() references auth.users (id) on delete cascade,
   addressee uuid not null references auth.users (id) on delete cascade,
   status text not null default 'pending' check (status in ('pending','accepted','declined','closed')),
   created_at timestamptz not null default now(),
@@ -265,13 +268,15 @@ create policy "note_messages_read" on public.note_messages for select to authent
     where t.id = note_messages.thread_id and (select auth.uid()) in (t.requester, t.addressee)
   ));
 -- 수락된 대화에서만, 두 사람만 쓸 수 있다('동의 기반 1:1 쪽지').
+-- 첫 쪽지는 요청과 함께(pending, requester) 쓸 수 있고, 그 뒤 대화는 수락(accepted) 후 두 사람만 쓴다.
 create policy "note_messages_insert" on public.note_messages for insert to authenticated
   with check (
     sender_id = (select auth.uid())
     and exists (
       select 1 from public.note_threads t
-      where t.id = note_messages.thread_id and t.status = 'accepted'
+      where t.id = note_messages.thread_id
         and (select auth.uid()) in (t.requester, t.addressee)
+        and (t.status = 'accepted' or (t.status = 'pending' and (select auth.uid()) = t.requester))
     )
   );
 
