@@ -36,6 +36,8 @@ export function createWorld(host,opts){
  function lamp(p,x,z){cyl(p,palette.brass,x,.08,z,.22,.12);cyl(p,palette.brass,x,.9,z,.035,1.7);cone(p,palette.cream,x,1.77,z,.32,.45)}
  function gift(p,x,z,color=FESTIVAL_COLORS[Math.abs(Math.round(x*31+z*17))%FESTIVAL_COLORS.length]){box(p,color,x,.18,z,.5,.36,.45);box(p,palette.brass,x,.37,z,.1,.03,.45);box(p,palette.brass,x,.37,z,.5,.03,.1);ball(p,palette.brass,x-.08,.42,z,.12,.06,.07);ball(p,palette.brass,x+.08,.42,z,.12,.06,.07)}
  function plant(p,x,z){cyl(p,palette.wood,x,.2,z,.21,.4);for(let i=0;i<5;i++){const a=i*1.8;const l=ball(p,palette.green,x+Math.sin(a)*.16,.53+(i%2)*.16,z+Math.cos(a)*.16,.12,.31,.08);l.rotation.z=Math.sin(a)*.6}}
+ // 3단계: 공간마다 하나씩 서 있는 나무 메뉴판. 눌러서 그 공간의 고유 메뉴·활동 10개를 연다.
+ function menuBoard(p,accent){cyl(p,0x7a5234,0,.06,0,.34,.13);for(const dx of [-.26,.26]){cyl(p,palette.wood,dx,.52,0,.045,1.0);cyl(p,palette.brass,dx,1.04,0,.06,.05)}box(p,0x8a5c37,0,1.28,0,1.32,.96,.10);box(p,0xfff6e2,0,1.28,-.055,1.16,.80,.03);box(p,accent,0,1.62,-.075,1.16,.10,.02);for(let i=0;i<4;i++)box(p,i%2?0xc9a06a:0xa98a63,-.02+((i%2)*.06),1.44-i*.15,-.078,.86,.028,.02);for(const dx of [-.46,.46])ball(p,palette.brass,dx,1.28,-.085,.035,.035,.02);cyl(p,0x7a5234,0,.90,.06,.03,.72)}
  const spriteFactory=createModelFactory(),residentSprites=[],residentBubbles=[],residentTargets=[];
  function hostCharacter(p,id,res,x,z){const npc=animal(p,res.avatar,res.coat,res.look||null);npc.g.position.set(x,0,z);npc.g.userData.resident=id;residentSprites.push(npc);residentTargets.push({id,npc});const tag=sign(npc.g,res.name,0,1.89,0,'name');if(tag){tag.scale.set(.86,.215,1);residentBubbles.push({npc,greeting:tag})}return npc}
  function animal(parent,key,coat=palette.green,look=null){return spriteFactory.create(parent,key,coat,look)}
@@ -464,6 +466,8 @@ export function createWorld(host,opts){
   else if(k==='hobby'){install(p,'hobby-books',g=>shelf(g,0,0));shelf(p,1.9,2.48);install(p,'hobby-craft',g=>table(g,0,0,'craft'));box(p,palette.wood,-1.7,.8,.8,.11,1.6,.11);box(p,palette.cream,-1.7,1.1,.8,.9,.7,.08);plant(p,2.15,-.75)}
   else if(k==='cinema'){box(p,palette.dark,0,1.34,2.85,3.8,1.55,.16);box(p,0xa6bdbe,0,1.34,2.75,3.48,1.25,.05);for(const x of [-1.65,1.65])for(const z of [.2,1.65]){if(x===1.65&&z===.2)install(p,'cinema-seat',g=>chair(g,0,0,0xa84677));else chair(p,x,z,palette.red)};gift(p,-2.0,-1.3)}
   else if(k==='home'){box(p,palette.wood,-1.65,.34,1.5,1.4,.5,2);box(p,0x9da991,-1.65,.66,1.5,1.36,.23,1.98);box(p,palette.cream,-1.65,.82,2.2,1.1,.2,.48);shelf(p,1.85,2.45);table(p,1.65,.35);plant(p,-2.1,-.55)}
+  // 공간 메뉴판(13개 공간 공통 소품). 집·시즌홀은 별도 그룹에서 설치한다.
+  if(k!=='home'&&k!=='season')install(p,s.id+'-menu',g=>menuBoard(g,s.door))
   // Place-specific miniature details, independent of shared wall colors.
   if(k==='cafe'){box(p,0x307f77,-1.9,1.43,1.91,.92,.49,.74);box(p,0xe2e9e4,-1.9,1.49,1.50,.67,.32,.045);for(const dx of [-.22,.22]){cyl(p,0xf8e4ca,-1.9+dx,1.29,1.43,.10,.17);ball(p,0xfff3db,-1.9+dx,1.39,1.43,.09,.022,.09)}for(let n=0;n<3;n++){const z=.30+n*.43;cyl(p,0xffe0b9,-1.9,1.35,z,.18,.15);ball(p,[0xe58ab1,0xffd778,0x9acfa7][n],-1.9,1.46,z,.16,.10,.16)}box(p,0xa8d7d6,-1.9,1.65,.67,1.12,.035,1.37);box(p,0x9accd0,-1.28,1.43,.67,.04,.40,1.37)}
   if(k==='hobby'){install(p,'hobby-pets',tower=>{cyl(tower,0xe6b17d,0,.10,0,.38,.2);cyl(tower,0xc89468,0,.72,0,.08,1.25);cyl(tower,0xd78eb3,.1,.55,0,.3,.1);cyl(tower,0x9d84ca,-.07,1.15,0,.31,.12);ball(tower,0xf5d39f,-.07,1.30,0,.23,.16,.18);for(const dx of [-.12,.12])cone(tower,0xf5d39f,-.07+dx,1.46,0,.08,.18)});for(let n=0;n<4;n++){ball(p,[0xdd78b0,0xa286db,0xeab658,0x54bcaa][n],1.37+n*.18,.75,.42,.09,.09,.09)}}
@@ -558,6 +562,7 @@ export function createWorld(host,opts){
   for(const x of [-6.7,6.7]){const sn=group(p,x,0,3.6);ball(sn,0xffffff,0,.4,0,.44,.4,.44);ball(sn,0xffffff,0,.95,0,.32,.3,.32);ball(sn,0xffffff,0,1.35,0,.22,.2,.22);cone(sn,0xff9142,0,1.36,.22,.05,.22).rotation.x=Math.PI/2;for(const dx of [-.07,.07])ball(sn,0x222233,dx,1.42,.17,.025,.025,.02);box(sn,0xd13d4f,0,1.14,0,.4,.07,.4)}
   for(let n=0;n<15;n++)ball(p,n%2?0xffffff:0xffe9a8,-7+n,2.05+Math.sin(n*1.3)*.06,7.12,.07,.07,.07);
   largeRooms.set('season',p);
+  install(p,'season-menu',g=>menuBoard(g,0xe95078));
  }
 
  if(plaza){
@@ -576,6 +581,7 @@ export function createWorld(host,opts){
 
  function bouquet(p){const stem=group(p);cyl(stem,0x4ea77b,0,.18,0,.045,.32);cone(stem,0xe9a0c0,0,.18,0,.17,.33).rotation.z=Math.PI;for(let n=0;n<5;n++){const a=n*Math.PI*2/5;ball(stem,FESTIVAL_COLORS[(n+2)%9],Math.cos(a)*.12,.40+Math.sin(n)*.035,Math.sin(a)*.12,.10,.105,.10)}return stem}
  install(plaza.parent,'plaza-bouquet',g=>{cyl(g,0xd5a67e,0,.25,0,.32,.50);const b=bouquet(g);b.position.y=.50});
+ install(plaza.parent,'plaza-menu',g=>menuBoard(g,0x668453));
  const hub=group(scene,0,0,0);hub.userData.dynamic=true
  const squareTitle=sign(hub,'중앙 축제광장',0,2.62,-7.4);if(squareTitle)squareTitle.scale.set(3.3,.83,1);for(const x of [-7.4,7.4]){cyl(hub,palette.brass,x,1.2,-6.9,.075,2.3);ball(hub,0xffdca0,x,2.42,-6.9,.19,.22,.19)}
  // Hub guide board and bench placed outside the clear walking strip.
@@ -601,6 +607,7 @@ export function createWorld(host,opts){
  homeRug=box(homeRoom,0xefb5cf,0,.13,0,3.9,.04,4.2);homeRug.userData.dynamic=true;box(homeRoom,0xffecd8,0,.155,0,3.65,.018,3.95);
  homeLamp=group(homeRoom,4.3,0,3.4);homeLamp.userData.dynamic=true;lamp(homeLamp,0,0);homeDecor=group(homeRoom,1.15,0,3.65);homeDecor.userData.dynamic=true;
  install(homeRoom,'home-wardrobe',g=>{box(g,0xbb83b3,0,.94,0,1.42,1.88,.7);box(g,0xffe9d7,0,1.91,0,1.53,.12,.79);for(const x of [-.35,.35]){box(g,0xf4c6dc,x,.99,-.37,.63,1.58,.07);box(g,0xffe4ed,x,1.01,-.42,.48,1.32,.025);ball(g,0xe7b65c,x*.34,.91,-.46,.065,.065,.055)}});
+ install(homeRoom,'home-menu',g=>menuBoard(g,0xb17c62));
  install(homeRoom,'home-mirror',g=>{box(g,0xc493d4,0,.89,0,1.0,1.76,.18);box(g,0xc2e8f0,0,.89,-.11,.81,1.55,.035);box(g,0xeefbff,-.21,1.17,-.14,.06,.75,.02)});
  install(homeRoom,'home-mailbox',g=>{box(g,0x8a62be,0,.48,0,.74,.88,.52);box(g,0xffcf74,0,.75,-.29,.47,.07,.05);box(g,0xffe5ec,0,.38,-.29,.40,.23,.04)});
  install(homeRoom,'home-decor',g=>{box(g,0xe3b07e,0,.52,0,1.2,1.04,.45);box(g,0xffe7bb,0,1.08,0,1.25,.12,.52);for(let j=0;j<4;j++)box(g,FESTIVAL_COLORS[(j+3)%9],-.42+j*.28,1.27,0,.18,.27,.19)});

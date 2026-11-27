@@ -1134,3 +1134,250 @@
   .dd-emote-tray { top: 128px; grid-template-columns: repeat(4, 1fr); }
   .ddm-mail-head .ddm-name { font-size: 12px; }
 }
+
+/* ── 3단계: 공간 메뉴판·정본 활동 130개 ───────────────────────────── */
+.dd-world-app .dd-space-menu {
+  width: min(720px, calc(100vw - 28px));
+  max-height: min(78vh, 720px);
+  overflow: auto;
+  padding: 16px 18px 20px;
+}
+.dd-world-app .dd-space-concept { margin: 4px 0 6px; font-size: 13px; }
+.dd-world-app .dd-menu-count { font-size: 12.5px; font-weight: 700; color: #6b4a1e; }
+.dd-world-app .dd-menu-count small { font-weight: 600; }
+.dd-world-app .dd-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  margin: 8px 0 14px;
+}
+.dd-world-app .dd-menu-grid button {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 2px solid #d9bd94;
+  background: linear-gradient(#fffaf0, #f6e7cb);
+  color: #4a3320;
+  box-shadow: 0 2px 0 #c3a173;
+}
+.dd-world-app .dd-menu-grid button strong { font-size: 14px; font-weight: 900; }
+.dd-world-app .dd-menu-grid button small { font-size: 11px; color: #7d5c33; }
+.dd-world-app .dd-activity-head { margin: 6px 0 4px; font-size: 15px; color: #4a3018; }
+.dd-world-app .dd-activity-head small { font-size: 11.5px; color: #7d5c33; }
+.dd-world-app .dd-space-locked {
+  margin: 4px 0 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #fff2d6;
+  border: 1px dashed #c79a4e;
+  font-size: 12px;
+  color: #6b4a1e;
+}
+.dd-world-app .dd-activity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dd-world-app .dd-activity-grid button {
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #e0c39a;
+  background: #fff8ea;
+  color: #53381b;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.dd-world-app .dd-activity-grid button:hover,
+.dd-world-app .dd-menu-grid button:hover { background: #ffefcf; }
+.dd-world-app .dd-menu-card-list { margin: 6px 0 12px; padding-left: 18px; font-size: 13px; color: #53381b; }
+.dd-world-app .dd-menu-card-note { font-size: 12px; }
+
+/* ── 3단계: 365일 편성·크리스마스·생일 ────────────────────────────── */
+.dd-world-app .dd-today-wrap { display: flex; flex-direction: column; gap: 6px; }
+.dd-world-app .dd-today-meta { margin: 0; font-size: 11.5px; color: #6f5326; }
+.dd-world-app .dd-christmas-card {
+  border: 2px solid #e2b3c3;
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: linear-gradient(#fff6f8, #ffe9ef);
+  color: #6b3247;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dd-world-app .dd-christmas-card > div { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.dd-world-app .dd-christmas-card strong { font-size: 16px; color: #8a2346; }
+.dd-world-app .dd-christmas-card p { font-size: 12.5px; margin: 0; }
+.dd-world-app .dd-christmas-card ul { margin: 0; padding-left: 16px; font-size: 12px; }
+.dd-world-app .dd-christmas-acts { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0 !important; }
+.dd-world-app .dd-christmas-acts button {
+  border: 1px solid #e2a9bb;
+  background: #fffaf7;
+  color: #7a2c47;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.dd-world-app .dd-birthday-banner {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #ffeef4;
+  border: 1px solid #e9b3c6;
+  color: #8a2346;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.dd-world-app .dd-festival-monthly,
+.dd-world-app .dd-festival-weekly { font-size: 12px; color: #6b4a1e; margin: 0; }
+
+/* ── 3단계: 재미 요소 8종 ─────────────────────────────────────────── */
+.dd-world-app .dd-fun-panel {
+  width: min(900px, calc(100vw - 24px));
+  max-height: min(84vh, 860px);
+  overflow: auto;
+  padding: 16px 18px 22px;
+}
+.dd-world-app .dd-fun-lead { font-size: 12.5px; }
+.dd-world-app .dd-fun-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+}
+.dd-world-app .dd-fun-card {
+  border: 1px solid #e0c39a;
+  border-radius: 14px;
+  background: #fffaf0;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dd-world-app .dd-fun-card h4 { margin: 0; font-size: 14px; color: #4a3018; font-weight: 900; }
+.dd-world-app .dd-fun-card p { margin: 0; font-size: 12px; }
+.dd-world-app .dd-fun-card small { font-size: 11px; }
+.dd-world-app .dd-fun-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.dd-world-app .dd-fun-field { display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 700; }
+.dd-world-app .dd-fun-field textarea,
+.dd-world-app .dd-fun-field input {
+  border: 1px solid #d9bd94;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  background: #fff;
+  color: #4a3320;
+}
+.dd-world-app .dd-fun-thumbs { display: flex; flex-wrap: wrap; gap: 8px; }
+.dd-world-app .dd-fun-thumbs figure { margin: 0; width: 170px; }
+.dd-world-app .dd-fun-thumbs img { width: 100%; border-radius: 8px; border: 1px solid #d9bd94; }
+.dd-world-app .dd-fun-thumbs figcaption { font-size: 10.5px; }
+.dd-world-app .dd-fun-thumbs a,
+.dd-world-app .dd-fourcut-result a { font-size: 11px; display: inline-flex; gap: 4px; align-items: center; }
+.dd-world-app .dd-fourcut-slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.dd-world-app .dd-fourcut-slot {
+  aspect-ratio: 3 / 4;
+  border: 1px dashed #c9a878;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff6e4;
+  color: #b28c5c;
+  overflow: hidden;
+}
+.dd-world-app .dd-fourcut-slot img { width: 100%; height: 100%; object-fit: cover; }
+.dd-world-app .dd-fourcut-result { margin: 0; width: 130px; }
+.dd-world-app .dd-fourcut-result img { width: 100%; border-radius: 8px; border: 1px solid #d9bd94; }
+.dd-world-app .dd-radio-list { margin: 0; padding-left: 16px; font-size: 11.5px; }
+.dd-world-app .dd-letter-list { margin: 0; padding: 0; list-style: none; font-size: 11.5px; display: flex; flex-direction: column; gap: 6px; }
+.dd-world-app .dd-letter-list li { border: 1px solid #e6d3b3; border-radius: 8px; padding: 6px 8px; background: #fffdf7; }
+.dd-world-app .dd-letter-list li[data-arrived='true'] { border-color: #e2a9bb; background: #fff5f8; }
+.dd-world-app .dd-memory-months { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+.dd-world-app .dd-memory-months > div { display: flex; flex-direction: column; gap: 2px; font-size: 11px; }
+.dd-world-app .dd-memory-months img { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; }
+.dd-world-app .dd-exhibit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; }
+.dd-world-app .dd-exhibit-grid figure { margin: 0; position: relative; }
+.dd-world-app .dd-exhibit-grid img { width: 100%; height: 90px; object-fit: cover; border-radius: 8px; border: 1px solid #d9bd94; }
+.dd-world-app .dd-exhibit-grid figcaption { font-size: 10.5px; }
+
+/* ── 3단계: 사진 채팅·확대 보기·방 사진첩 ─────────────────────────── */
+.dd-chat-photo {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+  max-width: 100%;
+}
+.dd-chat-photo img {
+  display: block;
+  width: 100%;
+  max-width: 240px;
+  max-height: 240px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #d9bd94;
+  box-shadow: 0 3px 8px #0002;
+}
+.dd-photo-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  background: #180f0aee;
+  padding: 14px;
+}
+.dd-photo-lightbox img {
+  max-width: min(94vw, 1100px);
+  max-height: 76vh;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 12px 40px #000a;
+}
+.dd-lightbox-bar { display: flex; align-items: center; gap: 12px; color: #fff6e4; font-size: 13px; }
+.dd-lightbox-bar button,
+.dd-lightbox-bar a {
+  min-width: 38px;
+  min-height: 34px;
+  border-radius: 10px;
+  border: 1px solid #ffffff55;
+  background: #ffffff17;
+  color: #fff6e4;
+  font-size: 16px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  text-decoration: none;
+}
+.dd-lightbox-bar button:disabled { opacity: .35; }
+.dd-world-app .dd-album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 8px;
+}
+.dd-world-app .dd-album-grid button {
+  padding: 0;
+  border: 1px solid #d9bd94;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff8ea;
+  display: flex;
+  flex-direction: column;
+}
+.dd-world-app .dd-album-grid img { width: 100%; height: 96px; object-fit: cover; }
+.dd-world-app .dd-album-grid small { font-size: 10px; padding: 2px 0 4px; color: #6b4a1e; }

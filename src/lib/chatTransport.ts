@@ -9,7 +9,13 @@ export interface TransportMessage {
   at: string
   by?: string
   userId?: string
+  /** 화면에 보여 줄 사진 주소(서버 메시지는 짧은 signed URL). */
   image?: string
+  /** Storage 객체 경로. 서버 사진 메시지에서만 채워진다. */
+  imagePath?: string
+  imageThumbPath?: string
+  imageWidth?: number
+  imageHeight?: number
   place?: { name: string; url?: string }
   spoiler?: boolean
 }

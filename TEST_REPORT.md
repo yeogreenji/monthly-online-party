@@ -1,3 +1,22 @@
+# 테스트 기록 — 2026-11-27 (3단계)
+
+## 3단계 구현·검증 (피클)
+기준: `a4a5eea` + 이번 변경. 도구: Vite 7 빌드, `tsc --noEmit`, headless Chromium(swiftshader), 실제 Supabase(`ksctvweuhnfjrqnuokmn`) SQL Editor.
+
+통과
+- `npm run build`, `npx tsc --noEmit`.
+- `scripts/verify_step3.py` DD_PHASE=spaces 86/86: 13개 공간 각각 메뉴판 열림·활동 수·메뉴 수·활동 이름·메뉴 이름을 `content-master-v1.json`과 대조(합계 130/48), 잠금 공간 안내, 오늘의 365일 카드가 `dd-11-27`·'겨울 마을 첫 인사'와 일치.
+- `scripts/verify_step3.py` DD_PHASE=features 26/26: 활동 클릭→모임방, 사진 미리보기→전송→말풍선→확대 보기→확대 후 채팅 유지→방 사진첩 1장, 3D 소품 '공간 메뉴판' 클릭으로 메뉴판 열림, 주민 대화 3턴(주제 질문→재질문 후속→짧은 대답 후속, 기억 기본 꺼짐), 365일 패널 12/25 '메리 크리스마스', 크리스마스 카드 8구간·8활동, 재미 요소 8장·티켓 생성·미래 편지 저장·전시 등록, 모바일 메뉴판·활동 10개, 콘솔 오류 0.
+- `scripts/tests/dialogue.test.ts`(esbuild 번들 후 node): 주민 16명·주제 대사 96개, 각 주제 이름으로 질문 매칭·재질문 시 후속·짧은 대답 후속·위기 안내·연속 동일 문장 회피.
+- 기존 회귀: `npm run verify:chat`(데스크톱·모바일), `scripts/verify_games_e2e.py`(10종, FAILS 0), `scripts/verify_home_wardrobe.py`(FAILS []).
+- 운영 Supabase 006 적용: messages 사진 열 5종, `messages_body_check` 완화, 버킷 `chat-photos`(public=false·1MB·JPEG/PNG/WebP), Storage 정책 3종, 트리거 `messages_photo_owner_trg`, 함수 ACL `{postgres, service_role}`만. authenticated 역할로 본인 폴더 사진 메시지 INSERT 성공(닉네임 자동 채움), 타인 UUID 경로는 `P0001 photo_path_forbidden`로 거부. 테스트 행은 rollback.
+
+미검증·한계
+- 로그인한 두 실제 계정 간 사진 송수신(실시간 구독·signed URL 수신)·모바일 실기기 카메라 촬영은 이번 자동 검증에 포함하지 않았다. Storage 정책의 실제 브라우저 업로드는 로그인 세션이 필요하다.
+- 사진 읽기 범위는 messages select 정책과 같이 '로그인 이용자 전체'다(방 멤버십 표가 없어 더 좁히지 못함). 후속 작업으로 방 단위 제한 필요.
+- `npm run verify`(scripts/verify.py)는 온보딩 문구를 개편 전 문구("어떤 캐릭터로 들어올까요?")로 찾는 기존 드리프트로 실패한다. 이번 변경 이전부터 소스에 없는 문구이며, 이후 단계에서 스크립트 갱신 필요.
+- 부하 시험(20/100/1000/10000 연결)은 하지 않았다(별도 테스트 환경·승인 필요).
+
 ### 3단계 화면 연결 검증 — 브리 (bri/stage3-ui, 390×844 headless Chromium)
 방법: 실서버 도메인이 작업 환경 네트워크에서 차단되어, 모의 Supabase 응답(Playwright 라우트)으로 시험했다.
 통과: 로그인 전(로그인 카드, 잘못된 이메일 안내, 링크 발송 요청, 기기 저장 대화 유지) / 닉네임 중복(안내 표시) / 로그인 후(서버 연결 안내, 이웃 메시지 표시와 ‘시연’ 배지 없음, 클라이언트 필터가 서버 전송 전에 차단, 서버 전송 본문·주제 id 확인, 신고 요청 본문과 메시지 숨김, 차단 요청 본문과 메시지 숨김) / 서버 미설정 기본 빌드(로그인 UI 없음, 기기 저장 동작) / typecheck, build.

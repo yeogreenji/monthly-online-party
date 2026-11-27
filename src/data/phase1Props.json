@@ -69,7 +69,8 @@
     "bounds": [
       0.68,
       0.44
-    ]
+    ],
+    "menu": "activity-크리스마스 티파티"
   },
   {
     "id": "season-photo",
@@ -832,7 +833,8 @@
     "bounds": [
       0.42,
       0.4
-    ]
+    ],
+    "menu": "activity-도란도란 수다방"
   },
   {
     "room": "women",
@@ -862,7 +864,8 @@
     "bounds": [
       0.42,
       0.4
-    ]
+    ],
+    "menu": "activity-퇴근하고 수다"
   },
   {
     "room": "men",
@@ -892,7 +895,8 @@
     "bounds": [
       0.42,
       0.4
-    ]
+    ],
+    "menu": "activity-퇴근 후 아지트"
   },
   {
     "room": "games",
@@ -922,7 +926,8 @@
     "bounds": [
       0.42,
       0.4
-    ]
+    ],
+    "menu": "activity-불금 게임 파티"
   },
   {
     "room": "cinema",
@@ -952,7 +957,8 @@
     "bounds": [
       0.42,
       0.4
-    ]
+    ],
+    "menu": "activity-오늘 본 영화"
   },
   {
     "room": "travel",
@@ -1342,5 +1348,330 @@
       1.0
     ],
     "menu": "games-hub"
+  },
+  {
+    "id": "cafe-menu",
+    "room": "cafe",
+    "name": "공간 메뉴판",
+    "position": [
+      -2.45,
+      0,
+      -1.35
+    ],
+    "approach": [
+      -1.55,
+      0,
+      -1.35
+    ],
+    "message": "이 공간의 메뉴판이에요. 고유 메뉴와 정본 활동 목록을 엽니다.",
+    "rotation": 1.5708,
+    "scale": 1,
+    "source": "딩동 자체 제작 기본 도형 조립",
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.42,
+      0.18
+    ],
+    "menu": "cafe-menu"
+  },
+  {
+    "id": "travel-menu",
+    "room": "travel",
+    "name": "공간 메뉴판",
+    "position": [
+      -2.4,
+      0,
+      -1.9
+    ],
+    "approach": [
+      -1.5,
+      0,
+      -1.9
+    ],
+    "message": "이 공간의 메뉴판이에요. 고유 메뉴와 정본 활동 목록을 엽니다.",
+    "rotation": 1.5708,
+    "scale": 1,
+    "source": "딩동 자체 제작 기본 도형 조립",
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.42,
+      0.18
+    ],
+    "menu": "travel-menu"
+  },
+  {
+    "id": "women-menu",
+    "room": "women",
+    "name": "공간 메뉴판",
+    "position": [
+      0,
+      0,
+      2.66
+    ],
+    "approach": [
+      0,
+      0,
+      1.95
+    ],
+    "message": "이 공간의 메뉴판이에요. 고유 메뉴와 정본 활동 목록을 엽니다.",
+    "rotation": 3.1416,
+    "scale": 1,
+    "source": "딩동 자체 제작 기본 도형 조립",
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.42,
+      0.18
+    ],
+    "menu": "women-menu"
+  },
+  {
+    "id": "men-menu",
+    "room": "men",
+    "name": "공간 메뉴판",
+    "position": [
+      0,
+      0,
+      2.66
+    ],
+    "approach": [
+      0,
+      0,
+      1.95
+    ],
+    "message": "이 공간의 메뉴판이에요. 고유 메뉴와 정본 활동 목록을 엽니다.",
+    "rotation": 3.1416,
+    "scale": 1,
+    "source": "딩동 자체 제작 기본 도형 조립",
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.42,
+      0.18
+    ],
+    "menu": "men-menu"
+  },
+  {
+    "id": "single-menu",
+    "room": "single",
+    "name": "공간 메뉴판",
+    "position": [
+      0,
+      0,
+      2.66
+    ],
+    "approach": [
+      0,
+      0,
+      1.95
+    ],
+    "message": "이 공간의 메뉴판이에요. 고유 메뉴와 정본 활동 목록을 엽니다.",
+    "rotation": 3.1416,
+    "scale": 1,
+    "source": "딩동 자체 제작 기본 도형 조립",
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.42,
+      0.18
+    ],
+    "menu": "single-menu"
+  },
+  {
+    "id": "games-menu",
+    "room": "games",
+    "name": "공간 메뉴판",
+    "position": [
+      -2.35,
+      0,
+      -1.55
+    ],
+    "approach": [
+      -1.45,
+      0,
+      -1.55
+    ],
+    "message": "이 공간의 메뉴판이에요. 고유 메뉴와 정본 활동 목록을 엽니다.",
+    "rotation": 1.5708,
+    "scale": 1,
+    "source": "딩동 자체 제작 기본 도형 조립",
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.42,
+      0.18
+    ],
+    "menu": "games-menu"
+  },
+  {
+    "id": "cinema-menu",
+    "room": "cinema",
+    "name": "공간 메뉴판",
+    "position": [
+      0,
+      0,
+      -2.4
+    ],
+    "approach": [
+      0,
+      0,
+      -1.6
+    ],
+    "message": "이 공간의 메뉴판이에요. 고유 메뉴와 정본 활동 목록을 엽니다.",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기본 도형 조립",
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.42,
+      0.18
+    ],
+    "menu": "cinema-menu"
+  },
+  {
+    "id": "hobby-menu",
+    "room": "hobby",
+    "name": "공간 메뉴판",
+    "position": [
+      0,
+      0,
+      -2.3
+    ],
+    "approach": [
+      0,
+      0,
+      -1.5
+    ],
+    "message": "이 공간의 메뉴판이에요. 고유 메뉴와 정본 활동 목록을 엽니다.",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기본 도형 조립",
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.42,
+      0.18
+    ],
+    "menu": "hobby-menu"
+  },
+  {
+    "id": "fandom-menu",
+    "room": "fandom",
+    "name": "공간 메뉴판",
+    "position": [
+      -2.35,
+      0,
+      -2.1
+    ],
+    "approach": [
+      -1.45,
+      0,
+      -2.1
+    ],
+    "message": "이 공간의 메뉴판이에요. 고유 메뉴와 정본 활동 목록을 엽니다.",
+    "rotation": 1.5708,
+    "scale": 1,
+    "source": "딩동 자체 제작 기본 도형 조립",
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.42,
+      0.18
+    ],
+    "menu": "fandom-menu"
+  },
+  {
+    "id": "jazz-menu",
+    "room": "jazz",
+    "name": "공간 메뉴판",
+    "position": [
+      0,
+      0,
+      -2.35
+    ],
+    "approach": [
+      0,
+      0,
+      -1.55
+    ],
+    "message": "이 공간의 메뉴판이에요. 고유 메뉴와 정본 활동 목록을 엽니다.",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기본 도형 조립",
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.42,
+      0.18
+    ],
+    "menu": "jazz-menu"
+  },
+  {
+    "id": "home-menu",
+    "room": "home",
+    "name": "공간 메뉴판",
+    "position": [
+      -3.0,
+      0,
+      0.2
+    ],
+    "approach": [
+      -2.2,
+      0,
+      0.2
+    ],
+    "message": "이 공간의 메뉴판이에요. 고유 메뉴와 정본 활동 목록을 엽니다.",
+    "rotation": 1.5708,
+    "scale": 1,
+    "source": "딩동 자체 제작 기본 도형 조립",
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.42,
+      0.18
+    ],
+    "menu": "home-menu"
+  },
+  {
+    "id": "season-menu",
+    "room": "season",
+    "name": "공간 메뉴판",
+    "position": [
+      -6.3,
+      0,
+      -5.6
+    ],
+    "approach": [
+      -5.3,
+      0,
+      -5.6
+    ],
+    "message": "이 공간의 메뉴판이에요. 고유 메뉴와 정본 활동 목록을 엽니다.",
+    "rotation": 1.5708,
+    "scale": 1,
+    "source": "딩동 자체 제작 기본 도형 조립",
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.42,
+      0.18
+    ],
+    "menu": "season-menu"
+  },
+  {
+    "id": "plaza-menu",
+    "room": "plaza",
+    "name": "공간 메뉴판",
+    "position": [
+      -8.6,
+      0,
+      -3.2
+    ],
+    "approach": [
+      -8.6,
+      0,
+      -2.2
+    ],
+    "message": "이 공간의 메뉴판이에요. 고유 메뉴와 정본 활동 목록을 엽니다.",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기본 도형 조립",
+    "interaction": "approach-and-read",
+    "bounds": [
+      0.42,
+      0.18
+    ],
+    "menu": "plaza-menu"
   }
 ]
