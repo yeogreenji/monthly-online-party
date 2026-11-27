@@ -1,0 +1,586 @@
+{
+  "version": "1.0",
+  "status": "DEFERRED_FUTURE_PLANNING_ONLY",
+  "priority": "post_beta_revenue_backlog",
+  "based_on_commit": "3555ec6eff1da656391032df0a4d85d4a30c2852",
+  "initial_mode": "free",
+  "payments_enabled": false,
+  "prices_visible": false,
+  "activation_requires_user_approval": true,
+  "existing_free_items_preserved": true,
+  "notes": [
+    "현재 구현 지시 아님. 사진 채팅/실제 정원/친구·미니룸 서버 기능/콘텐츠 연결/안전 테스트 우선.",
+    "상품명·팔레트·구성품은 기획 예시. 실제 제작 모델과 상표 계약 없음. 후보 간 구성품 중복 허용; 고유 자산 수나 상품 확정 수로 집계하지 않음.",
+    "반려동물 기본 기능 무료, 유료 후보는 꾸미기만. 시즌 아이템 소급 유료화·확률형·강매·인위적 품절 금지.",
+    "브랜드 사례는 미계약 가상 콘셉트. 실제 기업명/로고 사용 금지."
+  ],
+  "collections": [
+    {
+      "id": "fashion",
+      "name": "딩동 패션 스튜디오",
+      "concepts": [
+        {
+          "concept_id": "fashion-1",
+          "name": "밀크티 산책",
+          "palette": [
+            "크림",
+            "카멜",
+            "세이지"
+          ],
+          "components": [
+            "벨트 코트",
+            "체크 스커트 또는 바지",
+            "베레모",
+            "로퍼",
+            "미니 크로스백"
+          ],
+          "candidate_refs": [
+            "premium-wardrobe-1",
+            "premium-wardrobe-4",
+            "premium-wardrobe-5"
+          ],
+          "classification": "premium_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        },
+        {
+          "concept_id": "fashion-2",
+          "name": "별빛 살롱",
+          "palette": [
+            "네이비",
+            "실버",
+            "라벤더"
+          ],
+          "components": [
+            "별 자수 드레스",
+            "테일러드 재킷",
+            "리본 타이",
+            "반짝이 신발"
+          ],
+          "candidate_refs": [
+            "premium-wardrobe-2",
+            "premium-wardrobe-3",
+            "premium-wardrobe-4"
+          ],
+          "classification": "premium_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        },
+        {
+          "concept_id": "fashion-3",
+          "name": "레트로 토요일",
+          "palette": [
+            "머스터드",
+            "청록",
+            "브릭"
+          ],
+          "components": [
+            "체크 재킷",
+            "멜빵 바지",
+            "복고 안경",
+            "캔버스백"
+          ],
+          "candidate_refs": [
+            "premium-wardrobe-3",
+            "premium-wardrobe-5",
+            "premium-wardrobe-6"
+          ],
+          "classification": "premium_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        },
+        {
+          "concept_id": "fashion-4",
+          "name": "도시의 작은 탐험가",
+          "palette": [
+            "올리브",
+            "베이지",
+            "버건디"
+          ],
+          "components": [
+            "트렌치코트",
+            "가죽풍 가방",
+            "스카프",
+            "워커"
+          ],
+          "candidate_refs": [
+            "premium-wardrobe-1",
+            "premium-wardrobe-5",
+            "premium-wardrobe-6"
+          ],
+          "classification": "premium_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        }
+      ]
+    },
+    {
+      "id": "living",
+      "name": "딩동 리빙 스튜디오",
+      "concepts": [
+        {
+          "concept_id": "living-1",
+          "name": "달빛 아래 북카페",
+          "palette": [
+            "월넛",
+            "올리브",
+            "금빛"
+          ],
+          "components": [
+            "벽면 책장",
+            "벨벳 안락의자",
+            "독서 조명",
+            "원형 테이블",
+            "별무늬 커튼"
+          ],
+          "candidate_refs": [
+            "premium-room-theme-1",
+            "premium-furniture-3",
+            "premium-furniture-5"
+          ],
+          "classification": "premium_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        },
+        {
+          "concept_id": "living-2",
+          "name": "나만의 작은 극장",
+          "palette": [
+            "버건디",
+            "골드",
+            "네이비"
+          ],
+          "components": [
+            "극장식 소파",
+            "팝콘 장식",
+            "스포트 조명",
+            "벨벳 커튼",
+            "자체 영화표 액자"
+          ],
+          "candidate_refs": [
+            "premium-room-theme-2",
+            "premium-furniture-5"
+          ],
+          "classification": "premium_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        },
+        {
+          "concept_id": "living-3",
+          "name": "파리의 일요일",
+          "palette": [
+            "아이보리",
+            "로즈",
+            "브라스"
+          ],
+          "components": [
+            "몰딩 벽지",
+            "곡선 소파",
+            "샹들리에",
+            "화장대",
+            "꽃병"
+          ],
+          "candidate_refs": [
+            "premium-room-theme-3",
+            "premium-furniture-1",
+            "premium-furniture-3"
+          ],
+          "classification": "premium_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        },
+        {
+          "concept_id": "living-4",
+          "name": "숲속 찻집",
+          "palette": [
+            "모스 그린",
+            "오크",
+            "앰버"
+          ],
+          "components": [
+            "벽난로 장식",
+            "원목 침대",
+            "패치워크 담요",
+            "창가 벤치",
+            "등불"
+          ],
+          "candidate_refs": [
+            "premium-room-theme-4",
+            "premium-furniture-2",
+            "premium-furniture-4"
+          ],
+          "classification": "premium_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        },
+        {
+          "concept_id": "living-5",
+          "name": "세상의 엽서",
+          "palette": [
+            "더스티 블루",
+            "월넛",
+            "크림"
+          ],
+          "components": [
+            "여행 가방 테이블",
+            "엽서 진열장",
+            "지도 장식",
+            "조명",
+            "여행 기념품 선반"
+          ],
+          "candidate_refs": [
+            "premium-room-theme-5",
+            "premium-furniture-3",
+            "premium-furniture-5"
+          ],
+          "classification": "premium_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        }
+      ]
+    },
+    {
+      "id": "dream-home",
+      "name": "꿈꾸는 집 컬렉션",
+      "concepts": [
+        {
+          "concept_id": "dream-home-1",
+          "name": "책이 있는 복층",
+          "palette": [
+            "오크",
+            "아이보리",
+            "청록"
+          ],
+          "components": [
+            "복층 계단",
+            "독서 로프트",
+            "넓은 창",
+            "책장"
+          ],
+          "candidate_refs": [
+            "future-space-1"
+          ],
+          "classification": "premium_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        },
+        {
+          "concept_id": "dream-home-2",
+          "name": "별빛 펜트하우스",
+          "palette": [
+            "네이비",
+            "크림",
+            "골드"
+          ],
+          "components": [
+            "큰 창",
+            "라운지",
+            "별빛 조명",
+            "전망 테라스"
+          ],
+          "candidate_refs": [
+            "future-space-2"
+          ],
+          "classification": "premium_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        },
+        {
+          "concept_id": "dream-home-3",
+          "name": "오후의 테라스",
+          "palette": [
+            "세이지",
+            "테라코타",
+            "크림"
+          ],
+          "components": [
+            "테라스",
+            "파라솔",
+            "티테이블",
+            "화분"
+          ],
+          "candidate_refs": [
+            "future-space-3"
+          ],
+          "classification": "premium_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        },
+        {
+          "concept_id": "dream-home-4",
+          "name": "작은 비밀 정원",
+          "palette": [
+            "연두",
+            "라벤더",
+            "우드"
+          ],
+          "components": [
+            "정원",
+            "꽃 아치",
+            "벤치",
+            "작은 연못"
+          ],
+          "candidate_refs": [
+            "future-space-4"
+          ],
+          "classification": "premium_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        }
+      ]
+    },
+    {
+      "id": "season",
+      "name": "사계절 디자인 컬렉션",
+      "concepts": [
+        {
+          "concept_id": "season-1",
+          "name": "벚꽃 편지",
+          "palette": [
+            "벚꽃 핑크",
+            "아이보리"
+          ],
+          "components": [
+            "꽃 자수 카디건",
+            "리본",
+            "꽃잎 우산",
+            "꽃무늬 러그"
+          ],
+          "candidate_refs": [
+            "premium-season-1"
+          ],
+          "classification": "premium_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        },
+        {
+          "concept_id": "season-2",
+          "name": "한여름 엽서",
+          "palette": [
+            "코발트",
+            "레몬",
+            "코랄"
+          ],
+          "components": [
+            "마린 셔츠",
+            "선글라스",
+            "비치백",
+            "파라솔"
+          ],
+          "candidate_refs": [
+            "premium-season-2"
+          ],
+          "classification": "premium_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        },
+        {
+          "concept_id": "season-3",
+          "name": "호박빛 밤",
+          "palette": [
+            "퍼플",
+            "오렌지",
+            "검정"
+          ],
+          "components": [
+            "별 자수 망토",
+            "호박 장식",
+            "마녀 모자",
+            "가상 랜턴"
+          ],
+          "candidate_refs": [
+            "premium-season-3"
+          ],
+          "classification": "premium_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        },
+        {
+          "concept_id": "season-4",
+          "name": "눈꽃 무도회",
+          "palette": [
+            "딥레드",
+            "골드",
+            "눈빛"
+          ],
+          "components": [
+            "겨울 파티 코트",
+            "보석 브로치",
+            "화환",
+            "눈꽃 조명"
+          ],
+          "candidate_refs": [
+            "premium-season-4"
+          ],
+          "classification": "premium_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        },
+        {
+          "concept_id": "season-5",
+          "name": "달빛 가면무도회",
+          "palette": [
+            "보라",
+            "은색",
+            "딥네이비"
+          ],
+          "components": [
+            "가면",
+            "망토",
+            "정장 또는 드레스",
+            "무도회 조명"
+          ],
+          "candidate_refs": [
+            "premium-season-5"
+          ],
+          "classification": "premium_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        }
+      ]
+    },
+    {
+      "id": "pet-character",
+      "name": "반려동물·캐릭터 소품 컬렉션",
+      "concepts": [
+        {
+          "concept_id": "pet-character-1",
+          "name": "작은 친구의 낮잠",
+          "palette": [
+            "민트",
+            "크림",
+            "살구"
+          ],
+          "components": [
+            "동물 무늬 방석",
+            "반려동물 리본",
+            "발자국 러그",
+            "작은 펫 소파"
+          ],
+          "candidate_refs": [
+            "premium-wardrobe-6",
+            "premium-furniture-3"
+          ],
+          "classification": "premium_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        },
+        {
+          "concept_id": "pet-character-2",
+          "name": "한 장의 기념사진",
+          "palette": [
+            "파스텔 블루",
+            "핑크"
+          ],
+          "components": [
+            "꽃다발 포즈",
+            "반짝이 인사",
+            "사진 소품",
+            "프레임"
+          ],
+          "candidate_refs": [
+            "premium-expression-1",
+            "premium-expression-2"
+          ],
+          "classification": "premium_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        },
+        {
+          "concept_id": "pet-character-3",
+          "name": "별사탕 메이크업",
+          "palette": [
+            "라벤더",
+            "피치",
+            "크림"
+          ],
+          "components": [
+            "눈가 별무늬",
+            "귀 장식",
+            "볼터치",
+            "반짝이는 표정"
+          ],
+          "candidate_refs": [
+            "premium-expression-2",
+            "premium-expression-3"
+          ],
+          "classification": "premium_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        }
+      ]
+    },
+    {
+      "id": "brand",
+      "name": "기업 컬래버레이션 컬렉션",
+      "concepts": [
+        {
+          "concept_id": "brand-1",
+          "name": "카페의 하루",
+          "palette": [
+            "협의 색상(미정)"
+          ],
+          "components": [
+            "허가된 카페 앞치마",
+            "가상 컵",
+            "카운터",
+            "테마 파티"
+          ],
+          "candidate_refs": [
+            "brand-collaboration-1",
+            "brand-collaboration-2",
+            "brand-collaboration-3",
+            "brand-collaboration-4"
+          ],
+          "classification": "brand_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        },
+        {
+          "concept_id": "brand-2",
+          "name": "작은 책방",
+          "palette": [
+            "협의 색상(미정)"
+          ],
+          "components": [
+            "독서 코디",
+            "책장",
+            "책갈피 장식",
+            "북페어 공간"
+          ],
+          "candidate_refs": [
+            "brand-collaboration-1",
+            "brand-collaboration-2",
+            "brand-collaboration-3",
+            "brand-collaboration-4"
+          ],
+          "classification": "brand_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        },
+        {
+          "concept_id": "brand-3",
+          "name": "여행의 시작",
+          "palette": [
+            "협의 색상(미정)"
+          ],
+          "components": [
+            "여행 코디",
+            "트렁크",
+            "엽서",
+            "가상 관광 팝업"
+          ],
+          "candidate_refs": [
+            "brand-collaboration-1",
+            "brand-collaboration-2",
+            "brand-collaboration-3",
+            "brand-collaboration-4"
+          ],
+          "classification": "brand_candidate",
+          "implementation_state": "not_started",
+          "sellable": false
+        }
+      ]
+    }
+  ]
+}
