@@ -102,7 +102,7 @@ export function Footer({ onBrandKit, onNavigate, showCommercial = false }: { onB
             <p className="kicker mb-3">브랜드</p>
             <ul className="space-y-2 text-[11.5px]" style={{ color: 'var(--muted)' }}>
               <li>
-                <button type="button" onClick={onBrandKit} className="hover:underline">미디어킷 · 협찬 안내</button>
+                <button type="button" onClick={onBrandKit} className="hover:underline">제휴·협찬 문의</button>
               </li>
               <li><button type="button" onClick={() => onNavigate('sponsor-zone')} className="hover:underline">이번 달 스폰서</button></li>
               <li>
