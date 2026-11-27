@@ -6,6 +6,7 @@ import type { HomeDecor } from '../data/homeDecor'
 import type { MiniHome } from './socialTypes'
 export type { MiniHome } from './socialTypes'
 import { MINIHOME_DEFAULT } from './socialTypes'
+import { signedPhotoUrls, signedPhotoUrl } from './photoChat'
 
 export const socialEnabled = serverEnabled
 
@@ -303,26 +304,28 @@ export async function deleteMail(id: string): Promise<boolean> {
 
 /* ── 상호 동의 1:1 쪽지 ────────────────────────────────────────────── */
 
-export type NoteThread = { id: string; peerId: string; peerName: string; status: 'pending' | 'accepted' | 'declined' | 'closed'; direction: 'in' | 'out'; createdAt: string; lastAt: string | null }
-export type NoteMessage = { id: string; body: string; createdAt: string; mine: boolean }
+export type NoteThread = { id: string; peerId: string; peerName: string; status: 'pending' | 'accepted' | 'declined' | 'closed'; mode: 'note' | 'chat'; direction: 'in' | 'out'; createdAt: string; lastAt: string | null }
+export type NoteMessage = { id: string; body: string; createdAt: string; mine: boolean; image?: string }
 
 export async function listNoteThreads(): Promise<{ threads: NoteThread[]; messages: Record<string, NoteMessage[]> }> {
   if (!supabase) return { threads: [], messages: {} }
   const me = await uid()
   if (!me) return { threads: [], messages: {} }
-  const { data, error } = await supabase.from('note_threads').select('id,requester,addressee,status,created_at,last_message_at').order('created_at', { ascending: false }).limit(50)
+  const { data, error } = await supabase.from('note_threads').select('id,requester,addressee,status,mode,created_at,last_message_at').order('created_at', { ascending: false }).limit(50)
   if (error || !data) return { threads: [], messages: {} }
-  const rows = data as { id: string; requester: string; addressee: string; status: NoteThread['status']; created_at: string; last_message_at: string | null }[]
+  const rows = data as { id: string; requester: string; addressee: string; status: NoteThread['status']; mode?: NoteThread['mode']; created_at: string; last_message_at: string | null }[]
   const names = await namesOf(rows.map((r) => (r.requester === me ? r.addressee : r.requester)))
   const threads: NoteThread[] = rows.map((r) => {
     const peerId = r.requester === me ? r.addressee : r.requester
-    return { id: r.id, peerId, peerName: names.get(peerId)?.nickname ?? '이웃', status: r.status, direction: r.requester === me ? 'out' : 'in', createdAt: r.created_at, lastAt: r.last_message_at }
+    return { id: r.id, peerId, peerName: names.get(peerId)?.nickname ?? '이웃', status: r.status, mode: r.mode ?? 'note', direction: r.requester === me ? 'out' : 'in', createdAt: r.created_at, lastAt: r.last_message_at }
   })
   const messages: Record<string, NoteMessage[]> = {}
   if (threads.length) {
-    const { data: msgs } = await supabase.from('note_messages').select('id,thread_id,sender_id,body,created_at').in('thread_id', threads.map((t) => t.id)).order('created_at').limit(400)
-    for (const m of (msgs ?? []) as { id: string; thread_id: string; sender_id: string; body: string; created_at: string }[]) {
-      ;(messages[m.thread_id] ??= []).push({ id: m.id, body: m.body, createdAt: m.created_at, mine: m.sender_id === me })
+    const { data: msgs } = await supabase.from('note_messages').select('id,thread_id,sender_id,body,created_at,image_path').in('thread_id', threads.map((t) => t.id)).order('created_at').limit(400)
+    const rowsM = (msgs ?? []) as { id: string; thread_id: string; sender_id: string; body: string; created_at: string; image_path: string | null }[]
+    const photos = await signedPhotoUrls(rowsM.map((m) => m.image_path).filter((v): v is string => Boolean(v)))
+    for (const m of rowsM) {
+      ;(messages[m.thread_id] ??= []).push({ id: m.id, body: m.body, createdAt: m.created_at, mine: m.sender_id === me, image: m.image_path ? photos[m.image_path] : undefined })
     }
   }
   return { threads, messages }
@@ -388,6 +391,96 @@ export function subscribeBells(onBell: (e: BellEvent) => void): () => void {
         if (me && row.addressee === me) onBell({ kind: 'friend', text: '새 친구 신청이 도착했어요.' })
       })
     })
+    .subscribe()
+  return () => {
+    void client.removeChannel(channel)
+  }
+}
+
+/* ── 친구 1:1 실시간 채팅 ──────────────────────────────────────────────
+   친구(accepted)면 수락 절차 없이 open_friend_chat RPC로 방을 열고,
+   note_messages의 Realtime INSERT를 구독해 두 화면에 바로 나타나게 한다.
+   친구가 아닌 사람은 이 경로를 쓸 수 없고, 기존 수락제 쪽지만 쓸 수 있다. */
+
+export async function openFriendChat(peerId: string): Promise<{ threadId: string } | { error: string }> {
+  if (!supabase) return { error: '서버에 연결되어 있지 않아요.' }
+  const { data, error } = await supabase.rpc('open_friend_chat', { peer: peerId })
+  if (error || !data) {
+    const msg = error?.message ?? ''
+    if (/friends_only/.test(msg)) return { error: '친구가 된 뒤에 1:1 채팅을 열 수 있어요.' }
+    if (/blocked/.test(msg)) return { error: '지금은 이 사람과 대화할 수 없어요.' }
+    if (/auth_required/.test(msg)) return { error: '먼저 로그인해 주세요.' }
+    return { error: '채팅방을 열지 못했어요. 잠시 후 다시 시도해 주세요.' }
+  }
+  return { threadId: String(data) }
+}
+
+export async function listChatMessages(threadId: string): Promise<NoteMessage[]> {
+  if (!supabase) return []
+  const me = await uid()
+  const { data, error } = await supabase
+    .from('note_messages')
+    .select('id,thread_id,sender_id,body,created_at,image_path')
+    .eq('thread_id', threadId)
+    .order('created_at')
+    .limit(200)
+  if (error || !data) return []
+  const rows = data as { id: string; sender_id: string; body: string; created_at: string; image_path: string | null }[]
+  const photos = await signedPhotoUrls(rows.map((r) => r.image_path).filter((v): v is string => Boolean(v)))
+  return rows.map((r) => ({
+    id: r.id,
+    body: r.body,
+    createdAt: r.created_at,
+    mine: r.sender_id === me,
+    image: r.image_path ? photos[r.image_path] : undefined,
+  }))
+}
+
+export async function sendChatMessage(
+  threadId: string,
+  text: string,
+  photo?: { path: string; thumbPath: string; width: number; height: number; bytes: number },
+): Promise<string | null> {
+  if (!supabase) return '서버에 연결되어 있지 않아요.'
+  const body = text.trim().slice(0, 500)
+  if (!body && !photo) return '보낼 내용을 적어 주세요.'
+  const { error } = await supabase.from('note_messages').insert({
+    thread_id: threadId,
+    body,
+    image_path: photo?.path,
+    image_thumb_path: photo?.thumbPath,
+    image_width: photo?.width,
+    image_height: photo?.height,
+    image_bytes: photo?.bytes,
+  })
+  if (!error) return null
+  if (error.message.includes('too_many_notes')) return '너무 빨리 보냈어요. 잠시만 쉬었다 보내 주세요.'
+  if (error.message.includes('friends_only')) return '친구 사이에서만 채팅할 수 있어요.'
+  if (error.message.includes('blocked')) return '지금은 이 사람에게 보낼 수 없어요.'
+  if (error.message.includes('note_intro_limit')) return '쪽지는 상대가 수락한 뒤에 더 보낼 수 있어요.'
+  return '메시지를 보내지 못했어요. 잠시 후 다시 시도해 주세요.'
+}
+
+/** 친구 채팅방의 새 메시지를 실시간으로 받는다. 반환값은 구독 해제. */
+export function subscribeFriendChat(threadId: string, meId: string, onMessage: (m: NoteMessage) => void): () => void {
+  if (!supabase) return () => {}
+  const client = supabase
+  const channel = client
+    .channel(`dd-friend-chat-${threadId}`)
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'note_messages', filter: `thread_id=eq.${threadId}` },
+      (payload) => {
+        const row = payload.new as { id: string; thread_id: string; sender_id: string; body: string; created_at: string; image_path: string | null }
+        if (row.thread_id !== threadId) return
+        const base: NoteMessage = { id: row.id, body: row.body, createdAt: row.created_at, mine: row.sender_id === meId }
+        if (row.image_path) {
+          void signedPhotoUrl(row.image_path).then((url) => onMessage({ ...base, image: url }))
+          return
+        }
+        onMessage(base)
+      },
+    )
     .subscribe()
   return () => {
     void client.removeChannel(channel)

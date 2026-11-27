@@ -6,6 +6,7 @@ import OnlineMeetingPreview from './components/OnlineMeetingPreview'
 import './polish.css'
 import './world-ui.css'
 import './console.css'
+import './craft.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

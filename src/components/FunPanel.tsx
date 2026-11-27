@@ -242,33 +242,36 @@ export function FunPanel({
   }
 
   return (
-    <div className="dd-world-pop dd-fun-panel" role="dialog" aria-label="딩동 재미 요소 8종">
-      <div className="dd-pop-title">
-        <strong>딩동의 작은 재미 8가지</strong>
-        <button className="dd3-btn" onClick={onClose}>닫기</button>
-      </div>
-      <p className="dd-fun-lead">
-        정본 승인 목록 그대로예요. 모든 기록은 이 기기에 저장되고, 실제 상품·결제·순위는 없어요.
-      </p>
-      <div className="dd-fun-grid">
-        <section className="dd-fun-card" data-fun="door">
-          <h4>1. 문 열어두기</h4>
+    <div className="dd-world-pop dd-fun-panel dd-craft-fun" role="dialog" aria-label="딩동 재미 요소 8종">
+      <header className="dd-fun-head">
+        <span className="dd-fun-kicker" aria-hidden="true">DINGDONG LITTLE JOYS</span>
+        <h3>딩동의 작은 재미 8가지</h3>
+        <p className="dd-fun-lead">마을에서 주워 온 소품들. 모두 이 기기에만 저장되고, 실제 상품·결제·순위는 없어요.</p>
+        <button className="dd3-btn dd-fun-close" onClick={onClose}>닫기</button>
+      </header>
+
+      <div className="dd-fun-wall">
+        <section className="dd-fun-card dd-prop dd-prop-door" data-fun="door">
+          <span className="dd-prop-art" aria-hidden="true"><i /></span>
+          <h4><em>01</em> 문 열어두기</h4>
           <p>{doorOpen ? '지금은 문을 열어 두었어요. 친구가 놀러 올 수 있어요.' : '문을 닫았어요. 혼자 조용히 쉬는 중이에요.'}</p>
           <button type="button" className="dd3-btn" aria-pressed={doorOpen} onClick={() => onDoorToggle(!doorOpen)}>
             {doorOpen ? '문 닫고 혼자 쉬기' : '문 열어두기(친구 공개)'}
           </button>
         </section>
 
-        <section className="dd-fun-card" data-fun="silent">
-          <h4>2. 말없이 함께 있기</h4>
+        <section className="dd-fun-card dd-prop dd-prop-silent" data-fun="silent">
+          <span className="dd-prop-art" aria-hidden="true"><i /></span>
+          <h4><em>02</em> 말없이 함께 있기</h4>
           <p>채팅 없이 같은 공간에 머무는 시간이에요. 지금 이 공간에 {peers + 1}명이 있어요.</p>
           <button type="button" className="dd3-btn" aria-pressed={silent} onClick={() => onSilentToggle(!silent)}>
             {silent ? '말없이 함께 있는 중 · 그만두기' : '말없이 함께 있기'}
           </button>
         </section>
 
-        <section className="dd-fun-card" data-fun="ticket">
-          <h4>3. 파티 기념 티켓</h4>
+        <section className="dd-fun-card dd-prop dd-prop-ticket" data-fun="ticket">
+          <span className="dd-ticket-stub" aria-hidden="true">DINGDONG · ADMIT ONE</span>
+          <h4><em>03</em> 파티 기념 티켓</h4>
           <p>오늘의 파티 이름과 날짜로 티켓을 만들어 보관해요.</p>
           <button type="button" className="dd3-btn" onClick={makeTicket}><Ticket size={16}/> 티켓 만들기</button>
           <div className="dd-fun-thumbs">
@@ -283,8 +286,8 @@ export function FunPanel({
           </div>
         </section>
 
-        <section className="dd-fun-card" data-fun="fourcut">
-          <h4>4. 딩동 네컷</h4>
+        <section className="dd-fun-card dd-prop dd-prop-fourcut" data-fun="fourcut">
+          <h4><em>04</em> 딩동 네컷</h4>
           <p>네 장을 모아 한 장으로 붙여요. 함께 찍은 사진은 서로 동의한 것만 올려 주세요.</p>
           <div className="dd-fun-actions">
             <button type="button" className="dd3-btn" onClick={grabScene}><Camera size={16}/> 3D 화면 담기</button>
@@ -308,9 +311,10 @@ export function FunPanel({
           ))}
         </section>
 
-        <section className="dd-fun-card" data-fun="radio">
-          <h4>5. 딩동 라디오</h4>
-          <p><Music4 size={15}/> 도레의 오늘 방송 · {today.title || '오늘의 작은 파티'}</p>
+        <section className="dd-fun-card dd-prop dd-prop-radio" data-fun="radio">
+          <span className="dd-radio-dial" aria-hidden="true"><i/><i/><i/></span>
+          <h4><em>05</em> 딩동 라디오</h4>
+          <p className="dd-radio-now"><Music4 size={15}/> 도레의 오늘 방송 · {today.title || '오늘의 작은 파티'}</p>
           <ul className="dd-radio-list">
             <li>오늘의 마을 행사: {today.title || '—'} ({today.space})</li>
             <li>이번 달 축제: {monthly?.title ?? '—'} · {monthly?.events.slice(0, 3).join(', ') ?? ''}</li>
@@ -324,8 +328,9 @@ export function FunPanel({
           <small>사연은 이 기기에만 저장돼요. 실제 방송·심사는 없어요.</small>
         </section>
 
-        <section className="dd-fun-card" data-fun="letter">
-          <h4>6. 미래의 나에게 보내는 편지</h4>
+        <section className="dd-fun-card dd-prop dd-prop-letter" data-fun="letter">
+          <span className="dd-letter-stamp" aria-hidden="true">딩동<br/>우표</span>
+          <h4><em>06</em> 미래의 나에게 보내는 편지</h4>
           <label className="dd-fun-field"><span>편지</span><textarea maxLength={600} value={letterText} onChange={(e) => setLetterText(e.target.value)} aria-label="미래 편지 내용" /></label>
           <label className="dd-fun-field"><span>받을 날짜</span><input type="date" value={letterDate} min={seoulDate()} onChange={(e) => setLetterDate(e.target.value)} aria-label="미래 편지 받을 날짜" /></label>
           <button type="button" className="dd3-btn" onClick={saveLetter}>편지 맡기기</button>
@@ -343,8 +348,9 @@ export function FunPanel({
           </ul>
         </section>
 
-        <section className="dd-fun-card" data-fun="memorybox">
-          <h4>7. 우리들의 추억 상자</h4>
+        <section className="dd-fun-card dd-prop dd-prop-box" data-fun="memorybox">
+          <span className="dd-box-lid" aria-hidden="true" />
+          <h4><em>07</em> 우리들의 추억 상자</h4>
           <p>남긴 기록을 월별로 모아 봐요. 사진 {memories.reduce((n, m) => n + m.photos.length, 0)}장 · 기록 {memories.length}개 · 티켓 {tickets.length}장 · 편지 {letters.length}통</p>
           <div className="dd-memory-months">
             {[...boxes.entries()].slice(0, 6).map(([month, list]) => (
@@ -358,8 +364,8 @@ export function FunPanel({
           </div>
         </section>
 
-        <section className="dd-fun-card" data-fun="exhibit">
-          <h4>8. 마을 작은 전시회</h4>
+        <section className="dd-fun-card dd-prop dd-prop-frame" data-fun="exhibit">
+          <h4><em>08</em> 마을 작은 전시회</h4>
           <p>그림·반려동물 사진·미니룸을 자발적으로 걸어 두는 곳이에요. 인기 순위는 없어요.</p>
           <label className="dd-fun-field"><span>작품 이름</span><input ref={exhibitTitleRef} maxLength={40} value={exhibitTitle} onChange={(e) => setExhibitTitle(e.target.value)} aria-label="전시 작품 이름" /></label>
           <button type="button" className="dd3-btn" onClick={() => exhibitRef.current?.click()}><ImagePlus size={16}/> 작품 올리기</button>

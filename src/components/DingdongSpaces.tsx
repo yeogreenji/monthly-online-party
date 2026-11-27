@@ -21,6 +21,9 @@ import { DEFAULT_LOOK, normalizeLook } from '../data/avatarLook'
 import type { Look } from '../data/avatarLook'
 import { AvatarWardrobe } from './AvatarWardrobe'
 import { FriendsPanel, MailboxPanel, MiniHomePanel, NoteBadge } from './SocialPanels'
+import { FriendChatPanel } from './FriendChat'
+import { CraftDatePicker } from './CraftDatePicker'
+import type { ChatPeer } from './FriendChat'
 import { EMOTES } from '../data/collections'
 import type { Emote } from '../data/collections'
 import { MINIHOME_DEFAULT } from '../lib/socialTypes'
@@ -45,7 +48,7 @@ import type { PresencePeer } from '../lib/presence'
 import { AdminReports } from './AdminReports'
 import type { TransportMessage } from '../lib/chatTransport'
 import { useAuth, useProfileSync } from '../lib/useAuth'
-import { AuthCard } from './AuthCard'
+import { LazyAuth } from './AuthCard'
 import { SPACE_WORLD, KIND_UI, demoReply, todayPick, whoName, seoulDate } from '../data/spaceWorld'
 // 로렌(기획) 승인 정본: 덕질 존 개설 유형·제목 규칙을 JSON 정본에서 그대로 읽어 쓴다.
 import CONTENT_MASTER from '../../content/dingdong/content-master-v1.json'
@@ -126,6 +129,12 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   const captureApi=useRef<(()=>string|null)|null>(null)
   // 2단계: 친구·미니홈피·우편함·감정표현·계정 저장
   const [socialPanel,setSocialPanel]=useState<null|'friends'|'minihome'>(null)
+  const [friendChat,setFriendChat]=useState<ChatPeer|null>(null)
+  function openFriendChatPanel(peer:ChatPeer){
+    if(!serverEnabled){setNotice('지금은 기기 체험 모드예요. 친구 채팅은 서버 연결 후 열려요.');return}
+    if(!authUser){needAuth('친구와 1:1 채팅을 하려면 딩동 계정이 필요해요. 이메일만 있으면 바로 돼요.');return}
+    closePanels();setChatCollapsed(true);setFriendChat(peer)
+  }
   const [visiting,setVisiting]=useState<FriendSpace|null>(null)
   const [mini,setMini]=usePersistentState<MiniHome>('dd.minihome.v1',MINIHOME_DEFAULT)
   const [bellText,setBellText]=useState('')
@@ -141,7 +150,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   const [homeExpanded,setHomeExpanded]=useState(false)
   const [memoriesOpen,setMemoriesOpen]=useState(false)
   const [historyStatus,setHistoryStatus]=useState('')
-  function closePanels(){setMemoriesOpen(false);setCornerId(null);setWardrobe(false);setYearbook(false);setMapOpen(false);setMailOpen(false);setToolsOpen(false);setSocialPanel(null);setEmoteOpen(false);setSpaceMenu(null);setFunOpen(false);setMenuCard(null);setLightbox(null);setAlbumOpen(false)}
+  function closePanels(){setFriendChat(null);setMemoriesOpen(false);setCornerId(null);setWardrobe(false);setYearbook(false);setMapOpen(false);setMailOpen(false);setToolsOpen(false);setSocialPanel(null);setEmoteOpen(false);setSpaceMenu(null);setFunOpen(false);setMenuCard(null);setLightbox(null);setAlbumOpen(false)}
   function openMenuBoard(spaceId?:string){const sid=spaceId??space?.id;if(!sid)return;closePanels();setChatCollapsed(true);setSpaceMenu(sid)}
   function runMenuAction(action:MenuAction){
     const sid=spaceMenu??space?.id
@@ -221,6 +230,13 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   const { user: authUser } = useAuth()
   const sync = useProfileSync(authUser, profile.nickname, profile.ageBand)
   const online = serverEnabled && !!authUser && sync === 'ok'
+  // 서버 계정이 필요한 버튼을 누른 그 순간에만 여는 간편 로그인 창.
+  const [authPrompt, setAuthPrompt] = useState<{ reason: string } | null>(null)
+  function needAuth(reason: string) {
+    if (!serverEnabled || authUser) return false
+    setAuthPrompt({ reason })
+    return true
+  }
   const remote = useMemo(() => (serverEnabled ? createTransport() : null), [])
   // 실시간 접속: 로그인한 이용자가 같은 공간에 있으면 서버 Presence로 서로의 캐릭터·들어간 모임·말풍선을 주고받는다.
   const poseRef = useRef<(() => { x: number; z: number; pose: 'standing' | 'seated' | 'lying' }) | null>(null)
@@ -487,6 +503,8 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   useEffect(()=>{if(!chatCollapsed&&messageLog.current&&nearBottom.current)messageLog.current.scrollTop=messageLog.current.scrollHeight},[chatCollapsed,topic?.id,messages]);
   function send() {
     if (!topic || (!draft.trim() && !picture && !placeName.trim())) return
+    // 같은 공간에 이웃이 있으면 진짜 대화로 보내야 하니, 그때만 가볍게 로그인을 청한다.
+    if (!online && peers.length > 0 && needAuth('이웃과 이야기를 나누려면 딩동 계정이 필요해요. 이메일만 있으면 바로 돼요.')) return
     const safe=checkChatText(`${draft} ${placeName}`)
     if(!safe.ok){setNotice(safe.reason);return}
     const url=safePlaceUrl(placeUrl)
@@ -520,7 +538,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   }
   return <section id="rooms" className="dd-world-app" data-presence={presence.connected?'on':'off'} data-peers={String(peers.length)} data-room={topic?.id??''}>
       <nav className="dd-world-nav" aria-label="딩동 메뉴">{[{I:PartyPopper,n:'이벤트',f:()=>showPanel('events')},{I:CalendarDays,n:'일정',f:()=>externalMenu('calendar')},{I:Map,n:'지도',f:()=>showPanel('map')},{I:BookOpen,n:'메뉴',f:()=>openMenuBoard()},{I:Home,n:'내 집',f:()=>visit('home')},{I:Settings,n:'설정',f:()=>toggleTools(!toolsOpen)}].map(({I,n,f})=><button key={n} aria-label={n} onClick={f}><I size={22}/><span>{n}</span></button>)}</nav>
-      <div className="dd-quick-links"><button aria-label="공지" onClick={()=>externalMenu('etiquette')}><Bell size={20}/></button><button aria-label="포토월" onClick={()=>externalMenu('wall')}><Camera size={20}/></button><button aria-label={friendBadge?`친구 · 새 신청 ${friendBadge}건`:'친구'} onClick={()=>showPanel('friends')}><Users size={20}/><NoteBadge count={friendBadge}/></button><button aria-label="감정표현" aria-expanded={emoteOpen} onClick={()=>setEmoteOpen(v=>!v)}><Smile size={20}/></button><button aria-label="재미 요소 8종" onClick={()=>{closePanels();setChatCollapsed(true);setFunOpen(true)}}><Sparkles size={20}/></button></div>
+      <div className="dd-quick-links"><button aria-label="공지" title="공지" onClick={()=>externalMenu('etiquette')}><Bell size={20}/></button><button aria-label="포토월" title="포토월" onClick={()=>externalMenu('wall')}><Camera size={20}/></button><button aria-label={friendBadge?`친구 · 새 신청 ${friendBadge}건`:'친구'} title="친구" onClick={()=>showPanel('friends')}><Users size={20}/><NoteBadge count={friendBadge}/></button><button aria-label="감정표현" title="감정표현" aria-expanded={emoteOpen} onClick={()=>setEmoteOpen(v=>!v)}><Smile size={20}/></button><button aria-label="재미 요소 8종" title="작은 재미 8가지" onClick={()=>{closePanels();setChatCollapsed(true);setFunOpen(true)}}><Sparkles size={20}/></button></div>
       {emoteOpen&&<div className="dd-emote-tray" role="group" aria-label="감정표현 16종">{EMOTES.map(e=><button key={e.label} type="button" aria-label={e.label} onClick={()=>castEmote(e)}><span aria-hidden="true">{e.emoji}</span><small>{e.label}</small></button>)}</div>}
       {bellText&&<p className="dd-bell-banner" role="status"><Bell size={15}/>{bellText}</p>}
       {isBirthdayToday(mini.birthday)&&<p className="dd-birthday-banner" role="status">🎂 오늘은 생일이에요! 마을 친구들이 축하 인사를 준비했어요. 시즌홀의 ‘생일 파티’로 축하 자리를 열어 보세요.</p>}
@@ -538,7 +556,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
         </ul>
       </div>}
       {wardrobe&&<div className="dd-world-pop dd-world-wardrobe" role="dialog" aria-label="나의 옷장"><div className="dd-pop-title"><strong>나의 작은 옷장</strong><button className="dd3-btn" onClick={()=>setWardrobe(false)}>옷장 닫기</button></div><AvatarWardrobe avatar={profile.avatar} look={look} onChange={v=>{setLook(v);saveJSON('dd.avatar.look.v1',v)}} onDone={()=>setWardrobe(false)}/></div>}
-      {yearbook&&<div className="dd-world-pop" role="dialog" aria-label="연간 이벤트"><div className="dd-pop-title"><strong>딩동의 12개월 파티</strong><button className="dd3-btn" onClick={()=>setYearbook(false)}>닫기</button></div><p>월별 이벤트 기획 · 실제 날짜는 일정에서 확인</p><DailyFestival onVisit={id=>visit(id,true)} onCalendar={()=>externalMenu('calendar')}/><div className="dd-event-grid">{MONTHLY_IDEAS.map((idea,i)=><button key={i} onClick={()=>i===11?visit('season'):externalMenu('calendar')} style={{'--event-color':['#d6c5f8','#ffc8dc','#c6efdb','#f6cde1','#ffe2a6','#c5d8f6','#bde9ed','#e3caf5','#ffe0aa','#d8c2f1','#cee8d9','#f7c4d2'][i]} as React.CSSProperties}><FestivalArt month={i}/><strong>{i+1}월</strong><small>{idea}</small><span>{i===11?'시즌홀 입장':'일정 보기'}</span></button>)}</div></div>}
+      {yearbook&&<div className="dd-world-pop" role="dialog" aria-label="연간 이벤트"><div className="dd-pop-title"><strong>딩동의 12개월 파티</strong><button className="dd3-btn" onClick={()=>setYearbook(false)}>닫기</button></div><p>월별 이벤트 기획 · 실제 날짜는 일정에서 확인</p><DailyFestival onVisit={id=>visit(id,true)} onCalendar={()=>externalMenu('calendar')}/><details className="dd-month-details"><summary>12개월 파티 한눈에 보기</summary><div className="dd-event-grid">{MONTHLY_IDEAS.map((idea,i)=><button key={i} onClick={()=>i===11?visit('season'):externalMenu('calendar')} style={{'--event-color':['#d6c5f8','#ffc8dc','#c6efdb','#f6cde1','#ffe2a6','#c5d8f6','#bde9ed','#e3caf5','#ffe0aa','#d8c2f1','#cee8d9','#f7c4d2'][i]} as React.CSSProperties}><FestivalArt month={i}/><strong>{i+1}월</strong><small>{idea}</small><span>{i===11?'시즌홀 입장':'일정 보기'}</span></button>)}</div></details></div>}
       {mapOpen&&<div className="dd-world-pop" role="dialog" aria-label="마을 지도"><div className="dd-pop-title"><strong>우리 동네 지도</strong><button className="dd3-btn" onClick={()=>setMapOpen(false)}>닫기</button></div><p>가게를 선택하면 바로 입장합니다. 잠긴 공간은 내부 구경만 가능합니다.</p><div className="dd-map-grid">{SPACES.filter(s=>!onlyFavorites||favorites.includes(s.id)).map(s=><button key={s.id} onClick={()=>visit(s.id,true,access(s.id)==='locked')}><span>{s.icon}</span><strong>{s.name}</strong><small>{access(s.id)==='open'?'입장':access(s.id)==='locked'?'구경만 가능':'준비 중'}</small></button>)}</div>{onlyFavorites&&!favorites.length&&<p>즐겨찾는 공간이 아직 없어요.</p>}<button className="dd3-btn" aria-pressed={onlyFavorites} onClick={()=>setOnlyFavorites(v=>!v)}>{onlyFavorites?'전체 목적지':'즐겨찾기 목적지'}</button></div>}
       {spaceMenu&&SPACE_CONTENT[spaceMenu]&&<SpaceMenuPanel space={SPACE_CONTENT[spaceMenu]} locked={access(spaceMenu)!=='open'} resident={RESIDENTS[spaceMenu]?.name} onTalk={()=>{const rid=spaceMenu;setSpaceMenu(null);setChatCollapsed(true);setTalkReq(p=>({id:rid,serial:(p?.serial??0)+1}))}} onClose={()=>setSpaceMenu(null)} onMenu={runMenuAction} onActivity={openActivity}/>}
       {menuCard&&<div className="dd-world-pop dd-menu-card" role="dialog" aria-label={`${SPACE_CONTENT[menuCard]?.name ?? '공간'} 메뉴 카드`} data-menu-card={menuCard}>
@@ -576,9 +594,9 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
         </section>
       </div>}
       {mailOpen&&<MailboxPanel online={online} onClose={()=>setMailOpen(false)} onToast={text=>setNotice(text)} onOpenInvite={(spaceId)=>{setMailOpen(false);visit(spaceId,true);setNotice('초대받은 모임이 있는 공간으로 이동했어요. 모임 목록에서 열어 보세요.')}}/>}
-      {socialPanel==='friends'&&<FriendsPanel online={online} onClose={()=>setSocialPanel(null)} onVisit={id=>void openFriendHome(id)} onInvite={f=>void inviteFriend(f)} onToast={(text,tone)=>{setNotice(text);if(tone==='success')setBellText(text)}}/>}
-      {socialPanel==='minihome'&&!visiting&&<MiniHomePanel online={online} me={authUser?{nickname:profile.nickname}:null} space={mySpaceView} visiting={null} onClose={()=>setSocialPanel(null)} onVisitClose={()=>setVisiting(null)} onChange={changeMySpace} onToast={text=>setNotice(text)}/>}
-      {visiting&&<MiniHomePanel online={online} me={authUser?{nickname:profile.nickname}:null} space={mySpaceView} visiting={visiting} onClose={()=>setVisiting(null)} onVisitClose={()=>setVisiting(null)} onChange={changeMySpace} onToast={text=>setNotice(text)}/>}
+      {socialPanel==='friends'&&<FriendsPanel online={online} onClose={()=>setSocialPanel(null)} onVisit={id=>void openFriendHome(id)} onInvite={f=>void inviteFriend(f)} onChat={openFriendChatPanel} onToast={(text,tone)=>{setNotice(text);if(tone==='success')setBellText(text)}}/>}
+      {socialPanel==='minihome'&&!visiting&&<MiniHomePanel online={online} me={authUser?{nickname:profile.nickname}:null} space={mySpaceView} visiting={null} onClose={()=>setSocialPanel(null)} onVisitClose={()=>setVisiting(null)} onChange={changeMySpace} onChat={openFriendChatPanel} onToast={text=>setNotice(text)}/>}
+      {visiting&&<MiniHomePanel online={online} me={authUser?{nickname:profile.nickname}:null} space={mySpaceView} visiting={visiting} onClose={()=>setVisiting(null)} onVisitClose={()=>setVisiting(null)} onChange={changeMySpace} onChat={openFriendChatPanel} onToast={text=>setNotice(text)}/>}
           {fullRoom&&<div className="dd-world-pop dd-room-full-dialog" role="dialog" aria-label="모임 정원 안내">
             <div className="dd-pop-title"><strong>정원이 가득 찼어요</strong><button className="dd3-btn" onClick={()=>setFullRoom(null)}>닫기</button></div>
             <p><strong>{fullRoom.title}</strong> · 지금 {roomCount(fullRoom)}명 / 정원 {fullRoom.capacity}명</p>
@@ -619,7 +637,8 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
           {topic.space==='games'&&<details className="ddg-tray" key={topic.id}><summary><span aria-hidden="true">🎲</span> 게임 탁자<small>{GAMES.length}가지 · 눌러서 펼치기</small></summary><GameCorner highlight={gameForTopic(topic.title)} onOpen={id=>openGame(id)}/></details>}
           {chatExtras&&<div className="dd-chat-settings"><p>{topic.description}</p>{topic.space==='games'?<small>게임 질문과 정답은 위의 미니게임에서 입력해 주세요.</small>:<><label><input type="checkbox" checked={practice} onChange={e=>setPractice(e.target.checked)}/> 가상 주민 대화 연습</label><small>켜면 시연용 주민이 응답해요.{online?'':' 실제 이용자와의 대화는 로그인하면 연결돼요.'}</small></>}<label><input type="checkbox" checked={saveHistory} onChange={e=>setSaveHistory(e.target.checked)}/> 나갈 때 참여 기록 저장</label>{saveHistory&&<select className={FIELD} aria-label="참여 기록 공개 범위" value={visibility} onChange={e=>setVisibility(e.target.value as Visibility)}>{Object.entries(VISIBILITY).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select>}<details className="dd-memory-details"><summary>사진첩·후기</summary><MemoryComposer key={topic.id} photos={(messages[topic.id]??[]).filter(m=>!m.by&&m.image&&(!m.spoiler||revealed.includes(m.id))).map(m=>({id:m.id,image:m.image!}))} onSave={saveMemory}/><MemoryAlbum key={topic.id} entries={memories} topicId={topic.id} onDelete={deleteMemory}/></details><button className="dd3-btn" onClick={leave}>모임 나가기</button>{authUser&&<button className="dd3-btn" onClick={()=>void signOut()}>로그아웃</button>}<AdminReports signedIn={!!authUser}/></div>}
           {roomIsFull(topic)&&<div className="dd-room-full" role="status"><div><strong>정원 {topic.capacity}명이 가득 찼어요</strong><span>같은 주제로 새 호실을 열면 대화가 이어집니다.</span></div><button type="button" onClick={()=>openNextRoom(topic)}>{nextRoomTitle(topic)} 열기 →</button></div>}
-          <div ref={messageLog} className="dd-message-log" role="log" aria-label="대화 기록" tabIndex={0} onScroll={e=>{const el=e.currentTarget;nearBottom.current=el.scrollHeight-el.scrollTop-el.clientHeight<48}}><div className="dd-chat-system"><Info size={14}/><span>{online?(connState==='error'?'대화를 불러오지 못했어요. 잠시 후 다시 열어 주세요.':'실제 이용자와 연결됐어요. 연락처·외부 연락 요청은 보낼 수 없어요.'):'아직 실제 이용자는 연결되지 않았어요.'}</span></div>{serverEnabled&&!online&&<AuthCard signedIn={!!authUser} sync={sync} onEditProfile={onEditProfile}/>}{practice&&seedFor(topic).map((m,i)=>peer(whoName(m.who),m.text,'seed'+i))}{!practice&&!shown(topic.id).length&&<div className="dd-chat-welcome"><span className="dd-chat-welcome-icon">{space.icon}</span><strong>이야기의 시작</strong><p>{topic.description||'첫 이야기를 남겨 보세요.'}</p>{topic.space==='games'?<button onClick={()=>openGame(gameForTopic(topic.title)??'balance')}>게임 탁자 열기</button>:<button onClick={()=>setPractice(true)}>주민과 대화 연습</button>}</div>}{shown(topic.id).map(m=>!isMine(m)?peer(m.by??'이웃',m.text,m.id,online?m:undefined):<div key={m.id} className="dd-own-message"><div className="dd-message-meta dd-own-label"><span>나</span></div><div className="dd-message-bubble">{m.spoiler&&!revealed.includes(m.id)?<button className="dd-spoiler" onClick={()=>setRevealed(v=>[...v,m.id])}>스포일러 보기</button>:<>{m.spoiler&&<button className="dd-spoiler" onClick={()=>setRevealed(v=>v.filter(id=>id!==m.id))}>다시 숨기기</button>}{m.text&&<p>{m.text}</p>}{m.image&&<button type="button" className="dd-chat-photo" aria-label="내가 올린 사진 크게 보기" onClick={()=>openMessagePhoto(m.image!)}><img src={m.image} alt="내가 올린 사진" loading="lazy"/></button>}</>}{(!m.spoiler||revealed.includes(m.id))&&m.place&&safePlaceUrl(m.place.url)&&<div className="dd-place-card"><strong><MapPin size={14}/> {m.place.name}</strong><a href={safePlaceUrl(m.place.url)} target="_blank" rel="noopener noreferrer">장소 링크 열기</a><button type="button" className="btn btn-ghost btn-sm" onClick={()=>{const place=m.place!;setSavedPlaces(p=>p.some(x=>x.url===place.url&&x.name===place.name)?p:[place,...p].slice(0,100))}}>장소 저장</button></div>}</div><div className="dd-message-time"><time dateTime={m.at}>{new Date(m.at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}</time><button onClick={()=>{if(online){void removeMessage(m.id).then(ok=>{if(ok)setRemoteMsgs(p=>({...p,[topic.id]:(p[topic.id]??[]).filter(x=>x.id!==m.id)}));else setNotice('메시지를 지우지 못했어요.')})}else setMessages(p=>({...p,[topic.id]:(p[topic.id]??[]).filter(x=>x.id!==m.id)}))}}>삭제</button></div></div>)}</div>
+          <div ref={messageLog} className="dd-message-log" role="log" aria-label="대화 기록" tabIndex={0} onScroll={e=>{const el=e.currentTarget;nearBottom.current=el.scrollHeight-el.scrollTop-el.clientHeight<48}}><div className="dd-chat-system"><Info size={14}/><span>{online?(connState==='error'?'대화를 불러오지 못했어요. 잠시 후 다시 열어 주세요.':'실제 이웃과 연결됐어요. 연락처·외부 연락 요청은 보낼 수 없어요.'):'이 기기에만 남는 연습 대화예요.'}</span></div>{serverEnabled&&!online&&<div className="dd-chat-guest" role="status"><span>지금은 연습 대화예요. 이 기기에만 남아요.</span><button type="button" onClick={()=>needAuth('이웃과 이야기를 나누려면 딩동 계정이 필요해요. 이메일만 있으면 바로 돼요.')}>이웃과 대화하기</button></div>}
+          {serverEnabled&&authUser&&sync==='duplicate'&&<p className="dd-chat-alert" role="alert">이미 쓰고 있는 닉네임이에요. 프로필에서 다른 이름으로 바꿔 주세요.</p>}{practice&&seedFor(topic).map((m,i)=>peer(whoName(m.who),m.text,'seed'+i))}{!practice&&!shown(topic.id).length&&<div className="dd-chat-welcome"><span className="dd-chat-welcome-icon">{space.icon}</span><strong>이야기의 시작</strong><p>{topic.description||'첫 이야기를 남겨 보세요.'}</p>{topic.space==='games'?<button onClick={()=>openGame(gameForTopic(topic.title)??'balance')}>게임 탁자 열기</button>:<button onClick={()=>setPractice(true)}>주민과 대화 연습</button>}</div>}{shown(topic.id).map(m=>!isMine(m)?peer(m.by??'이웃',m.text,m.id,online?m:undefined):<div key={m.id} className="dd-own-message"><div className="dd-message-meta dd-own-label"><span>나</span></div><div className="dd-message-bubble">{m.spoiler&&!revealed.includes(m.id)?<button className="dd-spoiler" onClick={()=>setRevealed(v=>[...v,m.id])}>스포일러 보기</button>:<>{m.spoiler&&<button className="dd-spoiler" onClick={()=>setRevealed(v=>v.filter(id=>id!==m.id))}>다시 숨기기</button>}{m.text&&<p>{m.text}</p>}{m.image&&<button type="button" className="dd-chat-photo" aria-label="내가 올린 사진 크게 보기" onClick={()=>openMessagePhoto(m.image!)}><img src={m.image} alt="내가 올린 사진" loading="lazy"/></button>}</>}{(!m.spoiler||revealed.includes(m.id))&&m.place&&safePlaceUrl(m.place.url)&&<div className="dd-place-card"><strong><MapPin size={14}/> {m.place.name}</strong><a href={safePlaceUrl(m.place.url)} target="_blank" rel="noopener noreferrer">장소 링크 열기</a><button type="button" className="btn btn-ghost btn-sm" onClick={()=>{const place=m.place!;setSavedPlaces(p=>p.some(x=>x.url===place.url&&x.name===place.name)?p:[place,...p].slice(0,100))}}>장소 저장</button></div>}</div><div className="dd-message-time"><time dateTime={m.at}>{new Date(m.at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}</time><button onClick={()=>{if(online){void removeMessage(m.id).then(ok=>{if(ok)setRemoteMsgs(p=>({...p,[topic.id]:(p[topic.id]??[]).filter(x=>x.id!==m.id)}));else setNotice('메시지를 지우지 못했어요.')})}else setMessages(p=>({...p,[topic.id]:(p[topic.id]??[]).filter(x=>x.id!==m.id)}))}}>삭제</button></div></div>)}</div>
           <div className="dd-chat-compose" aria-label="메시지 작성 영역">
           {picture&&<div className="dd-chat-attachment"><img src={picture} alt="첨부 미리보기"/><button className="dd3-btn" onClick={()=>{cancelPhotoRequest();setPicture('')}}>첨부 제거</button></div>}
           {showPlace&&<div className="dd-chat-place"><label>장소 이름<input aria-label="장소 이름" className={FIELD} value={placeName} maxLength={100} onChange={e=>setPlaceName(e.target.value)}/></label><label>장소 링크<input aria-label="장소 링크" className={FIELD} value={placeUrl} maxLength={2000} onChange={e=>setPlaceUrl(e.target.value)}/></label><small>운영 여부 미검증 · 로컬 추천</small></div>}
@@ -642,7 +661,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
               <small>TODAY · {ev.month}월 {ev.day}일 · {SPACE_CONTENT[ev.space]?.name ?? space.name}</small>
               <strong>{title}</strong>
               <span>{activity}</span>
-              <em>{ev.mode==='content_proposal'?'365일 콘텐츠 제안 · 개설 접수 아님':ev.mode==='official_calendar'?'연도별 공식 일정':'오늘의 편성'} · 이 활동으로 방 열기 →</em>
+              <em>{ev.mode==='content_proposal'?'마을 기획 아이디어':ev.mode==='official_calendar'?'연도별 공식 일정':'오늘의 편성'} · 이 활동으로 방 열기 →</em>
             </button>
             <p className="dd-today-meta">{monthly?.title} · {weekly.day} 낮 {weekly.daytime} / 저녁 {weekly.evening}</p>
           </div>})()}
@@ -683,6 +702,8 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
         </aside>}
       </div>
       {game&&<GameStage game={game} roomLabel={space?.name??'게임 라운지'} onChange={id=>openGame(id)} onClose={()=>setGame(null)} topicId={topic?.id??null} me={authUser?{id:authUser.id,nickname:profile.nickname}:null} players={topic?[{id:authUser?.id??'',nickname:profile.nickname},...peers.filter(p=>p.topicId===topic.id).map(p=>({id:p.id,nickname:p.nickname}))].filter(p=>p.id):[]}/>}
+      {friendChat&&<FriendChatPanel peer={friendChat} onClose={()=>setFriendChat(null)} onToast={text=>setNotice(text)} onNeedAuth={reason=>{setFriendChat(null);needAuth(reason)}}/>}
+      <LazyAuth open={!!authPrompt} reason={authPrompt?.reason ?? ''} onClose={()=>setAuthPrompt(null)}/>
   </section>
 }
 
@@ -696,10 +717,11 @@ function DailyFestival({onVisit,onCalendar}:{onVisit:(id:string)=>void;onCalenda
  const monthly=monthlyFestival(ev.month)
  const weekly=weeklyPlan(parts.weekday)
  const scheduled=CALENDAR.filter(event=>event.kind!=='weekly'&&event.dateISO.slice(0,10)===selected)
+ function pick(next:string){setSelected(next);setDraft(notes[next]??'');setFeedback('')}
  function shift(delta:number){
    const next=new Date(date.getTime()+delta*86_400_000)
    const key=next.toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'})
-   if(/^\d{4}-\d{2}-\d{2}$/.test(key)){setSelected(key);setDraft(notes[key]??'');setFeedback('')}
+   if(/^\d{4}-\d{2}-\d{2}$/.test(key))pick(key)
  }
  function saveNote(){
    const next={...notes}
@@ -709,30 +731,36 @@ function DailyFestival({onVisit,onCalendar}:{onVisit:(id:string)=>void;onCalenda
    setNotes(next)
    setFeedback('이 기기에 저장했어요.')
  }
- return <section className="card space-y-3 p-4" aria-label="365일 딩동 편성">
-   <strong>365일 작은 축제</strong>
-   <p>서울 날짜 기준 · 정본 365일 편성(content/dingdong/365-events-v1.json)</p>
-   <div className="flex flex-wrap items-center justify-between gap-2">
+ const modeLabel=ev.mode==='content_proposal'?'준비 중인 기획':ev.mode==='official_calendar'?'연도별 공식 일정':'오늘의 편성'
+ return <section className="card dd-festival-card" aria-label="365일 딩동 편성">
+   <header className="dd-festival-head">
+     <span className="dd-festival-seal" aria-hidden="true">365</span>
+     <div><strong>365일 작은 축제</strong><small>서울 날짜 기준 · 하루에 하나씩 열리는 마을 이야기</small></div>
+   </header>
+   <div className="dd-festival-bar">
      <button type="button" aria-label="전날 이벤트" onClick={()=>shift(-1)}>‹</button>
-     <input type="date" aria-label="축제 날짜" value={selected} min="0001-01-01" max="9999-12-31" onChange={e=>{
-       const value=e.target.value
-       if(/^\d{4}-\d{2}-\d{2}$/.test(value)&&!Number.isNaN(e.target.valueAsNumber)){setSelected(value);setDraft(notes[value]??'');setFeedback('')}
-     }}/>
+     <CraftDatePicker value={selected} onChange={pick} label="축제 날짜" />
      <button type="button" aria-label="다음 날 이벤트" onClick={()=>shift(1)}>›</button>
-     <button type="button" className="dd3-btn" disabled={selected===today} onClick={()=>{setSelected(today);setDraft(notes[today]??'');setFeedback('')}}>오늘로</button>
    </div>
-   {scheduled.length>0&&<div>
+   {scheduled.length>0&&<div className="dd-festival-scheduled">
      {scheduled.map(event=><p key={event.id}>{event.title}</p>)}
      <button type="button" className="dd3-btn" onClick={onCalendar}>파티 일정 보기</button>
    </div>}
-   <h3 data-365-event={ev.id}>{ev.title || `${ev.month}월 ${ev.day}일의 작은 쉼`}</h3>
-   <small>{ev.mode==='content_proposal'?'365일 콘텐츠 제안 · 개설 접수 아님':ev.mode==='official_calendar'?'연도별 공식 일정':'오늘의 편성'}</small>
-   <p>{ev.activity || '이 날은 정해진 행사 대신 자유롭게 쉬어 가는 날이에요.'}</p>
+   <div className="dd-festival-today">
+     <small className="dd-festival-mode">{modeLabel}</small>
+     <h3 data-365-event={ev.id}>{ev.title || `${ev.month}월 ${ev.day}일의 작은 쉼`}</h3>
+     <p>{ev.activity || '이 날은 정해진 행사 대신 자유롭게 쉬어 가는 날이에요.'}</p>
+   </div>
    <p className="dd-festival-monthly">{monthly?.title} · 이번 달 행사: {monthly?.events.join(', ')}</p>
    <p className="dd-festival-weekly">{weekly.day} 낮 {weekly.daytime} / 저녁 {weekly.evening}</p>
-   <textarea aria-label="오늘의 축제 기록" className={FIELD} maxLength={500} value={draft} onChange={e=>{setDraft(e.target.value);setFeedback('')}}/>
-   <button type="button" className="dd3-btn" onClick={saveNote}>기록 저장</button>
-   <p role="status">{feedback}</p>
-   <button type="button" className="dd3-btn" onClick={()=>onVisit(ev.space)}>관련 공간 방문</button>
+   <label className="dd-festival-note">
+     <span>이 날의 기록</span>
+     <textarea aria-label="오늘의 축제 기록" className={FIELD} maxLength={500} value={draft} onChange={e=>{setDraft(e.target.value);setFeedback('')}}/>
+   </label>
+   <div className="dd-festival-actions">
+     <button type="button" className="dd3-btn" onClick={saveNote}>기록 저장</button>
+     <button type="button" className="dd3-btn" onClick={()=>onVisit(ev.space)}>관련 공간 방문</button>
+   </div>
+   <p role="status" className="dd-festival-status">{feedback}</p>
  </section>
 }

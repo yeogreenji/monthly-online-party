@@ -1,18 +1,28 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { BellRing, X } from 'lucide-react'
 import { sendLoginLink } from '../lib/supabase'
-import type { ProfileSync } from '../lib/useAuth'
 
-/** 서버 채팅을 쓰려면 필요한 이메일 링크 로그인 카드. 서버가 없으면 렌더링하지 않는다. */
-export function AuthCard({ signedIn, sync, onEditProfile }: { signedIn: boolean; sync: ProfileSync; onEditProfile: () => void }) {
+/** 서버 계정이 필요한 바로 그 순간에만 띄우는 간편 로그인 창.
+    평소에는 채팅방·게임·산책·꾸미기를 로그인 없이 그대로 즐긴다. */
+export function LazyAuth({ open, reason, onClose }: { open: boolean; reason: string; onClose: () => void }) {
   const [email, setEmail] = useState('')
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [message, setMessage] = useState('')
+  const input = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    setState('idle')
+    setMessage('')
+    const timer = window.setTimeout(() => input.current?.focus(), 120)
+    return () => window.clearTimeout(timer)
+  }, [open])
 
   async function submit() {
     const value = email.trim()
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
       setState('error')
-      setMessage('이메일 주소를 확인해 주세요.')
+      setMessage('이메일 주소를 한 번만 확인해 주세요.')
       return
     }
     setState('sending')
@@ -26,58 +36,39 @@ export function AuthCard({ signedIn, sync, onEditProfile }: { signedIn: boolean;
     }
   }
 
-  if (signedIn && sync === 'duplicate') {
-    return (
-      <div className="dd-auth-card" role="alert">
-        <strong>이미 쓰고 있는 닉네임이에요</strong>
-        <p>실제 이용자와 대화하려면 다른 닉네임이 필요해요.</p>
-        <button className="dd3-btn" onClick={onEditProfile}>닉네임 바꾸기</button>
-      </div>
-    )
-  }
-  if (signedIn && sync === 'error') {
-    return (
-      <div className="dd-auth-card" role="alert">
-        <strong>프로필을 서버에 저장하지 못했어요</strong>
-        <p>닉네임 규칙(2~12자, 연락처·운영진 표현 불가)을 확인하고 프로필에서 다시 저장해 주세요.</p>
-        <button className="dd3-btn" onClick={onEditProfile}>프로필 열기</button>
-      </div>
-    )
-  }
-  if (signedIn) return <div className="dd-auth-card" role="status"><small>서버에 연결하는 중이에요…</small></div>
+  if (!open) return null
 
   return (
-    <form
-      className="dd-auth-card"
-      aria-label="이메일 로그인"
-      noValidate
-      onSubmit={(e) => {
-        e.preventDefault()
-        void submit()
-      }}
-    >
-      <strong>실제 이용자와 이야기하려면 로그인해 주세요</strong>
-      <p>비밀번호 없이 이메일로 받은 링크만 누르면 돼요. 로그인 전에는 지금처럼 이 기기에서만 대화가 저장돼요.</p>
-      <div className="dd-auth-row">
-        <input
-          type="email"
-          aria-label="이메일 주소"
-          autoComplete="email"
-          inputMode="email"
-          placeholder="you@example.com"
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value)
-            if (state === 'error') setState('idle')
-          }}
-          disabled={state === 'sending' || state === 'sent'}
-        />
-        <button className="dd3-btn" disabled={state === 'sending' || state === 'sent'}>
-          {state === 'sending' ? '보내는 중…' : state === 'sent' ? '보냈어요' : '로그인 링크 받기'}
-        </button>
+    <div className="dd-lazy-veil" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
+      <div className="dd-lazy-card" role="dialog" aria-modal="true" aria-label="딩동 로그인">
+        <button type="button" className="dd-lazy-x" aria-label="로그인 창 닫기" onClick={onClose}><X size={17} /></button>
+        <span className="dd-lazy-bell" aria-hidden="true"><BellRing size={20} /></span>
+        <h3>딩동에서 이어서 만나요</h3>
+        <p className="dd-lazy-reason">{reason}</p>
+        <form
+          className="dd-lazy-form"
+          noValidate
+          aria-label="이메일 로그인"
+          onSubmit={(e) => { e.preventDefault(); void submit() }}
+        >
+          <input
+            ref={input}
+            type="email"
+            aria-label="이메일 주소"
+            autoComplete="email"
+            inputMode="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => { setEmail(e.target.value); if (state === 'error' || state === 'sent') { setState('idle'); setMessage('') } }}
+            disabled={state === 'sending' || state === 'sent'}
+          />
+          <button type="submit" className="dd-lazy-go" disabled={state === 'sending' || state === 'sent'}>
+            {state === 'sending' ? '보내는 중…' : state === 'sent' ? '보냈어요' : '링크 받기'}
+          </button>
+        </form>
+        {message && <p role={state === 'error' ? 'alert' : 'status'} className={'dd-lazy-msg' + (state === 'error' ? ' is-error' : '')}>{message}</p>}
+        <small>비밀번호 없이, 이메일로 받은 링크만 누르면 시작돼요. 주소는 로그인에만 쓰여요.</small>
       </div>
-      {message && <p role={state === 'error' ? 'alert' : 'status'}>{message}</p>}
-      <small>메일 주소는 로그인에만 쓰이고 다른 이용자에게 보이지 않아요.</small>
-    </form>
+    </div>
   )
 }

@@ -36,11 +36,12 @@ function LoginHint() {
 
 /* ── 친구 ───────────────────────────────────────────────────────────── */
 
-export function FriendsPanel({ online, onClose, onVisit, onInvite, onToast }: {
+export function FriendsPanel({ online, onClose, onVisit, onInvite, onChat, onToast }: {
   online: boolean
   onClose: () => void
   onVisit: (userId: string) => void
   onInvite: (friend: FriendEntry) => void
+  onChat?: (peer: { userId: string; nickname: string; status?: 'online' | 'away' | 'dnd' }) => void
   onToast: (text: string, tone?: 'default' | 'success') => void
 }) {
   const [data, setData] = useState<{ friends: FriendEntry[]; incoming: FriendEntry[]; outgoing: FriendEntry[] }>({ friends: [], incoming: [], outgoing: [] })
@@ -50,7 +51,7 @@ export function FriendsPanel({ online, onClose, onVisit, onInvite, onToast }: {
   const [notes, setNotes] = useState<{ threads: NoteThread[]; messages: Record<string, NoteMessage[]> }>({ threads: [], messages: {} })
   const [noteDraft, setNoteDraft] = useState<Record<string, string>>({})
   const [tab, setTab] = useState<'friends' | 'notes'>('friends')
-  const [noteFor, setNoteFor] = useState<FriendEntry | null>(null)
+  const [noteFor, setNoteFor] = useState<{ userId: string; nickname: string } | null>(null)
   const [noteText, setNoteText] = useState('')
 
   const refresh = async () => {
@@ -84,7 +85,7 @@ export function FriendsPanel({ online, onClose, onVisit, onInvite, onToast }: {
     onToast(ok ? '친구 목록에서 지웠어요.' : '잠시 후 다시 시도해 주세요.')
     await refresh()
   }
-  const askNote = (friend: FriendEntry) => { setNoteFor(friend); setNoteText('') }
+  const askNote = (friend: { userId: string; nickname: string }) => { setNoteFor(friend); setNoteText('') }
   const sendNoteRequest = async () => {
     const friend = noteFor
     const text = noteText.trim()
@@ -129,7 +130,10 @@ export function FriendsPanel({ online, onClose, onVisit, onInvite, onToast }: {
             ? <button type="button" onClick={() => onVisit(u.id)}>집 놀러가기</button>
             : u.friend === 'pending'
               ? <span className="ddm-muted">{u.direction === 'out' ? '수락 기다리는 중' : '친구 탭에서 수락'}</span>
-              : <button type="button" disabled={busy === u.id} onClick={() => void request(u.id)}><UserPlus size={14}/> 친구 신청</button>}
+              : <span className="ddm-row">
+                  <button type="button" onClick={() => askNote({ userId: u.id, nickname: u.nickname })}><MessageCircle size={14}/> 쪽지</button>
+                  <button type="button" disabled={busy === u.id} onClick={() => void request(u.id)}><UserPlus size={14}/> 친구 신청</button>
+                </span>}
         </li>)}
       </ul>}
 
@@ -163,7 +167,7 @@ export function FriendsPanel({ online, onClose, onVisit, onInvite, onToast }: {
             <span className="ddm-name">{STATUS_DOT[f.peerStatus]} {f.nickname}<small>{STATUS_LABEL[f.peerStatus]}</small></span>
             <span className="ddm-row ddm-actions">
               <button type="button" onClick={() => onVisit(f.userId)}><Home size={14}/> 집</button>
-              <button type="button" onClick={() => void askNote(f)}><MessageCircle size={14}/> 쪽지</button>
+              <button type="button" className="is-chat" onClick={() => onChat?.({ userId: f.userId, nickname: f.nickname, status: f.peerStatus })}><MessageCircle size={14}/> 1:1 채팅</button>
               <button type="button" onClick={() => onInvite(f)}><Send size={14}/> 모임 초대</button>
               <button type="button" aria-label={f.nickname + ' 친구 끊기'} onClick={() => void drop(f)}><Trash2 size={14}/></button>
             </span>
@@ -171,7 +175,7 @@ export function FriendsPanel({ online, onClose, onVisit, onInvite, onToast }: {
         </ul>}
       </section>
     </> : <section className="ddm-section ddm-notes">
-      {notes.threads.length === 0 && <p className="ddm-hint">쪽지는 친구와만, 서로 수락해야 열립니다. 친구 탭에서 '쪽지'를 눌러 시작해 보세요.</p>}
+      {notes.threads.length === 0 && <p className="ddm-hint">쪽지는 서로 수락해야 열려요. 친구가 되면 수락 없이 바로 1:1 채팅을 할 수 있어요.</p>}
       {notes.threads.map((t) => <article key={t.id} className="ddm-thread">
         <header><strong>{t.peerName}</strong><small>{t.status === 'pending' ? (t.direction === 'in' ? '받은 요청' : '수락 대기') : t.status === 'accepted' ? '대화 중' : t.status === 'declined' ? '거절됨' : '종료'}{t.lastAt ? ' · ' + shortTime(t.lastAt) : ''}</small></header>
         {t.status === 'pending' && t.direction === 'in' && <div className="ddm-row"><button type="button" className="is-primary" onClick={() => void answerNote(t.id, true)}>수락</button><button type="button" onClick={() => void answerNote(t.id, false)}>거절</button></div>}
@@ -257,7 +261,7 @@ function GiftPicker({ onSend, onClose }: { onSend: (gift: string, note: string) 
   </div>
 }
 
-export function MiniHomePanel({ online, me, space, visiting, onClose, onVisitClose, onChange, onToast }: {
+export function MiniHomePanel({ online, me, space, visiting, onClose, onVisitClose, onChange, onChat, onToast }: {
   online: boolean
   me: { nickname: string } | null
   space: MySpace | null
@@ -265,6 +269,7 @@ export function MiniHomePanel({ online, me, space, visiting, onClose, onVisitClo
   onClose: () => void
   onVisitClose: () => void
   onChange: (patch: Partial<MySpace>) => void
+  onChat?: (peer: { userId: string; nickname: string; status?: 'online' | 'away' | 'dnd' }) => void
   onToast: (text: string, tone?: 'default' | 'success') => void
 }) {
   const home = useMemo(() => space?.home ?? {}, [space])
@@ -332,6 +337,7 @@ export function MiniHomePanel({ online, me, space, visiting, onClose, onVisitClo
       <RoomPreview home={friends.home} label={`${friends.nickname}님의 미니룸`}/>
       <p className="ddm-theme">미니룸 테마 · {friends.home.theme ?? fm.theme ?? '카페형'}</p>
       <div className="ddm-row ddm-visit-actions">
+        <button type="button" className="is-chat" onClick={() => onChat?.({ userId: friends.userId, nickname: friends.nickname, status: friends.status })}><MessageCircle size={15}/> 1:1 채팅</button>
         <button type="button" className="is-primary" onClick={() => setGiftOpen(true)}><Gift size={15}/> 선물 보내기</button>
         <button type="button" onClick={() => setLetterOpen(true)}><Mail size={15}/> 편지 쓰기</button>
         <button type="button" onClick={() => onToast('초인종을 눌렀어요. 딩동! 친구가 놀러 왔어요.', 'success')}><Bell size={15}/> 초인종</button>

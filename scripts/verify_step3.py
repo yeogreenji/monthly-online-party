@@ -247,12 +247,17 @@ def run_features(page):
     # 365일 패널 12/25
     page.get_by_role('button', name='이벤트', exact=True).click()
     page.wait_for_selector('.dd-world-pop', timeout=10000)
-    page.locator('.dd-world-pop input[aria-label="축제 날짜"]').fill('2026-12-25')
+    # 딩동 종이 달력: 날짜칸 → 다음 달 → 25일
+    page.locator('.dd-world-pop .dd-datepicker-field').first.click()
+    page.wait_for_timeout(250)
+    page.locator('.dd-datepicker-pop button[aria-label="다음 달"]').click()
+    page.wait_for_timeout(200)
+    page.locator('.dd-datepicker-grid button[data-date="2026-12-25"]').click()
     page.wait_for_timeout(450)
     festival = page.locator('.dd-world-pop .card')
     text = festival.inner_text() if festival.count() else ''
     check('365일 패널 12/25 행사', '메리 크리스마스' in text, text[:80].replace('\n', ' '))
-    check('365일 패널 정본 표시', '콘텐츠 제안' in text or '공식 일정' in text, text[:60].replace('\n', ' '))
+    check('365일 패널 기획 표시', '준비 중인 기획' in text or '공식 일정' in text, text[:60].replace('\n', ' '))
     shot(page, '08-365-panel')
     page.locator('.dd-world-pop .dd-pop-title .dd3-btn', has_text='닫기').first.click()
     page.wait_for_timeout(200)
@@ -300,6 +305,22 @@ def run_mobile(browser, errors):
     mobile.set_default_timeout(30000)
     mobile.on('pageerror', lambda e: errors.append(str(e)))
     login(mobile, '모바일점검')
+    # 상단 버튼 겹침 0건 (390px)
+    overlaps = mobile.evaluate('''() => {
+      const sels = ['.dd3-title', '.dd-map-views', '.dd-quick-links', '.dd-bell-shortcut', '.dd-camera-control']
+      const boxes = sels.map(s => { const el = document.querySelector(s); if (!el) return null; const r = el.getBoundingClientRect(); return {s, x:r.x, y:r.y, w:r.width, h:r.height} }).filter(Boolean)
+      const hits = []
+      for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i], b = boxes[j]
+        const ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)
+        const oy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y)
+        if (ox > 0 && oy > 0) hits.push(a.s + ' X ' + b.s + ' ' + Math.round(ox * oy))
+      }
+      return {hits, scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth, buttons: boxes.length}
+    }''')
+    check('모바일 상단 버튼 겹침 0건', len(overlaps['hits']) == 0, str(overlaps['hits'][:3]))
+    check('모바일 가로 넘침 없음', overlaps['scroll'] <= overlaps['client'] + 1, f"{overlaps['scroll']}/{overlaps['client']}")
+    check('모바일 상단 버튼 모두 배치', overlaps['buttons'] >= 4, str(overlaps['buttons']))
     mobile.get_by_role('button', name='메뉴', exact=True).click()
     mobile.wait_for_selector('.dd-space-menu', timeout=10000)
     check('모바일 메뉴판 열림', mobile.locator('.dd-space-menu').count() == 1)
