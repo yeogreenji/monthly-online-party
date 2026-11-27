@@ -73,29 +73,7 @@ export function createWorld(host,opts){
  for(let n=0;n<8;n++){const a=n*Math.PI/4+Math.PI/8;ball(scene,0xe9bf8e,fc[0]+Math.cos(a)*6.45,.176,fc[1]+Math.sin(a)*6.45,.30,.016,.30)}
   for(let n=0;n<16;n++){const a=n*Math.PI/8,rr=5.5;const petal=box(scene,n%2?0xf6d7b6:0xefd0b4,fc[0]+Math.cos(a)*rr,.176,fc[1]+Math.sin(a)*rr,.95,.014,.34);petal.rotation.y=-a+Math.PI/2}
   for(let n=0;n<16;n++){const a=n*Math.PI/8+Math.PI/16,rr=7.5;ball(scene,n%3===0?0xe9a0b3:0xe8bb7f,fc[0]+Math.cos(a)*rr,.180,fc[1]+Math.sin(a)*rr,.20,.016,.20)}}
- function gardenTree(x,z,size=1){const p=group(scene,x,0,z);p.scale.setScalar(size);cyl(p,0xf1cfaa,0,.085,0,.72,.15);cyl(p,0xa67852,0,.65,0,.14,1.2);for(let n=0;n<6;n++){const angle=n*2.4;ball(p,n%2?0x62b68b:0x379d75,Math.sin(angle)*.37,1.55+(n%3)*.28,Math.cos(angle)*.35,.64,.63,.62)}for(let n=0;n<8;n++){const a=n*Math.PI/4;ball(p,FESTIVAL_COLORS[n%9],Math.cos(a)*.53,.23,Math.sin(a)*.53,.105,.12,.105)}outdoorObstacles.push([x,z,.76*size])}
- function flowerbed(x,z,rotation,colors){
-  const planter=group(scene,x,0,z);planter.rotation.y=rotation;
-  box(planter,0xb9806a,0,.16,0,2.15,.29,.86);
-  box(planter,0xf2c9a5,0,.31,0,2.24,.09,.94);
-  box(planter,0x6e4f43,0,.364,0,1.99,.035,.70);
-  for(let index=0;index<9;index++){
-   const dx=(index%5-2)*.36, dz=index<5?-.19:.18;
-   const height=.22+(index%3)*.09, top=.38+height;
-   cyl(planter,0x3f865c,dx,.38+height/2,dz,.020,height);
-   const leaf=shape(planter,'bloom',0x6aaa76,dx+.07,top-.14,dz,.10,.027,.055);
-   leaf.rotation.z=.5;
-   for(let petal=0;petal<5;petal++){
-    const angle=petal*Math.PI*2/5;
-    shape(planter,'bloom',colors[index%colors.length],dx+Math.cos(angle)*.080,top,dz+Math.sin(angle)*.080,.068,.04,.068);
-   }
-   shape(planter,'bloom',0xffcc5a,dx,top+.025,dz,.055,.033,.055);
-  }
-  const radius=1.14;
-  outdoorObstacles.push([x,z,radius]);
- }
- const blooms=[[0xef7e97,0xffe7c6,0xf9ad55],[0xb889d9,0xf7d2ea,0xfff2df],[0xf9b646,0xf27a65,0xfaf2db]];
- [[-12,-3.8,.30],[12,-3.5,-.30],[-19,3.1,-.25],[19,3.1,.25],[-23,-10,-.45],[27,-9,.6],[-16,11,.7],[15,9,-.6],[-11,18,.7],[8,19,-.55],[-5,-14,1.45],[1,-14,1.45],[-29,11,1.5],[28,11,1.5]].forEach(([x,z,rotation],index)=>flowerbed(x,z,rotation,blooms[index%blooms.length]));
+ function gardenTree(x,z,size=1){const p=group(scene,x,0,z);p.scale.setScalar(size);cyl(p,0xf1cfaa,0,.085,0,.72,.15);cyl(p,0xa67852,0,.65,0,.14,1.2);for(let n=0;n<6;n++){const angle=n*2.4;ball(p,n%2?0x62b68b:0x379d75,Math.sin(angle)*.37,1.55+(n%3)*.28,Math.cos(angle)*.35,.64,.63,.62)}for(let n=0;n<7;n++){const a=n*Math.PI*2/7+.4,r=.28+(n%2)*.09;cyl(p,0x5c9c6e,Math.cos(a)*r,.15,Math.sin(a)*r,.020,.30);cyl(p,0x6aa87a,Math.cos(a)*r+.055,.11,Math.sin(a)*r+.03,.015,.21)}outdoorObstacles.push([x,z,.76*size])}
  function streetLamp(x,z){const p=group(scene,x,0,z);cyl(p,0x756080,0,.66,0,.055,1.32);cyl(p,0xe0b76d,0,.12,0,.15,.15);ball(p,0xffedb2,0,1.5,0,.16,.20,.16);cyl(p,0xb28a54,0,1.72,0,.14,.085);
   // 등잔 아래 매달린 꽃바구니 두 개
   for(const dx of [-.26,.26]){cyl(p,0x8a6a52,dx,1.60,0,.012,.26);ball(p,0x6d4b34,dx,1.44,0,.13,.10,.13);for(let n=0;n<4;n++){const a=n*1.6;ball(p,FESTIVAL_COLORS[n%9],dx+Math.cos(a)*.09,1.52,Math.sin(a)*.09,.055,.055,.055)}ball(p,0x3f7352,dx,1.36,0,.10,.09,.10)}}
@@ -115,12 +93,13 @@ export function createWorld(host,opts){
    ball(g,0xffd25f,px,top+.028,pz,.030,.024,.030)
   }
  }
- function flowerPot(x,z,scale=1,set=FLOWER_SETS[0]){
+ const POT_FLOWERS=[0xfff3e2,0xf9dcc6,0xffe9d2];
+ function flowerPot(x,z,scale=1){
   const g=group(scene,x,0,z);g.scale.setScalar(scale);
   cyl(g,0xbb7350,0,.17,0,.20,.34);cyl(g,0xd58f66,0,.35,0,.22,.06);cyl(g,0x53342a,0,.37,0,.18,.03);
   for(let i=0;i<3;i++){const a=i*2.1;cyl(g,0x4d935f,Math.cos(a)*.07,.46,Math.sin(a)*.07,.016,.28);
-   for(let k=0;k<3;k++){const b=k*2.094;ball(g,set[(i+k)%set.length],Math.cos(a)*.07+Math.cos(b)*.042,.58+(i%2)*.04,Math.sin(a)*.07+Math.sin(b)*.042,.037,.043,.037)}
-   ball(g,0xffd25f,Math.cos(a)*.07,.62+(i%2)*.04,Math.sin(a)*.07,.026,.020,.026)}
+   const leaf=shape(g,'bloom',0x6aa87a,Math.cos(a)*.07+.05,.40,Math.sin(a)*.07+.03,.07,.02,.04);leaf.rotation.z=.5;
+   for(let k=0;k<3;k++){const b=k*2.094;ball(g,POT_FLOWERS[(i+k)%3],Math.cos(a)*.07+Math.cos(b)*.034,.56+(i%2)*.04,Math.sin(a)*.07+Math.sin(b)*.034,.026,.030,.026)}}
   outdoorObstacles.push([x,z,.34*scale]);
  }
  function parkBench(x,z,rot=0,color=0xb07a4c){
@@ -157,7 +136,7 @@ export function createWorld(host,opts){
   cyl(g,0x77563d,0,.37,0,.06,.74);cyl(g,0xefe6d8,0,.76,0,.60,.07);cyl(g,0xe3d6c4,0,.73,0,.64,.03);
   cyl(g,0xfff7e6,0,.82,.10,.10,.07);ball(g,0xd98d6a,0,.87,.10,.075,.05,.075);
   for(const [cx,cz] of [[.95,.12],[-.95,.12]]){chair(g,cx,cz,0xd7b48d)}
-  for(const [px,pz] of [[.55,-.55],[-.55,-.55]])flowerPot(x+px*Math.cos(rot)-pz*Math.sin(rot),z+px*Math.sin(rot)+pz*Math.cos(rot),.8,FLOWER_SETS[2]);
+  for(const [px,pz] of [[.55,-.55],[-.55,-.55]])flowerPot(x+px*Math.cos(rot)-pz*Math.sin(rot),z+px*Math.sin(rot)+pz*Math.cos(rot),.8);
   outdoorObstacles.push([x,z,.95]);
  }
  function flowerCart(x,z,rot=0){
@@ -186,24 +165,143 @@ export function createWorld(host,opts){
     const x=ax+ux*t,z=az+uz*t,flip=(Math.round(t)+i)%2===0;
     tuft(x+nx*off,z+nz*off,set,1.05+((Math.round(t)+i)%3)*.09);
     if(flip)tuft(x-nx*off,z-nz*off,FLOWER_SETS[(index+3)%FLOWER_SETS.length],1.0);
-    if((Math.round(t)+index*3)%9===0)flowerPot(x+nx*(off+.42),z+nz*(off+.42),.9,set);
+    if((Math.round(t)+index*3)%9===0)flowerPot(x+nx*(off+.42),z+nz*(off+.42),.9);
    }
   }
  }
  for(const [i,street] of STREETS.entries())dressStreet(street,i);
- for(const doorway of DOORWAYS)for(const side of [-1,1]){const [ax,az]=doorway.p[0];flowerPot(ax+side*1.15,az+.35,.95,FLOWER_SETS[(Math.abs(Math.round(ax))+Math.abs(side))%FLOWER_SETS.length]);}
+ for(const doorway of DOORWAYS)for(const side of [-1,1]){const [ax,az]=doorway.p[0];flowerPot(ax+side*1.15,az+.35,.95);}
  // 광장 테두리 화분·벤치·아치·현수막
- flowerbed(2.6,8.0,1.57,blooms[0]);flowerbed(-4.4,7.4,.9,blooms[1]);flowerbed(-8.0,-1.6,.1,blooms[2]);flowerbed(8.2,-.6,-.2,blooms[0]);
- for(const a of [0,45,90,135,180,225,270,315]){const rad=a*Math.PI/180;tuft(Math.cos(rad)*8.5,Math.sin(rad)*8.5,FLOWER_SETS[(a/45)%FLOWER_SETS.length],1.25)}
- for(const a of [22.5,67.5,112.5,157.5,202.5,247.5,292.5,337.5]){
-  const rad=a*Math.PI/180;flowerPot(Math.cos(rad)*9.55,Math.sin(rad)*9.55,1.6,FLOWER_SETS[Math.round(a/45)%FLOWER_SETS.length]);
- }
  parkBench(-5.9,-5.9,.78);parkBench(4.6,6.8,.35);
  roseArch(0,-10.6,0,FLOWER_SETS[0],3.0);roseArch(-9.4,1.2,Math.PI/2,FLOWER_SETS[2],2.7);
  for(const a of [0,45,90,135,180,225,270,315]){const r1=a*Math.PI/180,r2=(a+45)*Math.PI/180;bunting(Math.cos(r1)*9.9,3.5,Math.sin(r1)*9.9,Math.cos(r2)*9.9,3.5,Math.sin(r2)*9.9,7)}
  bunting(-2.2,3.3,-9.4,5.0,3.3,-8.2,6);bunting(-9.6,3.2,.6,-7.4,3.2,6.4,6);
  terrace(-4.6,-13.4,.25);terrace(4.8,-13.8,-.3,0xc7e2c2);flowerCart(-20.4,-6.2,.5);flowerCart(20.6,-3.6,-.7);
  aBoard(13.4,-4.2,-.5);aBoard(-14.4,-4.6,.6);
+
+ // ── 잔디 마당: 들꽃 군락·덤불·디딤돌·피크닉·우체통·작은 연못 ──
+ // 화단·화분 대신 잔디에 자연스럽게 어울리는 것만 여백을 두고 드문드문 놓는다.
+ const LAWN_SET=[[0xfff4f7,0xf7c9dc,0xffe9b5],[0xf4eeff,0xd9c7f3,0xfff6e2],[0xfff9ec,0xf8d7a6,0xe2f0e2],[0xffffff,0xf3b7c8,0xffe6a0]];
+ function segDist(px,pz,ax,az,bx,bz){const dx=bx-ax,dz=bz-az,l2=dx*dx+dz*dz||1;let t=((px-ax)*dx+(pz-az)*dz)/l2;t=Math.max(0,Math.min(1,t));return Math.hypot(px-(ax+dx*t),pz-(az+dz*t))}
+ function lawnFree(x,z,margin=.55){
+  if(Math.abs(x)>35.2-margin||Math.abs(z)>34.2-margin)return false;
+  if(Math.hypot(x,z)<11.5+margin)return false;
+  for(const layout of Object.values(townLayout)){
+   if(Math.abs(x-layout.x)<2.98*layout.w+margin&&Math.abs(z-layout.z)<3.28+margin)return false;
+  }
+  for(const street of [...STREETS,...DOORWAYS])for(let i=1;i<street.p.length;i++){
+   const [ax,az]=street.p[i-1],[bx,bz]=street.p[i];
+   if(segDist(x,z,ax,az,bx,bz)<street.w/2+margin)return false;
+  }
+  return outdoorObstacles.every(([a,b,r])=>Math.hypot(x-a,z-b)>r+margin);
+ }
+ let lawnPlaced=0;
+ function lawnTuft(x,z,set=LAWN_SET[0],scale=1){
+  if(!lawnFree(x,z,.35))return false;
+  const g=group(scene,x,0,z);g.scale.setScalar(scale);
+  const seed=Math.abs(x*3.7+z*5.9);
+  for(let i=0;i<3;i++){
+   const a=seed+i*2.3,r=.05+(i%2)*.07,top=.18+(i%3)*.06;
+   cyl(g,0x5c9c6e,Math.cos(a)*r,top*.55,Math.sin(a)*r,.013,top);
+   if(i<2)ball(g,set[i%set.length],Math.cos(a)*r,top+.02,Math.sin(a)*r,.036,.042,.036);
+  }
+  lawnPlaced++;return true;
+ }
+ function meadow(cx,cz,radius,count,set){
+  const seed=Math.abs(cx*5.1+cz*7.7);
+  for(let i=0;i<count;i++){
+   const a=seed+i*2.399,r=radius*Math.sqrt((i+.4)/count);
+   lawnTuft(cx+Math.cos(a)*r,cz+Math.sin(a)*r,set,.9+((i%3)*.14));
+  }
+ }
+ function lawnShrub(x,z,scale=1,bloom=0){
+  if(!lawnFree(x,z,.5))return false;
+  const g=group(scene,x,0,z);g.scale.setScalar(scale);
+  for(let i=0;i<4;i++){const a=i*1.57+.4;ball(g,i%2?0x548f66:0x457f59,Math.cos(a)*.26,.30+(i%2)*.05,Math.sin(a)*.26,.40,.33,.40)}
+  ball(g,0x5da073,0,.44,0,.42,.35,.42);
+  for(let i=0;i<5;i++){const a=i*1.26;ball(g,0x74b787,Math.cos(a)*.28,.57+(i%2)*.06,Math.sin(a)*.26,.19,.15,.19)}
+  if(bloom)for(let i=0;i<4;i++){const a=i*1.7+.3;ball(g,bloom,Math.cos(a)*.30,.52+(i%2)*.08,Math.sin(a)*.27,.04,.038,.04)}
+  outdoorObstacles.push([x,z,.52*scale]);lawnPlaced++;return true;
+ }
+ function lawnPond(x,z,rx,rz){
+  if(!lawnFree(x,z,rz+.2))return false;
+  const g=group(scene,x,0,z);
+  const bank=cyl(g,0xd8cbae,0,.045,0,1,.05);bank.scale.set(rx+.6,1,rz+.6);
+  const water=cyl(g,0x8ccdde,0,.07,0,1,.04);water.scale.set(rx,1,rz);
+  const deep=cyl(g,0x6cb9cd,0,.075,0,1,.02);deep.scale.set(rx*.68,1,rz*.68);
+  for(let n=0;n<24;n++){const a=n*Math.PI*2/24+.15;const px=Math.cos(a)*(rx+.34),pz=Math.sin(a)*(rz+.34);ball(g,n%2?0xd2c6ad:0xc0b49a,px,.10,pz,.21,.13,.17)}
+  for(const [lx,lz,ls] of [[.55,.35,.24],[-.6,-.35,.19],[.15,-.72,.15]]){const pad=cyl(g,0x5aa877,lx,.09,lz,ls,.012);pad.scale.set(1,1,.9)}
+  for(let n=0;n<4;n++){const a=n*1.45+.5,px=Math.cos(a)*(rx-.18),pz=Math.sin(a)*(rz-.18);cyl(g,0x6f8f5e,px,.30,pz,.012,.52);ball(g,0x9a7b4a,px,.60,pz,.028,.055,.028)}
+  for(const dx of [-rx*.55,0,rx*.55])outdoorObstacles.push([x+dx,z,rz+.35]);
+  lawnPlaced++;return true;
+ }
+ function steppingStones(points,gap=.8){
+  for(let i=1;i<points.length;i++){
+   const [ax,az]=points[i-1],[bx,bz]=points[i],len=Math.hypot(bx-ax,bz-az),n=Math.max(1,Math.round(len/gap));
+   for(let k=0;k<n;k++){const t=(k+.5)/n;const s=ball(scene,0xdccdb2,ax+(bx-ax)*t,.055,az+(bz-az)*t,.20,.028,.15);s.rotation.y=(k%2?.35:-.35)}
+  }
+ }
+ function picnicSpot(x,z,rot=0,cloth=0xefd6c2){
+  const g=group(scene,x,0,z);g.rotation.y=rot;
+  box(g,cloth,0,.028,0,2.05,.02,1.5);
+  for(let i=0;i<5;i++){box(g,0xf9efe3,-1.0+i*.41,.036,0,.19,.006,1.5);box(g,0xf9efe3,0,.036,-.6+i*.3,2.05,.006,.14)}
+  const bx=.72,bz=-.44;
+  box(g,0xb07a4c,bx,.19,bz,.36,.26,.26);box(g,0xd8a878,bx,.33,bz,.38,.06,.28);ball(g,0xf2c14e,bx,.39,bz,.09,.09,.09);
+  box(g,0xe8a7b7,-.62,.10,.52,.52,.16,.42);box(g,0x9fc9b4,.58,.10,-.55,.52,.16,.42);
+  cyl(g,0xfff6ea,-.02,.075,-.30,.17,.04);ball(g,0xe07a5f,-.02,.10,-.30,.09,.05,.09);
+  const cos_=Math.cos(rot),sin_=Math.sin(rot);
+  outdoorObstacles.push([x+bx*cos_+bz*sin_,z-bx*sin_+bz*cos_,.34]);
+  lawnPlaced++;
+ }
+ function lawnMailbox(x,z,rot=0){
+  if(!lawnFree(x,z,.45))return false;
+  const g=group(scene,x,0,z);g.rotation.y=rot;
+  cyl(g,0x8a6142,0,.55,0,.05,1.10);
+  box(g,0xc9564f,0,1.24,0,.38,.32,.60);
+  const cap=cyl(g,0xc9564f,0,1.40,0,.19,.60);cap.rotation.x=Math.PI/2;
+  box(g,0xfff2df,0,1.26,-.31,.24,.045,.02);
+  box(g,0xffc83e,.22,1.50,.20,.03,.28,.17);ball(g,0xffd977,.22,1.66,.20,.04,.04,.04);
+  outdoorObstacles.push([x,z,.34]);lawnPlaced++;return true;
+ }
+ function lawnSign(x,z,rot=0,label='산책길'){
+  if(!lawnFree(x,z,.45))return false;
+  const g=group(scene,x,0,z);g.rotation.y=rot;
+  cyl(g,0x8a6142,0,.85,0,.055,1.70);ball(g,0xa9794a,0,1.72,0,.07,.06,.07);
+  const plank=box(g,0xc79a63,.30,1.40,0,.92,.26,.06);plank.rotation.y=.10;
+  box(g,0xf5e9cd,.30,1.40,.035,.76,.17,.014);
+  const tag=sign(g,label,.30,1.42,.09,'prop');if(tag)tag.scale.set(1.05,.26,1);
+  outdoorObstacles.push([x,z,.32]);lawnPlaced++;return true;
+ }
+ // 큰 빈 잔디밭에만 놓는다 — 길·가게·광장을 비켜 둔다.
+ lawnPond(-19.6,-26.4,3.1,2.3);
+ picnicSpot(5.2,-18.4,.35,0xefd6c2);
+ picnicSpot(-13.4,-28.8,-.5,0xdfe8d4);
+ picnicSpot(-19.4,29.2,.2,0xf2dfd4);
+ for(const [x,z,r] of [[-16.8,-23.4,-1.1],[27.4,11.4,3.0],[-25.0,18.6,.5],[33.0,12.4,-.8]])parkBench(x,z,r);
+ for(const [x,z,c] of [[9.4,26.9],[-7.6,-19.6]])lawnMailbox(x,z,c);
+ lawnSign(7.6,-10.6,-.4,'잔디 산책길');lawnSign(-11.4,12.2,2.3,'연못 가는 길');
+ for(const [x,z,b] of [[-15.6,-24.2,0xffe0e8],[-23.4,-25.6,0],[-22.6,-30.2,0],[-31.8,12.2,0xfff0dc],[19.4,-24.6,0],[30.8,15.6,0],[21.8,10.4,0xffe4ee],[-26.8,30.4,0],[12.4,31.2,0],[-31.4,-18.8,0]])lawnShrub(x,z,.9+((Math.abs(x)+Math.abs(z))%3)*.12,b);
+ for(const [x,z,s] of [[-27.6,-31.2,1.05],[29.4,-27.6,1.0],[19.4,32.4,1.1],[-33.4,26.4,1.0]])if(lawnFree(x,z,1.0))gardenTree(x,z,s);
+ for(const [x,z] of [[-7.4,-19.4],[0.8,-27.8],[-10.6,-31.4],[3.6,-24.4],[16.4,-22.4],[-25.2,-28.0],[6.2,-31.6],[-9.2,-19.0],[-33.2,11.4],[-17.2,10.6],[31.4,-6.6],[29.8,2.4],[33.2,7.2],[18.6,13.2],[-24.8,20.4],[-15.0,25.4],[7.6,30.4],[0.6,32.0],[17.4,28.6],[31.8,20.6],[-31.6,4.4],[13.0,18.6],[-3.6,-30.4],[24.0,-12.4],[-6.2,26.4],[9.4,-14.6]])lawnTuft(x,z,LAWN_SET[Math.abs(Math.round(x+z))%LAWN_SET.length],.95+((Math.abs(Math.round(x*3))%3)*.12));
+ steppingStones([[3.1,-11.6],[4.6,-16.9]]);
+ steppingStones([[-15.8,-27.6],[-16.9,-23.9]]);
+ steppingStones([[-17.4,-26.4],[-20.2,-24.6]]);
+ steppingStones([[8.0,26.2],[9.2,24.0]]);
+ // 광장을 둘러싼 잔디에 들꽃 군락을 드문드문 (한 바퀴를 다 채우지 않는다)
+ for(const [a,r,count,si] of [[18,12.6,7,0],[62,13.4,6,1],[105,12.2,5,2],[158,13.0,6,3],[214,12.8,5,0],[268,12.4,6,1],[312,13.2,5,2],[344,12.9,4,3]]){
+  const rad=a*Math.PI/180;meadow(Math.cos(rad)*r,Math.sin(rad)*r,1.7,count,LAWN_SET[si]);
+ }
+ meadow(-6.4,-13.6,2.1,7,LAWN_SET[1]);
+ meadow(13.6,-4.8,1.9,6,LAWN_SET[0]);
+ meadow(-11.8,16.6,2.0,6,LAWN_SET[2]);
+ meadow(15.2,10.2,2.2,7,LAWN_SET[3]);
+ meadow(-20.6,12.4,1.8,5,LAWN_SET[0]);
+ meadow(6.8,-22.6,2.4,7,LAWN_SET[1]);
+ meadow(-26.4,-20.2,1.9,6,LAWN_SET[2]);
+ meadow(24.2,22.4,2.0,6,LAWN_SET[3]);
+ meadow(-2.8,20.4,1.8,5,LAWN_SET[0]);
+ meadow(30.6,4.4,1.7,5,LAWN_SET[2]);
+ if(renderer.domElement.dataset)renderer.domElement.dataset.lawnDecor=String(lawnPlaced);
  const ordered=['season','cafe','hobby','travel','plaza','cinema','women','games','men','jazz','home','single','fandom'];
  const roofs=[0xd83d67,0x36a997,0xa16cde,0x3588cf,0xf1a93e,0x8453c1,0xec6c9e,0x6e8df1,0x2caba0,0xb9467e,0xf29b58,0x8a63c4,0x9c65b1];
  const walls=[0xffdfcc,0xd5f3d9,0xf0dafb,0xd0eaf9,0xffedba,0xe0d7f5,0xffd4e4,0xd7e4ff,0xccebdc,0xf0c3de,0xffe0a8,0xe9d1ff];
@@ -390,7 +488,6 @@ export function createWorld(host,opts){
 
 
  // Permanent festival decorations: flower beds, lantern garlands and a small open-air stage.
- for(const [x,z] of [[-7.8,-3.1],[7.8,-3.1],[-6.8,6.1],[6.8,6.1]]){const g=group(plaza.parent,x,0,z);cyl(g,0xe7bb90,0,.16,0,.78,.32);cyl(g,0x6c9271,0,.33,0,.68,.06);for(let n=0;n<12;n++){const a=n*2.4,r=.22+(n%3)*.15;const px=Math.cos(a)*r,pz=Math.sin(a)*r;ball(g,0x399f72,px,.43,pz,.14,.15,.14);ball(g,FESTIVAL_COLORS[n%9],px,.57,pz,.11,.10,.11)}outdoorObstacles.push([x,z,.83])}
  const stage=group(plaza.parent,0,0,8.6);cyl(stage,0xc393a7,0,.18,0,1.55,.32);cyl(stage,0xfbe7cc,0,.36,0,1.48,.08);for(const x of [-1.2,1.2]){cyl(stage,0xaf7e65,x,1.22,.2,.065,1.8);ball(stage,0xffd47c,x,2.18,.2,.14,.14,.14)}for(let n=0;n<9;n++){const x=-1.18+n*.295,y=2.04-.23*(1-(x/1.2)**2);const flag=cone(stage,FESTIVAL_COLORS[n],x,y,.2,.12,.25);flag.rotation.z=Math.PI}outdoorObstacles.push([0,8.6,1.6]);
  {const bl=group(plaza.parent,-6.6,0,1.3);box(bl,0xe85d8e,0,.05,0,1.9,.03,1.5);box(bl,0xfff1d6,0,.052,0,1.5,.03,1.1);cyl(bl,0xb98a62,.3,.2,-.1,.24,.22);ball(bl,0xf2c14e,.3,.38,-.1,.2,.1,.2);ball(bl,0xe85d8e,-.4,.12,.3,.1,.1,.1)}
  {const ct=group(plaza.parent,6.9,0,1.2);box(ct,0xe7b48c,0,.4,0,1.5,.5,.8);box(ct,0xd9566f,0,.9,-.2,1.7,.12,1.2);box(ct,0xfff1d6,0,1.02,-.2,1.5,.06,1.0);for(let n=0;n<6;n++)ball(ct,FESTIVAL_COLORS[(n+1)%9],-.55+n*.22,.72,.3,.1,.1,.1);cyl(ct,0x8b6a4f,-.75,.7,-.7,.04,1.4);cyl(ct,0x8b6a4f,.75,.7,-.7,.04,1.4);outdoorObstacles.push([6.9,1.2,.9])}
