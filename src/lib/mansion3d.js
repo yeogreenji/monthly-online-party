@@ -82,15 +82,16 @@ export function createWorld(host,opts){
 
  // ── 마을 조경: 꽃길·화분·벤치·장미 아치·현수막·야외 테라스·꽃수레 ──
  const FLOWER_SETS=[[0xef7e97,0xffd36e,0xfff2da],[0xab89de,0xf8cbe7,0xfff3de],[0xf9b646,0xef7f65,0xfff5e2],[0x74c9a5,0xffe08a,0xfff7e8],[0x82b4e9,0xf7d3ea,0xfff4e8],[0xe98ab6,0xc6a9ee,0xfff0dc]];
+ const TUFT_BLOOMS=[0xfff7ef,0xfae3e7,0xf6ecf7];
  function tuft(x,z,set,scale=1){
   const g=group(scene,x,0,z);g.scale.setScalar(scale);
   const base=Math.abs(x*7.3+z*11.7);
   for(let i=0;i<3;i++){
-   const a=base+i*2.1,r=.09+(i%2)*.10,px=Math.cos(a)*r,pz=Math.sin(a)*r,top=.24+(i%3)*.10;
+   const a=base+i*2.1,r=.09+(i%2)*.10,px=Math.cos(a)*r,pz=Math.sin(a)*r,top=.22+(i%3)*.10;
    cyl(g,0x4d935f,px,top*.52,pz,.016,top);
-   const leaf=shape(g,'bloom',0x63a874,px+.06,top-.08,pz,.075,.02,.04);leaf.rotation.z=.5;
-   for(let k=0;k<3;k++){const b=k*2.094+a*.35;ball(g,set[i%set.length],px+Math.cos(b)*.045,top,pz+Math.sin(b)*.045,.040,.046,.040)}
-   ball(g,0xffd25f,px,top+.028,pz,.030,.024,.030)
+   const leaf=shape(g,'bloom',0x63a874,px+.06,top-.09,pz,.075,.02,.04);leaf.rotation.z=.5;
+   const leaf2=shape(g,'bloom',0x57996a,px-.05,top-.15,pz-.03,.06,.018,.035);leaf2.rotation.z=-.6;
+   if(i===0)ball(g,TUFT_BLOOMS[Math.abs(Math.round(x+z))%3],px+Math.cos(a)*.03,top,pz+Math.sin(a)*.03,.032,.036,.032)
   }
  }
  const POT_FLOWERS=[0xfff3e2,0xf9dcc6,0xffe9d2];
@@ -161,18 +162,20 @@ export function createWorld(host,opts){
    const [ax,az]=street.p[i-1],[bx,bz]=street.p[i];
    const len=Math.hypot(bx-ax,bz-az);if(len<.6)continue;
    const ux=(bx-ax)/len,uz=(bz-az)/len,nx=-uz,nz=ux,off=street.w/2+.62;
-   for(let t=.9;t<len-.4;t+=2.5){
-    const x=ax+ux*t,z=az+uz*t,flip=(Math.round(t)+i)%2===0;
-    tuft(x+nx*off,z+nz*off,set,1.05+((Math.round(t)+i)%3)*.09);
-    if(flip)tuft(x-nx*off,z-nz*off,FLOWER_SETS[(index+3)%FLOWER_SETS.length],1.0);
-    if((Math.round(t)+index*3)%9===0)flowerPot(x+nx*(off+.42),z+nz*(off+.42),.9);
+   for(let t=.9;t<len-.4;t+=4.2){
+    const jitter=((Math.round(t*7)+i)%5)*.18-.36;
+    const x=ax+ux*(t+jitter),z=az+uz*(t+jitter),flip=(Math.round(t)+i)%2===0;
+    const spread=off+(((Math.round(t*3)+i)%3)*.16);
+    tuft(x+nx*spread,z+nz*spread,set,.95+((Math.round(t)+i)%3)*.10);
+    if(flip)tuft(x-nx*spread,z-nz*spread,FLOWER_SETS[(index+3)%FLOWER_SETS.length],.95);
+    if((Math.round(t)+index*3)%7===0)flowerPot(x+nx*(spread+.45),z+nz*(spread+.45),.9);
    }
   }
  }
  for(const [i,street] of STREETS.entries())dressStreet(street,i);
  for(const doorway of DOORWAYS)for(const side of [-1,1]){const [ax,az]=doorway.p[0];flowerPot(ax+side*1.15,az+.35,.95);}
  // 광장 테두리 화분·벤치·아치·현수막
- parkBench(-5.9,-5.9,.78);parkBench(4.6,6.8,.35);
+ parkBench(-5.9,-5.9,.78);parkBench(4.6,6.8,.35);parkBench(-2.9,15.3,-.25);
  roseArch(0,-10.6,0,FLOWER_SETS[0],3.0);roseArch(-9.4,1.2,Math.PI/2,FLOWER_SETS[2],2.7);
  for(const a of [0,45,90,135,180,225,270,315]){const r1=a*Math.PI/180,r2=(a+45)*Math.PI/180;bunting(Math.cos(r1)*9.9,3.5,Math.sin(r1)*9.9,Math.cos(r2)*9.9,3.5,Math.sin(r2)*9.9,7)}
  bunting(-2.2,3.3,-9.4,5.0,3.3,-8.2,6);bunting(-9.6,3.2,.6,-7.4,3.2,6.4,6);
@@ -203,7 +206,8 @@ export function createWorld(host,opts){
   for(let i=0;i<3;i++){
    const a=seed+i*2.3,r=.05+(i%2)*.07,top=.18+(i%3)*.06;
    cyl(g,0x5c9c6e,Math.cos(a)*r,top*.55,Math.sin(a)*r,.013,top);
-   if(i<2)ball(g,set[i%set.length],Math.cos(a)*r,top+.02,Math.sin(a)*r,.036,.042,.036);
+   if(i===0)ball(g,set[0],Math.cos(a)*r,top+.02,Math.sin(a)*r,.030,.036,.030);
+   if(i===1)ball(g,0x74b787,Math.cos(a)*r,top*.8,Math.sin(a)*r,.030,.020,.036);
   }
   lawnPlaced++;return true;
  }
@@ -300,6 +304,13 @@ export function createWorld(host,opts){
  meadow(-26.4,-20.2,1.9,6,LAWN_SET[2]);
  meadow(24.2,22.4,2.0,6,LAWN_SET[3]);
  meadow(-2.8,20.4,1.8,5,LAWN_SET[0]);
+ meadow(2.4,13.6,1.5,5,LAWN_SET[1]);
+ meadow(-6.8,13.2,1.6,5,LAWN_SET[2]);
+ meadow(9.6,12.4,1.4,4,LAWN_SET[3]);
+ meadow(13.8,4.2,1.5,5,LAWN_SET[0]);
+ meadow(-5.1,13.9,1.7,6,LAWN_SET[2]);
+ steppingStones([[-2.4,12.3],[-2.9,14.3]]);
+ lawnMailbox(11.1,6.4,-.6);
  meadow(30.6,4.4,1.7,5,LAWN_SET[2]);
  if(renderer.domElement.dataset)renderer.domElement.dataset.lawnDecor=String(lawnPlaced);
  const ordered=['season','cafe','hobby','travel','plaza','cinema','women','games','men','jazz','home','single','fandom'];
