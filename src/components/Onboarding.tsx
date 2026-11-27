@@ -99,7 +99,7 @@ export function Onboarding({
     <div ref={host} className="dd-entry-world" data-testid="avatar-gallery"/>
     {fallback&&<div className="dd-entry-fallback"><Avatar name={avatar} size={110}/><p>WebGL 미지원 · 2D 접근성 대체</p></div>}
     <header className="dd-entry-title"><span className="dd-entry-eyebrow">✦ 오늘도 만나서 반가워요 ✦</span><h1 className="dd-logo-heading"><DingdongLogo/></h1><p>{editMode?'캐릭터 의상실':'친구와 만나는 작은 온라인 파티'}</p>{editMode&&<button className="dd3-btn" onClick={onClose}>닫기</button>}</header>
-    <div className="dd-entry-controls"><p className="dd-entry-intro">오늘의 작은 파티를 찾아 동네를 산책해요.</p>
+    <div className="dd-entry-controls"><div className="dd-entry-scroll"><p className="dd-entry-intro">오늘의 작은 파티를 찾아 동네를 산책해요.</p>
       <div className="dd-entry-pick"><button className="dd3-btn" aria-label="이전 캐릭터" onClick={()=>choose(-1)}>‹</button><div><label htmlFor="dd-entry-avatar">내 캐릭터</label><select id="dd-entry-avatar" value={avatar} onChange={e=>setAvatar(e.target.value as AvatarKey)}>{AVATARS.map(a=><option key={a.key} value={a.key}>{a.label}</option>)}</select></div><button className="dd3-btn" aria-label="다음 캐릭터" onClick={()=>choose(1)}>›</button></div>
       <div ref={characterPicker} className="dd-entry-characters" role="group" aria-label="동물 캐릭터 고르기">
         {AVATARS.map(a=><button type="button" key={a.key} className="dd-entry-char" aria-label={a.label} aria-pressed={avatar===a.key} onClick={()=>setAvatar(a.key)}>
@@ -111,9 +111,12 @@ export function Onboarding({
       <div className="dd-entry-name"><label htmlFor="nickname">닉네임</label><input id="nickname" className="input" placeholder={suggestion} value={nickname} maxLength={12} onChange={e=>{setNickname(e.target.value);setError('')}} onKeyDown={e=>{if(e.key==='Enter')submit()}}/><button className="dd3-btn" onClick={()=>{setNickname(suggestName());setError('')}} aria-label="닉네임 제안"><Shuffle size={15}/></button></div>
       {error&&<p role="alert">{error}</p>}
       <details><summary>연령대·관심사 (선택)</summary><div className="dd-entry-tags">{AGE_BANDS.map(b=><button key={b} className="chip" data-on={ageBand===b} onClick={()=>setAgeBand(b)}>{b}</button>)}</div><div className="dd-entry-tags">{TAGS.map(t=><button key={t} className="chip" data-on={tags.includes(t)} onClick={()=>toggleTag(t)}>{t}</button>)}</div></details>
-      <button className="dd-entry-enter" onClick={submit}>{editMode?'프로필 저장':'딩동 입장하기'} <ArrowRight size={18}/></button>
-      <small><Sparkles size={12}/> 성인용 로컬 개발 체험 · 실제 회원/연령 인증 미연결</small>
       {editMode&&<button className="dd3-btn" onClick={()=>{if(window.confirm('이 브라우저에 저장된 프로필과 활동 기록을 지울까요?'))onReset()}}>로컬 프로필 초기화</button>}
+      </div>
+      <div className="dd-entry-foot">
+        <button className="dd-entry-enter" onClick={submit}>{editMode?'프로필 저장':'딩동 입장하기'} <ArrowRight size={18}/></button>
+        <small><Sparkles size={12}/> 성인용 로컬 개발 체험 · 실제 회원/연령 인증 미연결</small>
+      </div>
     </div>
   </div>
 }

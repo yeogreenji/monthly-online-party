@@ -1,5 +1,17 @@
 import base64
 import os
+
+
+def open_game_tray(page):
+    """게임 탁자 트레이(새 UI) 또는 예전 접이식 게임 코너를 연다."""
+    tray=page.locator(".ddg-tray > summary")
+    if tray.count():
+        tray.first.click()
+        page.wait_for_timeout(200)
+        return
+    legacy=page.locator(".dd-game-corner summary")
+    if legacy.count():
+        legacy.first.click()
 from playwright.sync_api import sync_playwright, expect
 os.makedirs("artifacts",exist_ok=True)
 with sync_playwright() as p:
@@ -249,7 +261,7 @@ with sync_playwright() as p:
         page.get_by_role("button",name="걸어가기",exact=True).click()
         expect(page.get_by_role("textbox",name="모임 검색")).to_be_visible()
         page.locator(".dd-room-join").first.click()
-        page.locator(".dd-game-corner summary").click()
+        open_game_tray(page)
         page.get_by_role("button",name="O 정답",exact=True).click()
         expect(page.locator(".dd-game-feedback")).to_contain_text("정답!")
         page.get_by_role("button",name="끝말잇기",exact=True).click()
@@ -309,7 +321,7 @@ with sync_playwright() as p:
         page.get_by_role("button",name="전송",exact=True).click()
         expect(page.get_by_alt_text("첨부 미리보기")).to_have_count(0)
         expect(page.get_by_alt_text("내가 올린 사진")).to_have_count(0)
-        page.locator(".dd-game-corner summary").click()
+        open_game_tray(page)
         page.get_by_role("button",name="스무고개",exact=True).click()
         game=page.get_by_role("region",name="스무고개 게임")
         question=game.get_by_role("button",name="동물인가요?",exact=True)
@@ -333,13 +345,13 @@ with sync_playwright() as p:
         page.get_by_role("button",name="채팅 접기",exact=True).click()
         page.get_by_role("button",name="채팅 펼치기",exact=True).click()
         expect(game.get_by_role("status")).to_contain_text("2/20회 사용")
-        page.locator(".dd-game-corner summary").click()
+        open_game_tray(page)
         message=page.get_by_role("textbox",name="메시지",exact=True)
         expect(message).to_be_in_viewport()
         message.fill("게임 후 채팅 테스트")
         page.get_by_role("button",name="전송",exact=True).click()
         expect(page.get_by_text("게임 후 채팅 테스트",exact=True)).to_be_visible()
-        page.locator(".dd-game-corner summary").click()
+        open_game_tray(page)
         guess=game.get_by_role("textbox",name="스무고개 답안")
         guess.fill("우 산")
         game.get_by_role("button",name="입력 보내기").click()
