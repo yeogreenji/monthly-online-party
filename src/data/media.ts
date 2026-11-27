@@ -142,4 +142,4 @@ export const ADDONS = [
   { name: '취향 큐레이션 콘텐츠', price: '40만원 / 편' },
 ]
 
-export const CONTACT_EMAIL = 'partners@monthlysalon.kr'
+export const CONTACT_EMAIL = 'hello@dingdong.party'
