@@ -1,0 +1,285 @@
+{
+  "version": "1.0",
+  "status": "approved_direction_candidate_catalog_no_payment",
+  "initial_mode": "free",
+  "payments_enabled": false,
+  "prices_visible": false,
+  "existing_free_items_grandfathered": true,
+  "free_core": [
+    "space_visit",
+    "party_create_join",
+    "text_photo_chat",
+    "friends_dm_guestbook",
+    "basic_avatar",
+    "basic_wardrobe",
+    "basic_home_decor",
+    "minigames",
+    "existing_free_gifts",
+    "approved_free_season_items"
+  ],
+  "future_categories": [
+    {
+      "id": "premium-wardrobe",
+      "items": [
+        {
+          "candidate_id": "premium-wardrobe-1",
+          "name": "고급 코트",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "premium-wardrobe-2",
+          "name": "파티 드레스",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "premium-wardrobe-3",
+          "name": "정장",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "premium-wardrobe-4",
+          "name": "특별 신발",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "premium-wardrobe-5",
+          "name": "가방",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "premium-wardrobe-6",
+          "name": "액세서리",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        }
+      ]
+    },
+    {
+      "id": "premium-season",
+      "items": [
+        {
+          "candidate_id": "premium-season-1",
+          "name": "벚꽃 특별 추가 세트",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "premium-season-2",
+          "name": "바캉스 특별 추가 세트",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "premium-season-3",
+          "name": "핼러윈 특별 추가 세트",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "premium-season-4",
+          "name": "크리스마스 특별 추가 세트",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "premium-season-5",
+          "name": "가면무도회 특별 추가 세트",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        }
+      ]
+    },
+    {
+      "id": "premium-furniture",
+      "items": [
+        {
+          "candidate_id": "premium-furniture-1",
+          "name": "샹들리에",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "premium-furniture-2",
+          "name": "벽난로",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "premium-furniture-3",
+          "name": "앤티크 가구",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "premium-furniture-4",
+          "name": "고급 침대",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "premium-furniture-5",
+          "name": "특별 조명",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        }
+      ]
+    },
+    {
+      "id": "premium-room-theme",
+      "items": [
+        {
+          "candidate_id": "premium-room-theme-1",
+          "name": "북카페 프리미엄 변형",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "premium-room-theme-2",
+          "name": "홈시네마 프리미엄 변형",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "premium-room-theme-3",
+          "name": "파리풍 아파트",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "premium-room-theme-4",
+          "name": "숲속 오두막",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "premium-room-theme-5",
+          "name": "여행자 방 프리미엄 변형",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        }
+      ]
+    },
+    {
+      "id": "future-space",
+      "items": [
+        {
+          "candidate_id": "future-space-1",
+          "name": "복층집",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "future-space-2",
+          "name": "펜트하우스",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "future-space-3",
+          "name": "테라스",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "future-space-4",
+          "name": "정원이 있는 집",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        }
+      ]
+    },
+    {
+      "id": "premium-expression",
+      "items": [
+        {
+          "candidate_id": "premium-expression-1",
+          "name": "특별 동작",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "premium-expression-2",
+          "name": "특별 감정 표현",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "premium-expression-3",
+          "name": "특별 외형",
+          "classification": "premium_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        }
+      ]
+    },
+    {
+      "id": "brand-collaboration",
+      "items": [
+        {
+          "candidate_id": "brand-collaboration-1",
+          "name": "브랜드 의상",
+          "classification": "brand_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "brand-collaboration-2",
+          "name": "브랜드 가구",
+          "classification": "brand_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "brand-collaboration-3",
+          "name": "브랜드 소품",
+          "classification": "brand_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        },
+        {
+          "candidate_id": "brand-collaboration-4",
+          "name": "가상 팝업",
+          "classification": "brand_candidate",
+          "implementation_state": "planned",
+          "sellable": false
+        }
+      ]
+    }
+  ],
+  "long_term_concurrent_users_target": 100000,
+  "room_capacity_default": 20,
+  "initial_extra_cost_krw": 0,
+  "activation_requires_user_approval": true
+}
