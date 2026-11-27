@@ -5,6 +5,7 @@ import App from './App'
 import OnlineMeetingPreview from './components/OnlineMeetingPreview'
 import './polish.css'
 import './world-ui.css'
+import './console.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

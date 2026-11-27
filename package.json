@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "typecheck:api": "tsc -p tsconfig.api.json",
     "bundle:api": "esbuild api/party-chat.ts --bundle --format=esm --platform=node --target=node20 --outfile=.tmp/party-chat.mjs",
-    "verify": "python3 scripts/verify.py"
+    "verify": "python3 scripts/verify.py",
+    "verify:chat": "python3 scripts/verify_chat_e2e.py"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.2",

@@ -1,10 +1,22 @@
 import base64
 import os
+
+
+def open_game_tray(page):
+    """게임 탁자 트레이(새 UI) 또는 예전 접이식 게임 코너를 연다."""
+    tray=page.locator(".ddg-tray > summary")
+    if tray.count():
+        tray.first.click()
+        page.wait_for_timeout(200)
+        return
+    legacy=page.locator(".dd-game-corner summary")
+    if legacy.count():
+        legacy.first.click()
 from playwright.sync_api import sync_playwright, expect
 os.makedirs("artifacts",exist_ok=True)
 with sync_playwright() as p:
     b=p.chromium.launch(args=["--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader"])
-    for width,height in [(w,h) for w,h in [(1280,900),(390,844)] if not os.environ.get("ONLY_WIDTH") or str(w)==os.environ["ONLY_WIDTH"]]:
+    for width,height in [(1280,900),(390,844)]:
         page=b.new_page(viewport={"width":width,"height":height},reduced_motion="reduce")
         errors=[]
         page.on("pageerror",lambda e:errors.append(str(e)))
@@ -249,20 +261,31 @@ with sync_playwright() as p:
         page.get_by_role("button",name="걸어가기",exact=True).click()
         expect(page.get_by_role("textbox",name="모임 검색")).to_be_visible()
         page.locator(".dd-room-join").first.click()
-        for title in ["밸런스 살롱","OX 퀴즈","끝말잇기","힌트 맞히기","그림 맞히기","틱택토","스무고개","룰렛 뽑기","주사위 대결","미션 빙고"]:
-            if page.get_by_role("button",name=f"{title} 시작",exact=True).count()==0:
-                page.get_by_role("button",name="채팅 펼치기",exact=True).click()
-            page.get_by_role("button",name=f"{title} 시작",exact=True).click(force=True)  # 게임 카드는 살짝 떠 있는 애니메이션이라 안정 대기를 건너뜀
-            stage=page.get_by_role("dialog",name=f"{title} 게임 탁자",exact=True)
-            expect(stage).to_be_visible(timeout=5000)
-            if title=="틱택토":
-                stage.get_by_role("button",name="1번 칸 비어 있음",exact=True).click()
-                expect(stage.get_by_role("button",name="1번 칸 X",exact=True)).to_be_visible()
-            stage.get_by_role("button",name="게임 탁자 닫기",exact=True).click()
-            expect(stage).to_have_count(0)
-        if page.get_by_role("textbox",name="메시지",exact=True).count()==0 or not page.get_by_role("textbox",name="메시지",exact=True).is_visible():
-            page.get_by_role("button",name="채팅 펼치기",exact=True).click()
-        expect(page.get_by_role("textbox",name="메시지",exact=True)).to_be_in_viewport()
+        open_game_tray(page)
+        page.get_by_role("button",name="O 정답",exact=True).click()
+        expect(page.locator(".dd-game-feedback")).to_contain_text("정답!")
+        page.get_by_role("button",name="끝말잇기",exact=True).click()
+        page.get_by_role("textbox",name="게임 답안").fill("과자")
+        page.get_by_role("button",name="답 제출",exact=True).click()
+        expect(page.locator(".dd-game-feedback")).to_contain_text("픽셀:")
+        page.get_by_role("button",name="힌트 맞히기",exact=True).click()
+        page.get_by_role("textbox",name="게임 답안").fill("우산")
+        page.get_by_role("button",name="답 제출",exact=True).click()
+        expect(page.locator(".dd-game-feedback")).to_have_text("정답이에요!")
+        page.get_by_role("button",name="그림 맞히기",exact=True).click()
+        picture_game=page.get_by_role("region",name="그림 맞히기",exact=True)
+        picture_game.get_by_role("button",name="우산",exact=True).click()
+        expect(picture_game.get_by_role("status")).to_have_text("정답이에요!")
+        picture_game.get_by_role("button",name="다음 그림",exact=True).click()
+        expect(picture_game.get_by_text("2/3 · 정답 1개",exact=True)).to_be_visible()
+        page.get_by_role("button",name="틱택토",exact=True).click()
+        board=page.get_by_role("region",name="틱택토",exact=True)
+        for cell in (1,4,2,5,3):
+            board.get_by_role("button",name=f"{cell}번 칸 비어 있음",exact=True).click()
+        expect(board.get_by_role("status")).to_have_text("X 승리!")
+        expect(board.get_by_role("button",name="6번 칸 비어 있음",exact=True)).to_be_disabled()
+        board.get_by_role("button",name="틱택토 새 판").click()
+        expect(board.get_by_role("status")).to_have_text("X 차례")
         # Delay reading until after the room changes to reproduce the attachment race.
         page.evaluate("""() => {
             const read = FileReader.prototype.readAsDataURL;
@@ -298,20 +321,50 @@ with sync_playwright() as p:
         page.get_by_role("button",name="전송",exact=True).click()
         expect(page.get_by_alt_text("첨부 미리보기")).to_have_count(0)
         expect(page.get_by_alt_text("내가 올린 사진")).to_have_count(0)
-        if page.get_by_role("button",name="스무고개 시작",exact=True).count()==0:
-            page.get_by_role("button",name="채팅 펼치기",exact=True).click()
-        page.get_by_role("button",name="스무고개 시작",exact=True).click(force=True)
-        twenty=page.get_by_role("dialog",name="스무고개 게임 탁자",exact=True)
-        expect(twenty.get_by_role("textbox",name="스무고개 답안")).to_be_visible(timeout=5000)
-        page.keyboard.press("Escape")
-        expect(twenty).to_have_count(0)
-        if not page.get_by_role("textbox",name="메시지",exact=True).is_visible():
-            page.get_by_role("button",name="채팅 펼치기",exact=True).click()
+        open_game_tray(page)
+        page.get_by_role("button",name="스무고개",exact=True).click()
+        game=page.get_by_role("region",name="스무고개 게임")
+        question=game.get_by_role("button",name="동물인가요?",exact=True)
+        guess=game.get_by_role("textbox",name="스무고개 답안")
+        submit=game.get_by_role("button",name="입력 보내기")
+        guess.fill("사람입니까?")
+        submit.click()
+        expect(game.get_by_role("status")).to_have_text("1/20회 사용 · 픽셀: 아니오.")
+        guess.fill("동물입니까?")
+        submit.click()
+        expect(game.get_by_role("status")).to_have_text("2/20회 사용 · 픽셀: 아니오.")
+        guess.fill("어디에 살아요?")
+        submit.click()
+        expect(game.get_by_role("status")).to_contain_text("2/20회 사용 · 이 질문에는 답할 수 없어요.")
+        expect(question).to_be_disabled()
+        page.get_by_role("button",name="틱택토",exact=True).click()
+        page.get_by_role("button",name="스무고개",exact=True).click()
+        expect(question).to_be_disabled()
+        expect(game.get_by_role("status")).to_contain_text("2/20회 사용")
+        expect(game.get_by_role("status")).to_contain_text("2/20회 사용")
+        page.get_by_role("button",name="채팅 접기",exact=True).click()
+        page.get_by_role("button",name="채팅 펼치기",exact=True).click()
+        expect(game.get_by_role("status")).to_contain_text("2/20회 사용")
+        open_game_tray(page)
         message=page.get_by_role("textbox",name="메시지",exact=True)
         expect(message).to_be_in_viewport()
         message.fill("게임 후 채팅 테스트")
         page.get_by_role("button",name="전송",exact=True).click()
         expect(page.get_by_text("게임 후 채팅 테스트",exact=True)).to_be_visible()
+        open_game_tray(page)
+        guess=game.get_by_role("textbox",name="스무고개 답안")
+        guess.fill("우 산")
+        game.get_by_role("button",name="입력 보내기").click()
+        expect(game.get_by_role("status")).to_contain_text("3/20회 사용 · 정답이에요!")
+        game.get_by_role("button",name="스무고개 새 판").click()
+        question.click()
+        expect(game.get_by_role("status")).to_contain_text("1/20회 사용 · 픽셀: 네.")
+        for index in range(19):
+            guess.fill(f"오답{index}")
+            game.get_by_role("button",name="입력 보내기").click()
+        expect(game.get_by_role("status")).to_contain_text("20/20회 사용")
+        expect(game.get_by_text("고양이",exact=True)).to_be_visible()
+        expect(guess).to_have_count(0)
         page.get_by_role("button",name="모임 목록",exact=True).click()
         search=page.get_by_role("textbox",name="모임 검색")
         search.fill("기존 방에 없는 검색어")
