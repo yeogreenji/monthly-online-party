@@ -373,6 +373,7 @@ export function MiniHomePanel({ online, me, space, visiting, onClose, onVisitClo
       <label className="ddm-field">취향 태그 (쉼표로 구분, 최대 5개)<input maxLength={80} value={mini.tags.join(', ')} onChange={(e) => saveMini({ tags: e.target.value.split(',').map((t) => t.trim()).filter(Boolean).slice(0, 5) })} placeholder="카페, 재즈, 고양이"/></label>
       <label className="ddm-field">오늘의 추천곡 공식 링크<input type="url" maxLength={300} value={mini.song} onChange={(e) => saveMini({ song: e.target.value })} placeholder="https:// (공식 링크만)"/></label>
       <label className="ddm-field">오늘의 한마디<input maxLength={120} value={mini.note} onChange={(e) => saveMini({ note: e.target.value })}/></label>
+      <label className="ddm-field">내 생일 (MM-DD, 선택 — 친구가 오늘 방문하면 축하 초인종이 울려요)<input maxLength={5} placeholder="05-17" value={mini.birthday} onChange={(e) => saveMini({ birthday: e.target.value.replace(/[^0-9-]/g, '').slice(0, 5) })}/></label>
       <section className="ddm-section">
         <h4>미니룸 테마 8종</h4>
         <div className="ddm-themes">{MINIROOM_THEMES.map((t) => <button type="button" key={t.name} aria-pressed={home.theme === t.name} onClick={() => { onChange({ home: { ...home, wallpaper: t.wallpaper, floor: t.floor, rug: t.rug, furnitureColor: t.furnitureColor, theme: t.name } }); onToast(`${t.name} 테마를 입혔어요. 3D 집에도 바로 적용됩니다.`, 'success') }}>

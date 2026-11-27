@@ -196,7 +196,9 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
     const space=await loadFriendSpace(userId)
     if(!space){setNotice('이 집은 아직 비공개예요. 친구가 되면 놀러 갈 수 있어요.');return}
     if(space.visibility==='private'){setNotice(`${space.nickname}님의 미니홈피는 비공개예요. 공개 범위를 '친구 공개'로 바꾸면 놀러 갈 수 있어요.`);return}
-    closePanels();setChatCollapsed(true);setVisiting(space);setBellText('딩동! 친구가 놀러 왔어요.')
+    closePanels();setChatCollapsed(true);setVisiting(space)
+    const today=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'}).slice(5)
+    setBellText(space.minihome.birthday&&space.minihome.birthday===today?'딩동! 오늘의 주인공을 축하해요.':(space.minihome.birthday?'딩동! 친구가 놀러 왔어요.':'딩동! 친구가 놀러 왔어요.'))
   }
   async function inviteFriend(friend:FriendEntry){
     if(!topic){setNotice('먼저 모임에 들어간 뒤 친구를 초대할 수 있어요.');return}
@@ -301,7 +303,12 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   function deleteMemory(id:string){const next=memories.filter(v=>v.id!==id);if(!saveJSON('dd.memories.v1',next))return false;setMemories(next);return true}
   function keepDraft(){if(topic)drafts.current[topic.id]={text:draft,image:picture,name:placeName,url:placeUrl,spoiler}}
   function rememberExit(){if(topic&&saveHistory)setHistory(prev=>[{id:uuid(),title:topic.title,at:new Date().toISOString(),visibility},...prev].slice(0,100))}
-  function openSpace(next: Space) {cancelPhotoRequest();setChatFull(false);setAttachOpen(false);setQuickOpen(false);setPractice(false);keepDraft();rememberExit();closePanels();setHomeExpanded(false);setSelectedFurniture(null);setChatCollapsed(next.id==='home'||access(next.id)!=='open');setSpace(next);setTopic(null);setShowCreate(false);setWorkTitle('');setNotice('');setAutoChat(false);setDraft('');setPicture('');clearPlace();setSpoiler(false);setSaveHistory(false);setVisibility('private');setRoomSearch('');setRoomFilter('all')}
+  function openSpace(next: Space) {
+    if(next.id==='plaza'){
+      const today=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'})
+      if(CALENDAR.some(e=>e.kind!=='weekly'&&e.dateISO.slice(0,10)===today))window.setTimeout(()=>setBellText('딩동! 마을에서 파티가 시작됐어요.'),600)
+    }
+    cancelPhotoRequest();setChatFull(false);setAttachOpen(false);setQuickOpen(false);setPractice(false);keepDraft();rememberExit();closePanels();setHomeExpanded(false);setSelectedFurniture(null);setChatCollapsed(next.id==='home'||access(next.id)!=='open');setSpace(next);setTopic(null);setShowCreate(false);setWorkTitle('');setNotice('');setAutoChat(false);setDraft('');setPicture('');clearPlace();setSpoiler(false);setSaveHistory(false);setVisibility('private');setRoomSearch('');setRoomFilter('all')}
   function enter(next:Topic){if(access(next.space)!=='open'||topic?.id===next.id)return;if(online&&roomIsFull(next)){setFullRoom(next);setChatCollapsed(false);return}cancelPhotoRequest();setAttachOpen(false);setQuickOpen(false);setPractice(false);nearBottom.current=true;keepDraft();rememberExit();const prev=drafts.current[next.id];setAutoChat(false);setTopic(next);setDraft(prev?.text??'');setPicture(prev?.image??'');setPlaceName(prev?.name??'');setPlaceUrl(prev?.url??'');setShowPlace(!!prev?.name||!!prev?.url);setSpoiler(prev?.spoiler??false);setNotice('');setSaveHistory(false);setVisibility('private');setChatExtras(false);setEmojiOpen(false);setChatCollapsed(false)}
   function leave(){cancelPhotoRequest();setAttachOpen(false);setQuickOpen(false);setPractice(false);keepDraft();rememberExit();setAutoChat(false);setTopic(null);setDraft('');setPicture('');clearPlace();setSpoiler(false);setNotice('');setSaveHistory(false);setChatExtras(false)}
   const world=space?SPACE_WORLD[space.id]:undefined

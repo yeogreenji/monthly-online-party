@@ -9,6 +9,8 @@ export type MiniHome = {
   song: string
   note: string
   theme: string
+  /** 생일 MM-DD (선택). 오늘과 같으면 친구 집에서 '생일 축하' 초인종이 울린다. */
+  birthday: string
 }
 
 export const MINIHOME_DEFAULT: MiniHome = {
@@ -19,6 +21,7 @@ export const MINIHOME_DEFAULT: MiniHome = {
   song: '',
   note: '',
   theme: '카페형',
+  birthday: '',
 }
 
 export const MOODS = ['편안함', '설렘', '기쁨', '차분함', '휴식 필요', '신남', '포근함']
@@ -29,6 +32,7 @@ export function cleanMiniHome(v: Partial<MiniHome> | null | undefined): MiniHome
   const text = (s: unknown, max: number) => (typeof s === 'string' ? s.replace(/01[016789][-. ]?\d{3,4}[-. ]?\d{4}/g, '').slice(0, max) : '')
   const tags = Array.isArray(src.tags) ? src.tags.filter((t): t is string => typeof t === 'string').map((t) => t.trim().slice(0, 10)).filter(Boolean).slice(0, 5) : []
   const song = typeof src.song === 'string' && /^https?:\/\//i.test(src.song.trim()) ? src.song.trim().slice(0, 300) : ''
+  const birthday = typeof src.birthday === 'string' && /^\d{2}-\d{2}$/.test(src.birthday) ? src.birthday : ''
   return {
     title: text(src.title, 40) || MINIHOME_DEFAULT.title,
     mood: typeof src.mood === 'string' && MOODS.includes(src.mood) ? src.mood : MINIHOME_DEFAULT.mood,
@@ -37,5 +41,6 @@ export function cleanMiniHome(v: Partial<MiniHome> | null | undefined): MiniHome
     song,
     note: text(src.note, 120),
     theme: typeof src.theme === 'string' ? src.theme.slice(0, 20) : MINIHOME_DEFAULT.theme,
+    birthday,
   }
 }
