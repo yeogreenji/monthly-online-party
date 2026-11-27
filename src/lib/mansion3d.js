@@ -627,7 +627,7 @@ export function createWorld(host,opts){
  function outdoorStart(){const r=active&&active!=='plaza'?rooms.get(active):null;return r?[r.x,r.street+r.side*1.35]:[player.g.position.x,player.g.position.z]}
  function releaseItem(){if(carried){carried.removeFromParent();carried=null;delete canvas.dataset.heldItem;status('꽃다발을 제자리에 돌려놓았어요.')}}
  function holdBouquet(){releaseItem();carried=bouquet(player.g);carried.position.set(.44,.58,.16);carried.rotation.z=-.32;canvas.dataset.heldItem='bouquet';status('꽃다발을 들었어요. 놓기 버튼으로 돌려놓을 수 있어요.')}
- function setAvatar(key,look=currentLook){if(player.key===key&&JSON.stringify(look)===JSON.stringify(currentLook))return;const previous=player;const next=animal(scene,key,look?.coat||palette.green,look);next.g.position.copy(previous.g.position);next.g.rotation.y=previous.g.rotation.y;next.update(next.g.rotation.y,false,clock,angle,true,seated?.def.interaction==='lie'?'lying':!!seated);if(carried)next.g.add(carried);player=next;currentLook=look;previous.dispose();renderer.render(scene,camera);canvas.dataset.avatarKey=player.key;canvas.dataset.avatarLook=JSON.stringify(currentLook||{})}
+ function setAvatar(key,look=currentLook){if(player.key===key&&JSON.stringify(look)===JSON.stringify(currentLook))return;if(selfBubble){dropLabel(selfBubble);selfBubble=null}const previous=player;const next=animal(scene,key,look?.coat||palette.green,look);next.g.position.copy(previous.g.position);next.g.rotation.y=previous.g.rotation.y;next.update(next.g.rotation.y,false,clock,angle,true,seated?.def.interaction==='lie'?'lying':!!seated);if(carried)next.g.add(carried);player=next;currentLook=look;previous.dispose();renderer.render(scene,camera);canvas.dataset.avatarKey=player.key;canvas.dataset.avatarLook=JSON.stringify(currentLook||{})}
  function status(s){opts.onStatus(s)}
  function waypoint(x,z,done){return{x,z,done}}
  function stand(){if(!seated||busy)return;const a=seated.def.approach;const v=seated.parent.localToWorld(new T.Vector3(a[0],a[1],a[2]));player.g.position.set(v.x,.1,v.z);seated=null;canvas.dataset.pose='standing';status('일어났어요. 다시 걸어갈 수 있어요.')}
@@ -677,13 +677,59 @@ export function createWorld(host,opts){
   if(dist<=step+.01||!valid(q.x+dx/dist*step,q.z+dz/dist*step)){st.tx=null;st.wait=2+Math.random()*4;npc.update(angle,false,clock,angle,motion);continue}
   q.x+=dx/dist*step;q.z+=dz/dist*step;npc.g.rotation.y=Math.atan2(dx,dz);npc.update(npc.g.rotation.y,true,clock,angle,motion);moving++}
   return moving}
+ // ── 실시간 접속자: 같은 공간에 있는 다른 이용자의 캐릭터·이름표·말풍선 ──
+ const peers=new Map();
+ function peerLabel(text,opt){opt=opt||{};const bg=opt.bg||'#fff6e6',fg=opt.fg||'#3b2b22',fs=opt.fs||24,maxW=opt.maxW||280,h=opt.h||.30;
+  const line=String(text==null?'':text).replace(/\s+/g,' ').trim().slice(0,60)||' ';
+  const c=document.createElement('canvas'),probe=c.getContext('2d');if(!probe)return null;
+  const font='600 '+fs+"px system-ui,-apple-system,'Malgun Gothic','Apple SD Gothic Neo',sans-serif";probe.font=font;
+  const w=Math.max(56,Math.min(maxW,Math.ceil(probe.measureText(line).width)+30));c.width=w;c.height=fs+24;
+  const ctx=c.getContext('2d');if(!ctx)return null;ctx.font=font;ctx.fillStyle=bg;ctx.strokeStyle='rgba(96,70,48,.32)';ctx.lineWidth=3;
+  const r=Math.min(14,c.height/2);ctx.beginPath();ctx.moveTo(r+1.5,1.5);ctx.lineTo(c.width-r-1.5,1.5);ctx.quadraticCurveTo(c.width-1.5,1.5,c.width-1.5,r+1.5);ctx.lineTo(c.width-1.5,c.height-r-1.5);ctx.quadraticCurveTo(c.width-1.5,c.height-1.5,c.width-r-1.5,c.height-1.5);ctx.lineTo(r+1.5,c.height-1.5);ctx.quadraticCurveTo(1.5,c.height-1.5,1.5,c.height-r-1.5);ctx.lineTo(1.5,r+1.5);ctx.quadraticCurveTo(1.5,1.5,r+1.5,1.5);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle=fg;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(line,c.width/2,c.height/2+1);
+  const tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;tex.anisotropy=4;
+  const sp=new T.Sprite(new T.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false}));sp.scale.set(h*c.width/c.height,h,1);sp.renderOrder=30;sp.userData.text=line;labels.push(sp);return sp}
+ function dropLabel(sp){if(!sp)return;const i=labels.indexOf(sp);if(i>=0)labels.splice(i,1);sp.material.map?.dispose();sp.material.dispose();sp.removeFromParent()}
+ function setPeerBubble(item,text){if(item.bub)dropLabel(item.bub);const sp=peerLabel(text,{bg:'#ffffff',fg:'#3b2b22',fs:24,maxW:320,h:.29});if(!sp){item.bub=null;return}sp.position.set(0,2.10,0);item.ch.g.add(sp);item.bub=sp;item.bubbleAt=clock}
+ let peerPositions=null
+ function setPeerPositions(map){peerPositions=map||null}
+ function setPresence(list){const live=new Set();
+  for(const p of Array.isArray(list)?list:[]){if(!p||!p.id)continue;live.add(p.id);let item=peers.get(p.id);
+   if(!item){const ch=spriteFactory.create(scene,p.avatar||'cat',(p.look&&p.look.coat)||palette.green,p.look||null);ch.g.position.set(Number(p.x)||0,.1,Number(p.z)||0);
+    const tag=peerLabel(p.nickname||'이웃',{fs:23,maxW:240,h:.255});if(tag){tag.position.set(0,1.74,0);ch.g.add(tag)}
+    item={ch,tag,bub:null,label:String(p.nickname||'이웃'),space:String(p.space||''),bubbleAt:0,target:new T.Vector3(Number(p.x)||0,.1,Number(p.z)||0)};peers.set(p.id,item);
+    if(p.bubble)setPeerBubble(item,p.bubble);canvas.dataset.peers=String(peers.size)}
+   const px=Number(p.x),pz=Number(p.z);if(Number.isFinite(px)&&Number.isFinite(pz))item.target.set(px,.1,pz);
+   item.space=String(p.space||'');
+   const name=String(p.nickname||'이웃');if(name&&name!==item.label){item.label=name;const old=item.tag;const tag=peerLabel(name,{fs:23,maxW:240,h:.255});if(tag){tag.position.set(0,1.74,0);item.ch.g.add(tag);item.tag=tag}dropLabel(old)}
+   const text=String(p.bubble||'');if(text&&text!==(item.bub?item.bub.userData.text:''))setPeerBubble(item,text)}
+  for(const [id,item] of [...peers]){if(live.has(id))continue;item.ch.dispose();dropLabel(item.tag);dropLabel(item.bub);peers.delete(id)}
+  canvas.dataset.peers=String(peers.size)}
+ function showPeerBubble(id,text){const item=peers.get(id);if(item)setPeerBubble(item,String(text||''))}
+ // 내 캐릭터 머리 위 표정·행동 말풍선(감정표현 16종). 같은 공간의 친구에게는 presence bubble로 따로 전송된다.
+ let selfBubble=null,selfBubbleAt=0;
+ function showSelfBubble(text){
+  if(selfBubble){dropLabel(selfBubble);selfBubble=null}
+  const clean=String(text||'').trim().slice(0,40);if(!clean||!player)return;
+  const sp=peerLabel(clean,{bg:'#fffdf6',fg:'#3b2b22',fs:26,maxW:300,h:.31});
+  if(!sp)return;
+  sp.position.set(0,2.05,0);player.g.add(sp);selfBubble=sp;selfBubbleAt=clock;canvas.dataset.selfEmote=clean
+ }
+ function getSelf(){return{x:player.g.position.x,z:player.g.position.z,space:active||'',pose:seated?(seated.def.interaction==='lie'?'lying':'seated'):'standing'}}
+ function updatePeers(dt,reduced){const mine=active||'plaza';
+  for(const [id,item] of peers){const g=item.ch.g;const sp=item.space||'plaza';g.visible=sp===mine||(mine==='plaza'&&sp==='');if(!g.visible)continue;
+   const live=peerPositions&&peerPositions.get(id);if(live&&Number.isFinite(live.x)&&Number.isFinite(live.z)){item.target.set(live.x,.1,live.z);item.pose=live.pose||'standing'}
+   const dx=item.target.x-g.position.x,dz=item.target.z-g.position.z,dist=Math.hypot(dx,dz);let walking=false;
+   if(dist>.03){const step=Math.min(dist,3.4*dt);g.position.x+=dx/dist*step;g.position.z+=dz/dist*step;g.rotation.y=Math.atan2(dx,dz);walking=dist>.12}
+   item.ch.update(g.rotation.y,walking&&!reduced,clock,angle,reduced,item.pose==='seated'?'seated':false);
+   if(item.bub&&item.bub.visible&&clock-item.bubbleAt>9)item.bub.visible=false}}
  function tick(now){if(disposed)return;if(paused){last=now;frame=requestAnimationFrame(tick);return}const dt=Math.min(.1,Math.max(0,(now-last)/1000));last=now;clock+=dt;if(clock>=timeCheck){applyTime();timeCheck=clock+10}let dragWalk=false;if(drag?.moved&&!busy&&Number.isFinite(drag.dx)&&Math.hypot(drag.dx,drag.dz)>7){const mag=Math.hypot(drag.dx,drag.dz),dx=drag.dx/mag,dz=drag.dz/mag,c=Math.cos(angle),s=Math.sin(angle),p=player.g.position;stand();target=null;const speed=4.8+4.2*Math.min(1,mag/65),vx=(dx*c+dz*s)*speed*dt,vz=(-dx*s+dz*c)*speed*dt;const r=active&&active!=='plaza'?rooms.get(active):null;const allowed=(x,z)=>(r?Math.abs(x-r.x)<(active==='season'?7:active==='home'?4.85:2.35*r.w)&&Math.abs(z-r.inside)<(active==='season'?6.8:active==='home'?4.4:2.55):streetWalkable(x,z))&&!blocked(x,z);const count=Math.max(1,Math.ceil(Math.hypot(vx,vz)/.12));for(let i=0;i<count;i++){const x=p.x+vx/count,z=p.z+vz/count;if(allowed(x,z)){p.x=x;p.z=z;dragWalk=true}else if(allowed(x,p.z)){p.x=x;dragWalk=true}else if(allowed(p.x,z)){p.z=z;dragWalk=true}}if(dragWalk){player.g.rotation.y=Math.atan2(vx,vz);overview=false;canvas.dataset.dragMoving='true';delete canvas.dataset.lastProp}}if(!target&&queue.length)target=queue.shift();let walking=dragWalk;const p=player.g.position;
   if(target){const dx=target.x-p.x,dz=target.z-p.z,dist=Math.hypot(dx,dz),step=(busy?9:5)*dt;if(dist<=step+.01){p.x=target.x;p.z=target.z;const done=target.done;target=null;done?.();if(!queue.length)busy=false}else{p.x+=dx/dist*step;p.z+=dz/dist*step;player.g.rotation.y=Math.atan2(dx,dz);walking=true}}
   for(const r of rooms.values()){const h=r.hinge;h.rotation.y+=(h.userData.target-h.rotation.y)*Math.min(1,dt*16)}
-  const motion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;player.update(player.g.rotation.y,walking,clock,angle,motion,seated?.def.interaction==='lie'?'lying':!!seated);const npcMoving=moveResidents(dt,motion,p);for(const {npc,greeting} of residentBubbles){const v=npc.g.getWorldPosition(new T.Vector3());greeting.visible=Math.hypot(v.x-p.x,v.z-p.z)<4.5}
+  const motion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;player.update(player.g.rotation.y,walking,clock,angle,motion,seated?.def.interaction==='lie'?'lying':!!seated);const npcMoving=moveResidents(dt,motion,p);updatePeers(dt,motion);if(selfBubble&&selfBubble.visible&&clock-selfBubbleAt>6)selfBubble.visible=false;for(const {npc,greeting} of residentBubbles){const v=npc.g.getWorldPosition(new T.Vector3());greeting.visible=Math.hypot(v.x-p.x,v.z-p.z)<4.5}
   const interior=active&&active!=='plaza'?rooms.get(active):null;const room=interior;const full=overview&&(!active||active==='plaza');focus.lerp(new T.Vector3(full?0:interior?interior.x*.84+p.x*.16:p.x,0,full?0:interior?interior.inside*.84+p.z*.16:p.z),motion?1:Math.min(1,dt*5));const desired=full?Math.min(240,Math.max(94,94/Math.max(.40,camera.aspect))):(active==='season'?(camera.aspect<.8?19:15):active==='home'?(camera.aspect<.8?15:12):active&&active!=='plaza'?(camera.aspect<.8?11.2:7.4):(camera.aspect<.8?30:25))*zoom;cameraRadius=motion?desired:cameraRadius+(desired-cameraRadius)*Math.min(1,dt*5);const rad=cameraRadius;camera.position.set(focus.x+Math.sin(angle)*rad,rad*(interior?.86:.88),focus.z+Math.cos(angle)*rad);camera.lookAt(focus.x,interior?.45:.45,focus.z)
   canvas.dataset.view=active&&active!=='plaza'?'interior':'town';canvas.dataset.roofs=roofsOpen?'open':'closed';canvas.dataset.overview=String(overview&&!active);canvas.dataset.zoom=zoom.toFixed(2);canvas.dataset.roomSeats=active==='season'?'20':'0';canvas.dataset.roomArea=active==='season'?'230.88':active==='home'?'103.88':'34.965';canvas.dataset.layout='town-plaza-v2';canvas.dataset.plazaDiameter='21.7';canvas.dataset.townSize='74x72';canvas.dataset.pose=seated?(seated.def.interaction==='lie'?'lying':'seated'):'standing';canvas.dataset.position=p.x.toFixed(2)+','+p.z.toFixed(2);canvas.dataset.room=active||'hall';canvas.dataset.roomMode=active&&opts.access?.(active)==='locked'?'preview':'open';canvas.dataset.camera=angle.toFixed(2);canvas.dataset.avatarMode='3d-model';canvas.dataset.avatarKey=player.key;canvas.dataset.avatarLook=JSON.stringify(currentLook||{});canvas.dataset.npcCount=String(residentSprites.length);canvas.dataset.npcMoving=String(npcMoving);canvas.dataset.interactiveProps=String(propInfo.size);renderer.render(scene,camera);const bellTarget=propInfo.get('hub-bell');if(bellTarget&&(!active||active==='plaza')){const v=bellTarget.g.localToWorld(new T.Vector3(0,1.9,0)).project(camera);canvas.dataset.bellPoint=JSON.stringify([(v.x+1)/2,(1-v.y)/2])}else delete canvas.dataset.bellPoint;if(active==='home'){const seat=propInfo.get('home-sofa');if(seat){const v=seat.g.localToWorld(new T.Vector3(0,.65,0)).project(camera);canvas.dataset.sofaPoint=JSON.stringify([(v.x+1)/2,(1-v.y)/2])}}else delete canvas.dataset.sofaPoint;frame=requestAnimationFrame(tick)
  }
  frame=requestAnimationFrame(tick)
- return {setPaused(v){paused=!!v;if(!paused)last=performance.now()},visit,enterDirect,exit,returnHub,capture,interact,stand,releaseItem,move,orbit,zoom:zoomBy,setOverview,setRoofs,setHome,setHomeEditing,setHomeSelected,setAvatar,setNight,setTime,setFestive,dispose(){disposed=true;cancelAnimationFrame(frame);ro.disconnect();spriteFactory.dispose();for(const m of mat.values())m.dispose();for(const g of geo.values())g.dispose();for(const g of merged)g.dispose();for(const g of festiveMerged)g.dispose();for(const s of labels){s.material.map?.dispose();s.material.dispose()}furniture.dispose();sky.dispose();renderer.dispose();canvas.remove()}}
+ return {setPaused(v){paused=!!v;if(!paused)last=performance.now()},visit,enterDirect,exit,returnHub,capture,interact,stand,releaseItem,move,orbit,zoom:zoomBy,setOverview,setRoofs,setHome,setHomeEditing,setHomeSelected,setAvatar,setNight,setTime,setFestive,setPresence,setPeerPositions,showPeerBubble,showSelfBubble,getSelf,dispose(){disposed=true;cancelAnimationFrame(frame);ro.disconnect();spriteFactory.dispose();for(const m of mat.values())m.dispose();for(const g of geo.values())g.dispose();for(const g of merged)g.dispose();for(const g of festiveMerged)g.dispose();for(const s of labels){s.material.map?.dispose();s.material.dispose()}furniture.dispose();sky.dispose();renderer.dispose();canvas.remove()}}
 }

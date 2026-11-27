@@ -6,15 +6,23 @@ import {GAMES} from '../data/minigames'
 import type {GameId} from '../data/minigames'
 import {HOME_DEFAULT,normalizeHome} from '../data/homeDecor'
 import {FestivalArt} from './FestivalArt'
-import {Paintbrush,PartyPopper,CalendarDays,Map,Home,Settings,Shirt,UserRound,Mail,Bell,Camera,MessageCircle,ImagePlus,Smile,MapPin,Send,MoreHorizontal,ChevronDown,ChevronLeft,Maximize2,Minimize2,Plus,Search,Star,ChevronRight,Info} from 'lucide-react'
+import {Paintbrush,PartyPopper,CalendarDays,Map,Home,Settings,Shirt,UserRound,Mail,Bell,Camera,MessageCircle,ImagePlus,Smile,MapPin,Send,MoreHorizontal,ChevronDown,ChevronLeft,Maximize2,Minimize2,Plus,Search,Star,ChevronRight,Info,Users,Sparkles} from 'lucide-react'
 import { access } from '../data/phase1'
 import { DEFAULT_LOOK, normalizeLook } from '../data/avatarLook'
+import type { Look } from '../data/avatarLook'
 import { AvatarWardrobe } from './AvatarWardrobe'
+import { FriendsPanel, MailboxPanel, MiniHomePanel, NoteBadge } from './SocialPanels'
+import { EMOTES } from '../data/collections'
+import type { Emote } from '../data/collections'
+import { MINIHOME_DEFAULT } from '../lib/socialTypes'
+import type { MiniHome } from '../lib/socialTypes'
+import { loadMySpace, saveMySpace, loadFriendSpace, listFriends, listMail, sendInvite, setMyStatus, subscribeBells } from '../lib/social'
+import type { MySpace, FriendSpace, FriendEntry } from '../lib/social'
 import { useEffect, useState, useRef, useMemo } from 'react'
 import type { Profile, RoomId } from '../types'
 import { LUNAR_FESTIVALS, MONTHLY_IDEAS, SPACES } from '../data/dingdong'
 import type { Space } from '../data/dingdong'
-import { usePersistentState,saveJSON } from '../lib/storage'
+import { usePersistentState,saveJSON,loadJSON } from '../lib/storage'
 import { ROOMS } from '../data/rooms'
 import { CALENDAR } from '../data/themes'
 import { resizeImageFile } from '../lib/image'
@@ -23,16 +31,20 @@ import { RESIDENTS, PLACE_STORIES } from '../data/world'
 import { dailyEvent } from '../data/dailyEvents'
 import { checkChatText } from '../lib/safety'
 import { serverEnabled, signOut } from '../lib/supabase'
-import { createTransport, reportMessage, blockUser, listBlocks, removeMessage, createSharedTopic, listSharedTopics, subscribeSharedTopics } from '../lib/supabaseTransport'
+import { createTransport, reportMessage, blockUser, listBlocks, removeMessage, createSharedTopic, listSharedTopics, subscribeSharedTopics, updateSharedTopic, removeSharedTopic } from '../lib/supabaseTransport'
+import { useSpacePresence } from '../lib/presence'
+import type { PresencePeer } from '../lib/presence'
 import { AdminReports } from './AdminReports'
 import type { TransportMessage } from '../lib/chatTransport'
 import { useAuth, useProfileSync } from '../lib/useAuth'
 import { AuthCard } from './AuthCard'
 import { SPACE_WORLD, KIND_UI, demoReply, todayPick, whoName, seoulDate } from '../data/spaceWorld'
+// 로렌(기획) 승인 정본: 덕질 존 개설 유형·제목 규칙을 JSON 정본에서 그대로 읽어 쓴다.
+import CONTENT_MASTER from '../../content/dingdong/content-master-v1.json'
 import type { TopicKind } from '../data/spaceWorld'
 
 type Visibility = 'private' | 'friends' | 'public'
-type Topic = { id: string; space: string; title: string; description: string; date: string; capacity: number; age: string; kind?: TopicKind; workTitle?: string; artist?: string; fanOccasion?: string }
+type Topic = { id: string; space: string; title: string; description: string; date: string; capacity: number; age: string; kind?: TopicKind; workTitle?: string; artist?: string; fanOccasion?: string; creatorId?: string }
 type Place = {name:string;url:string}
 type Message = { id: string; text: string; image?: string; place?:Place; at: string; by?: string; spoiler?: boolean; userId?: string }
 const REPORT_REASONS = [{ id: 'contact', label: '연락처 요구' }, { id: 'abuse', label: '불쾌한 말' }, { id: 'ad', label: '광고·홍보' }, { id: 'privacy', label: '개인정보 노출' }, { id: 'other', label: '기타' }] as const
@@ -47,6 +59,16 @@ function gameForTopic(title: string): GameId | undefined {
   return GAME_TOPIC.find(([pattern]) => pattern.test(title))?.[1]
 }
 const VISIBILITY = { private: '비공개', friends: '친구 공개(설정만)', public: '전체 공개(설정만)' }
+/** 덕질 존 개설 유형 — content-master-v1.json의 fandom.types(9종)를 그대로 쓴다. */
+const FAN_SPEC = (CONTENT_MASTER as { fandom?: { types?: string[]; default_title_template?: string; title_template?: string } }).fandom ?? {}
+const FAN_THEMES: readonly string[] = FAN_SPEC.types?.length ? FAN_SPEC.types : ['팬 모여라', '컴백 파티', '최애 생일 파티', '콘서트 후기', '뮤직비디오 감상회', '포토카드 자랑', '입덕 이야기', '데뷔 기념일', '자유 수다']
+/** 정본 규칙: 유형이 '팬 모여라'면 '{artist} 팬 모여라', 그 밖에는 '{artist} {kind}'. */
+function fanTitle(artist: string, kind: string) {
+  const a = artist.trim()
+  if (!a) return ''
+  if (kind === '팬 모여라') return (FAN_SPEC.default_title_template ?? '{artist} 팬 모여라').replace('{artist}', a)
+  return (FAN_SPEC.title_template ?? '{artist} {kind}').replace('{artist}', a).replace('{kind}', kind)
+}
 const INITIAL_HOME = HOME_DEFAULT
 const FIELD = 'w-full rounded-xl border border-current/15 bg-transparent px-3 py-2 text-sm'
 const uuid = () => globalThis.crypto?.randomUUID?.() ?? String(Date.now()) + Math.random().toString(36).slice(2)
@@ -73,6 +95,16 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   const [wardrobe,setWardrobe]=useState(false)
   const [yearbook,setYearbook]=useState(false)
   const [toolsOpen,setToolsOpen]=useState(false),[mapOpen,setMapOpen]=useState(false),[mailOpen,setMailOpen]=useState(false)
+  // 2단계: 친구·미니홈피·우편함·감정표현·계정 저장
+  const [socialPanel,setSocialPanel]=useState<null|'friends'|'minihome'>(null)
+  const [visiting,setVisiting]=useState<FriendSpace|null>(null)
+  const [mini,setMini]=usePersistentState<MiniHome>('dd.minihome.v1',MINIHOME_DEFAULT)
+  const [bellText,setBellText]=useState('')
+  const [emoteOpen,setEmoteOpen]=useState(false)
+  const [selfEmote,setSelfEmote]=useState<{text:string;nonce:number}|null>(null)
+  const [myStatus,setMyStatusState]=useState<'online'|'away'|'dnd'>('online')
+  const [friendBadge,setFriendBadge]=useState(0)
+  const [inboxBadge,setInboxBadge]=useState(0)
   const [game,setGame]=useState<GameId|null>(null)
   const [lastGame,setLastGame]=useState<GameId>('balance')
   function openGame(id?:GameId){const next=id??lastGame;setLastGame(next);setGame(next);setChatCollapsed(true);closePanels()}
@@ -80,8 +112,8 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   const [homeExpanded,setHomeExpanded]=useState(false)
   const [memoriesOpen,setMemoriesOpen]=useState(false)
   const [historyStatus,setHistoryStatus]=useState('')
-  function closePanels(){setMemoriesOpen(false);setCornerId(null);setWardrobe(false);setYearbook(false);setMapOpen(false);setMailOpen(false);setToolsOpen(false)}
-  function showPanel(id:string){closePanels();setChatCollapsed(true);if(id==='wardrobe')setWardrobe(true);if(id==='events')setYearbook(true);if(id==='map')setMapOpen(true);if(id==='mail')setMailOpen(true);if(id==='memories'){setHistoryStatus('');setMemoriesOpen(true)}}
+  function closePanels(){setMemoriesOpen(false);setCornerId(null);setWardrobe(false);setYearbook(false);setMapOpen(false);setMailOpen(false);setToolsOpen(false);setSocialPanel(null);setEmoteOpen(false)}
+  function showPanel(id:string){closePanels();setChatCollapsed(true);if(id==='wardrobe')setWardrobe(true);if(id==='events')setYearbook(true);if(id==='map')setMapOpen(true);if(id==='mail')setMailOpen(true);if(id==='friends')setSocialPanel('friends');if(id==='minihome')setSocialPanel('minihome');if(id==='memories'){setHistoryStatus('');setMemoriesOpen(true)}}
   function toggleTools(v:boolean){if(v){closePanels();setChatCollapsed(true)}setToolsOpen(v)}
   function visit(id:string,direct=false,preview=false){closePanels();setChatFull(false);setChatCollapsed(true);setRequest(p=>({id,serial:(p?.serial??0)+1,direct,preview}))}
   function externalMenu(id:string){closePanels();setChatCollapsed(true);onMenu(id)}
@@ -89,6 +121,11 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   const [roomSearch,setRoomSearch]=useState(''),[roomFilter,setRoomFilter]=useState<TopicKind|'all'|'saved'>('all')
   const [savedTopics,setSavedTopics]=usePersistentState<string[]>('dd.savedTopics.v1',[])
   const [createKind,setCreateKind]=useState<TopicKind>('talk')
+  const [artist,setArtist]=useState(''),[fanOccasion,setFanOccasion]=useState<string>(FAN_THEMES[0])
+  const [fullRoom,setFullRoom]=useState<Topic|null>(null)
+  const [editTopic,setEditTopic]=useState<Topic|null>(null)
+  const [editTitle,setEditTitle]=useState(''),[editDescription,setEditDescription]=useState(''),[editDate,setEditDate]=useState(''),[editCapacity,setEditCapacity]=useState(20),[editArtist,setEditArtist]=useState(''),[editFan,setEditFan]=useState<string>(FAN_THEMES[0])
+  const [manageMsg,setManageMsg]=useState('')
   const drafts=useRef<Record<string,{text:string;image:string;name:string;url:string;spoiler:boolean}>>({})
   const [spoiler,setSpoiler]=useState(false),[revealed,setRevealed]=useState<string[]>([])
   const [topic, setTopic] = useState<Topic | null>(null)
@@ -102,6 +139,12 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   const sync = useProfileSync(authUser, profile.nickname, profile.ageBand)
   const online = serverEnabled && !!authUser && sync === 'ok'
   const remote = useMemo(() => (serverEnabled ? createTransport() : null), [])
+  // 실시간 접속: 로그인한 이용자가 같은 공간에 있으면 서버 Presence로 서로의 캐릭터·들어간 모임·말풍선을 주고받는다.
+  const poseRef = useRef<(() => { x: number; z: number; pose: 'standing' | 'seated' | 'lying' }) | null>(null)
+  const presenceBase = online && authUser && space ? { id: authUser.id, nickname: profile.nickname, avatar: profile.avatar, look, space: space.id } : null
+  const presence = useSpacePresence(presenceBase, topic?.id ?? null, () => poseRef.current?.() ?? { x: 0, z: 0, pose: 'standing' })
+  const peers: PresencePeer[] = presence.peers
+  const [peerBubble, setPeerBubble] = useState<{ id: string; text: string; nonce: number } | null>(null)
   const [remoteMsgs, setRemoteMsgs] = useState<Record<string, Message[]>>({})
   const [blocked, setBlocked] = useState<string[]>([])
   const [hiddenIds, setHiddenIds] = useState<string[]>([])
@@ -109,7 +152,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   const [sending, setSending] = useState(false)
   const [connState, setConnState] = useState<'idle' | 'loading' | 'error'>('idle')
   const toMsg = (m: TransportMessage): Message => ({ id: m.id, text: m.text, at: m.at, by: m.by, userId: m.userId, spoiler: m.spoiler, place: m.place ? { name: m.place.name, url: m.place.url ?? '' } : undefined })
-  const addRemote = (tid: string, m: Message) => setRemoteMsgs(p => { const cur = p[tid] ?? []; return cur.some(x => x.id === m.id) ? p : { ...p, [tid]: [...cur, m].slice(-50) } })
+  const addRemote = (tid: string, m: Message) => {setRemoteMsgs(p => { const cur = p[tid] ?? []; return cur.some(x => x.id === m.id) ? p : { ...p, [tid]: [...cur, m].slice(-50) } });if(m.userId&&m.userId!==authUser?.id&&m.text)setPeerBubble({id:m.userId,text:m.text,nonce:Date.now()})}
   const shown = (tid: string) => online ? (remoteMsgs[tid] ?? []).filter(m => !hiddenIds.includes(m.id) && !(m.userId && blocked.includes(m.userId))) : (messages[tid] ?? [])
   const isMine = (m: Message) => online ? m.userId === authUser?.id : !m.by
   useEffect(() => { if (!online) { setBlocked([]); return } let alive = true; void listBlocks().then(ids => { if (alive) setBlocked(ids) }); return () => { alive = false } }, [online])
@@ -134,6 +177,69 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   const [history, setHistory] = usePersistentState<History[]>('dd.history.v1', [])
   const [storedHome, setHome] = usePersistentState('dd.home.v1', INITIAL_HOME)
   const home=useMemo(()=>normalizeHome(storedHome),[storedHome])
+  const mySpaceView=useMemo<MySpace>(()=>({look,outfits:[],home,minihome:mini,visibility:home.visibility}),[look,home,mini])
+  // 로그인하면 계정에 저장된 캐릭터·옷장·미니룸·미니홈피를 이 기기로 가져온다(없으면 지금 모습을 올린다).
+  const spaceLoadedFor=useRef<string|null>(null)
+  const saveTimer=useRef<number|null>(null)
+  function changeMySpace(patch:Partial<MySpace>){
+    if(patch.home)setHome(normalizeHome({...home,...patch.home}))
+    if(patch.minihome)setMini(patch.minihome)
+    if(patch.look)setLook(normalizeLook(patch.look))
+    if(patch.visibility)setHome({...home,visibility:patch.visibility})
+  }
+  function castEmote(e:Emote){
+    const text=`${e.emoji} ${e.label}`
+    setSelfEmote({text,nonce:Date.now()})
+    presence.bubble(text)
+    setNotice(`${e.label} 표현을 보냈어요. 같은 공간의 친구에게도 보여요.`)
+  }
+  async function openFriendHome(userId:string){
+    const space=await loadFriendSpace(userId)
+    if(!space){setNotice('이 집은 아직 비공개예요. 친구가 되면 놀러 갈 수 있어요.');return}
+    closePanels();setChatCollapsed(true);setVisiting(space);setBellText('딩동! 친구가 놀러 왔어요.')
+  }
+  async function inviteFriend(friend:FriendEntry){
+    if(!topic){setNotice('먼저 모임에 들어간 뒤 친구를 초대할 수 있어요.');return}
+    const err=await sendInvite(friend.userId,{id:topic.id,title:topic.title,space:topic.space})
+    setNotice(err??`${friend.nickname}님에게 '${topic.title}' 초대를 보냈어요.`)
+  }
+  useEffect(()=>{
+    if(!online||!authUser||spaceLoadedFor.current===authUser.id)return
+    spaceLoadedFor.current=authUser.id
+    void loadMySpace().then(space=>{
+      if(!space)return
+      if(space.look&&Object.keys(space.look).length)setLook(normalizeLook(space.look))
+      if(space.home&&Object.keys(space.home).length)setHome(normalizeHome(space.home))
+      if(space.minihome)setMini(space.minihome)
+      if(space.visibility)setHome(p=>({...p,visibility:space.visibility}))
+    })
+    void setMyStatus(myStatus)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[online,authUser?.id])
+  useEffect(()=>{
+    if(!online||!authUser||spaceLoadedFor.current!==authUser.id)return
+    if(saveTimer.current)window.clearTimeout(saveTimer.current)
+    saveTimer.current=window.setTimeout(()=>{
+      void saveMySpace({look,home,minihome:mini,visibility:home.visibility,outfits:loadJSON<{id:string;look:Look}[]>('dd.outfits.v1',[])})
+    },1200)
+    return ()=>{if(saveTimer.current)window.clearTimeout(saveTimer.current)}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[online,authUser?.id,look,storedHome,mini,home.visibility])
+  useEffect(()=>{
+    if(!online)return
+    return subscribeBells(e=>{setBellText(e.text);window.setTimeout(()=>setBellText(''),5000)})
+  },[online])
+  useEffect(()=>{
+    if(!online)return
+    let alive=true
+    const load=()=>{
+      void listFriends().then(d=>{if(alive)setFriendBadge(d.incoming.length)})
+      void listMail('in').then(m=>{if(alive)setInboxBadge(m.filter(x=>!x.readAt).length)})
+    }
+    load()
+    const timer=window.setInterval(load,60000)
+    return ()=>{alive=false;window.clearInterval(timer)}
+  },[online,visiting])
   const [homeFeedback,setHomeFeedback]=useState('')
   function updateHome(next:typeof home){setHome(next);return saveJSON('dd.home.v1',next)}
   function doneHome(){setChatCollapsed(true);setHomeFeedback('집 꾸미기를 저장했어요.');window.setTimeout(()=>setHomeFeedback(''),3500)}
@@ -173,7 +279,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
     }
   }
   const [showCreate, setShowCreate] = useState(false)
-  const addShared=(t:Topic)=>setSharedTopics(p=>p.some(x=>x.id===t.id)?p:[t,...p])
+  const addShared=(t:Topic)=>setSharedTopics(p=>p.some(x=>x.id===t.id)?p.map(x=>x.id===t.id?{...x,...t}:x):[t,...p])
   useEffect(()=>{setSharedTopics([]);if(!online||!space)return;let live=true;const sid=space.id;void listSharedTopics(sid).then(list=>{if(live)setSharedTopics(list)});const off=subscribeSharedTopics(sid,t=>{if(live)addShared(t)},id=>{if(live)setSharedTopics(p=>p.filter(x=>x.id!==id))});return()=>{live=false;off()}},[online,space?.id])
   const [title, setTitle] = useState('')
   const [workTitle, setWorkTitle] = useState('')
@@ -188,7 +294,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   function keepDraft(){if(topic)drafts.current[topic.id]={text:draft,image:picture,name:placeName,url:placeUrl,spoiler}}
   function rememberExit(){if(topic&&saveHistory)setHistory(prev=>[{id:uuid(),title:topic.title,at:new Date().toISOString(),visibility},...prev].slice(0,100))}
   function openSpace(next: Space) {cancelPhotoRequest();setChatFull(false);setAttachOpen(false);setQuickOpen(false);setPractice(false);keepDraft();rememberExit();closePanels();setHomeExpanded(false);setSelectedFurniture(null);setChatCollapsed(next.id==='home'||access(next.id)!=='open');setSpace(next);setTopic(null);setShowCreate(false);setWorkTitle('');setNotice('');setAutoChat(false);setDraft('');setPicture('');clearPlace();setSpoiler(false);setSaveHistory(false);setVisibility('private');setRoomSearch('');setRoomFilter('all')}
-  function enter(next:Topic){if(access(next.space)!=='open'||topic?.id===next.id)return;cancelPhotoRequest();setAttachOpen(false);setQuickOpen(false);setPractice(false);nearBottom.current=true;keepDraft();rememberExit();const prev=drafts.current[next.id];setAutoChat(false);setTopic(next);setDraft(prev?.text??'');setPicture(prev?.image??'');setPlaceName(prev?.name??'');setPlaceUrl(prev?.url??'');setShowPlace(!!prev?.name||!!prev?.url);setSpoiler(prev?.spoiler??false);setNotice('');setSaveHistory(false);setVisibility('private');setChatExtras(false);setEmojiOpen(false);setChatCollapsed(false)}
+  function enter(next:Topic){if(access(next.space)!=='open'||topic?.id===next.id)return;if(online&&roomIsFull(next)){setFullRoom(next);setChatCollapsed(false);return}cancelPhotoRequest();setAttachOpen(false);setQuickOpen(false);setPractice(false);nearBottom.current=true;keepDraft();rememberExit();const prev=drafts.current[next.id];setAutoChat(false);setTopic(next);setDraft(prev?.text??'');setPicture(prev?.image??'');setPlaceName(prev?.name??'');setPlaceUrl(prev?.url??'');setShowPlace(!!prev?.name||!!prev?.url);setSpoiler(prev?.spoiler??false);setNotice('');setSaveHistory(false);setVisibility('private');setChatExtras(false);setEmojiOpen(false);setChatCollapsed(false)}
   function leave(){cancelPhotoRequest();setAttachOpen(false);setQuickOpen(false);setPractice(false);keepDraft();rememberExit();setAutoChat(false);setTopic(null);setDraft('');setPicture('');clearPlace();setSpoiler(false);setNotice('');setSaveHistory(false);setChatExtras(false)}
   const world=space?SPACE_WORLD[space.id]:undefined
   const corner=cornerId&&CORNERS[cornerId].space===space?.id?CORNERS[cornerId]:null
@@ -204,10 +310,49 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
   }
   const seedFor=(t:Topic)=>{const w=SPACE_WORLD[t.space];const found=t.id.startsWith(t.space+'-')?w?.topics.find(x=>x.title===t.title):undefined;if(found)return found.seed;if(t.id.includes('-today-')||!w)return [{who:t.space,text:t.description||'새 방이 열렸어요. 첫 이야기를 남겨 주세요.'}];return [{who:t.space,text:t.description?t.description:'새 방이 열렸어요. 첫 이야기를 남겨 주세요.'}]}
   function demoMembers(t:Topic){return new Set(seedFor(t).map(m=>m.who)).size}
-  function roomCount(t:Topic){return 1+(practice?demoMembers(t):0)}
+  const roomBaseTitle=(t:Topic)=>t.title.replace(/\s*\d+호실$/,'').trim()
+  function allSpaceTopics(){const map=new globalThis.Map<string,Topic>();for(const t of [...topics,...sharedTopics])if(!map.has(t.id))map.set(t.id,t);return [...map.values()]}
+  // 서버에 로그인해 있으면 실제 접속 인원을 센다. 한가한 화면(로컬 체험)에서는 기존 시연 인원을 쓴다.
+  function roomCount(t:Topic){if(online)return peers.filter(p=>p.topicId===t.id).length+(topic?.id===t.id?1:0);return 1+(practice?demoMembers(t):0)}
   function roomIsFull(t:Topic){return roomCount(t)>=Math.max(1,t.capacity)}
-  function nextRoomTitle(t:Topic){const base=t.title.replace(/\s*\d+호실$/,'').trim();const count=topics.filter(x=>x.space===t.space&&x.title.replace(/\s*\d+호실$/,'').trim()===base).length;return count===0?base+' 2호실':base+' '+(count+1)+'호실'}
-  function openNextRoom(t:Topic){const next:Topic={...t,id:uuid(),title:nextRoomTitle(t),description:t.description};setTopics(p=>[next,...p]);setRoomFilter('all');setRoomSearch('');enter(next)}
+  function nextRoomTitle(t:Topic){const base=roomBaseTitle(t);const count=allSpaceTopics().filter(x=>x.space===t.space&&roomBaseTitle(x)===base&&!x.id.includes('-today-')).length;return base+' '+Math.max(2,count+1)+'호실'}
+  async function openNextRoom(t:Topic){
+    const next:Topic={...t,id:uuid(),creatorId:online&&authUser?authUser.id:t.creatorId,title:nextRoomTitle(t),description:t.description}
+    setFullRoom(null)
+    if(online&&authUser){
+      const err=await createSharedTopic({id:next.id,space:next.space,title:next.title,description:next.description,date:next.date,capacity:next.capacity,age:next.age,kind:kindOf(next),workTitle:next.workTitle,artist:next.artist,fanOccasion:next.fanOccasion})
+      if(err){setNotice(err);return}
+      addShared({...next,creatorId:authUser.id})
+    } else setTopics(p=>[next,...p])
+    setRoomFilter('all');setRoomSearch('');enter(next)
+  }
+  function isOwner(t:Topic){return online?!!authUser&&t.creatorId===authUser.id:topics.some(x=>x.id===t.id&&!x.id.includes('-today-'))}
+  function openEdit(t:Topic){closePanels();setManageMsg('');setEditTopic(t);setEditTitle(t.title);setEditDescription(t.description);setEditDate(t.date||'');setEditCapacity(t.capacity);setEditArtist(t.artist||'');setEditFan(t.fanOccasion||FAN_THEMES[0])}
+  async function saveEdit(){
+    const t=editTopic;if(!t)return
+    const titleNext=editTitle.trim();if(!titleNext){setManageMsg('모임 이름을 적어 주세요.');return}
+    if(!Number.isInteger(editCapacity)||editCapacity<1||editCapacity>20){setManageMsg('정원은 1~20명 사이로 정해 주세요.');return}
+    const patch={title:titleNext,description:editDescription.trim(),date:editDate,capacity:editCapacity,artist:editArtist.trim()||undefined,fanOccasion:editFan}
+    if(online&&authUser&&t.creatorId){
+      const err=await updateSharedTopic(t.id,patch)
+      if(err){setManageMsg(err);return}
+      setSharedTopics(p=>p.map(x=>x.id===t.id?{...x,...patch}:x))
+    } else {
+      setTopics(p=>p.map(x=>x.id===t.id?{...x,...patch}:x))
+    }
+    if(topic?.id===t.id)setTopic(prev=>prev?{...prev,...patch}:prev)
+    setEditTopic(null);setManageMsg('');setNotice('모임 정보를 고쳤어요.')
+  }
+  async function deleteRoom(t:Topic){
+    if(!window.confirm(`'${t.title}' 모임을 지울까요? 지운 모임은 되살릴 수 없어요.`))return
+    if(online&&authUser&&t.creatorId){
+      const ok=await removeSharedTopic(t.id)
+      if(!ok){setManageMsg('모임을 지우지 못했어요. 잠시 후 다시 시도해 주세요.');return}
+      setSharedTopics(p=>p.filter(x=>x.id!==t.id))
+    } else setTopics(p=>p.filter(x=>x.id!==t.id))
+    if(topic?.id===t.id){leave();setNotice('모임을 지웠어요.')}
+    setEditTopic(null);setManageMsg('')
+  }
   const kindOf=(t:Topic):TopicKind=>{if(t.kind)return t.kind;const w=SPACE_WORLD[t.space];const found=w?.topics.find(x=>x.title===t.title);if(found)return found.kind;const td=w?.today.find(x=>t.id.includes('-today-')&&x.title===t.title);return td?.kind??'talk'}
   const peer=(name:string,text:string,key:string,real?:Message)=>{const hidden=!!real?.spoiler&&!revealed.includes(real.id);return <div key={key} className="dd-peer-message"><div className="dd-peer-avatar" aria-hidden="true">{name.slice(0,1)}</div><div><span className="dd-peer-name">{name}{!real&&<em>시연</em>}</span><div className="dd-message-bubble dd-peer-bubble">{hidden?<button className="dd-spoiler" onClick={()=>setRevealed(v=>[...v,real!.id])}>스포일러 보기</button>:<p>{text}</p>}{!hidden&&real?.place&&safePlaceUrl(real.place.url)&&<div className="dd-place-card"><strong><MapPin size={14}/> {real.place.name}</strong><a href={safePlaceUrl(real.place.url)} target="_blank" rel="noopener noreferrer">장소 링크 열기</a></div>}</div>{real&&<div className="dd-peer-actions"><button type="button" aria-expanded={reportFor===real.id} onClick={()=>setReportFor(v=>v===real.id?null:real.id)}>신고</button>{real.userId&&<button type="button" onClick={()=>blockPeer(real)}>차단</button>}</div>}{real&&reportFor===real.id&&<div className="dd-chip-row" role="group" aria-label="신고 사유">{REPORT_REASONS.map(r=><button type="button" key={r.id} onClick={()=>reportPeer(real,r.id)}>{r.label}</button>)}</div>}</div></div>}
   const replyTimers=useRef<Set<number>>(new Set())
@@ -234,7 +379,7 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
       if(sending)return
       const tid=topic.id,text=(draft.trim()||place?.name||'').slice(0,1000)
       setSending(true);setNotice('')
-      remote.send({topicId:tid,text,by:profile.nickname,place,spoiler}).then(saved=>{nearBottom.current=true;addRemote(tid,toMsg(saved));delete drafts.current[tid];setDraft('');clearPlace();setSpoiler(false);setEmojiOpen(false);setAttachOpen(false);setQuickOpen(false);composer.current?.focus()}).catch((e:unknown)=>setNotice(e instanceof Error?e.message:'메시지를 보내지 못했어요.')).finally(()=>setSending(false))
+      remote.send({topicId:tid,text,by:profile.nickname,place,spoiler}).then(saved=>{nearBottom.current=true;addRemote(tid,toMsg(saved));presence.bubble(text);delete drafts.current[tid];setDraft('');clearPlace();setSpoiler(false);setEmojiOpen(false);setAttachOpen(false);setQuickOpen(false);composer.current?.focus()}).catch((e:unknown)=>setNotice(e instanceof Error?e.message:'메시지를 보내지 못했어요.')).finally(()=>setSending(false))
       return
     }
     nearBottom.current=true;
@@ -245,13 +390,15 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
     const tid=topic.id,sid=topic.space,kind=kindOf(topic),serial=(messages[tid]??[]).filter(m=>!m.by).length
     const timer=window.setTimeout(()=>{replyTimers.current.delete(timer);const r=demoReply(sid,kind,serial);setMessages(prev=>({...prev,[tid]:[...(prev[tid]??[]),{id:uuid(),text:r.text,by:r.by,at:new Date().toISOString()}].slice(-50)}))},1100);replyTimers.current.add(timer)
   }
-  return <section id="rooms" className="dd-world-app">
+  return <section id="rooms" className="dd-world-app" data-presence={presence.connected?'on':'off'} data-peers={String(peers.length)} data-room={topic?.id??''}>
       <nav className="dd-world-nav" aria-label="딩동 메뉴">{[{I:PartyPopper,n:'이벤트',f:()=>showPanel('events')},{I:CalendarDays,n:'일정',f:()=>externalMenu('calendar')},{I:Map,n:'지도',f:()=>showPanel('map')},{I:Home,n:'내 집',f:()=>visit('home')},{I:Settings,n:'설정',f:()=>toggleTools(!toolsOpen)}].map(({I,n,f})=><button key={n} aria-label={n} onClick={f}><I size={22}/><span>{n}</span></button>)}</nav>
-      <div className="dd-quick-links"><button aria-label="공지" onClick={()=>externalMenu('etiquette')}><Bell size={20}/></button><button aria-label="포토월" onClick={()=>externalMenu('wall')}><Camera size={20}/></button></div>
+      <div className="dd-quick-links"><button aria-label="공지" onClick={()=>externalMenu('etiquette')}><Bell size={20}/></button><button aria-label="포토월" onClick={()=>externalMenu('wall')}><Camera size={20}/></button><button aria-label={friendBadge?`친구 · 새 신청 ${friendBadge}건`:'친구'} onClick={()=>showPanel('friends')}><Users size={20}/><NoteBadge count={friendBadge}/></button><button aria-label="감정표현" aria-expanded={emoteOpen} onClick={()=>setEmoteOpen(v=>!v)}><Smile size={20}/></button></div>
+      {emoteOpen&&<div className="dd-emote-tray" role="group" aria-label="감정표현 16종">{EMOTES.map(e=><button key={e.label} type="button" aria-label={e.label} onClick={()=>castEmote(e)}><span aria-hidden="true">{e.emoji}</span><small>{e.label}</small></button>)}</div>}
+      {bellText&&<p className="dd-bell-banner" role="status"><Bell size={15}/>{bellText}</p>}
       {homeFeedback&&<div role="status" className="dd-save-toast">{homeFeedback}</div>}
       {space?.id==='games'&&access(space.id)==='open'&&!game&&<button type="button" className="ddg-float-launch" aria-label="게임 탁자 열기" onClick={()=>openGame()}><span aria-hidden="true">🎲</span><small>게임 탁자<em>{GAMES.length}가지</em></small></button>}
-      {space?.id==='home'&&<div className="dd-home-actions"><button onClick={()=>{closePanels();setChatCollapsed(false)}}><Paintbrush size={19}/>집 꾸미기 열기</button><button onClick={()=>showPanel('wardrobe')}><Shirt size={19}/>옷장</button><button onClick={onEditProfile}><UserRound size={19}/>프로필</button><button onClick={()=>showPanel('mail')}><Mail size={19}/>우편함</button></div>}
-      {(memoriesOpen||corner||wardrobe||yearbook||mapOpen||mailOpen)&&<div aria-hidden="true" data-testid="dd-pop-backdrop" onClick={closePanels} style={{position:'fixed',inset:0,zIndex:22,background:'#211a4333'}}/>}
+      {space?.id==='home'&&<div className="dd-home-actions"><button onClick={()=>{closePanels();setChatCollapsed(false)}}><Paintbrush size={19}/>집 꾸미기 열기</button><button onClick={()=>showPanel('wardrobe')}><Shirt size={19}/>옷장</button><button onClick={()=>showPanel('minihome')}><Sparkles size={19}/>미니홈피</button><button onClick={onEditProfile}><UserRound size={19}/>프로필</button><button onClick={()=>showPanel('mail')}><Mail size={19}/>우편함<NoteBadge count={inboxBadge}/></button></div>}
+      {(memoriesOpen||corner||wardrobe||yearbook||mapOpen||mailOpen||socialPanel||visiting)&&<div aria-hidden="true" data-testid="dd-pop-backdrop" onClick={closePanels} style={{position:'fixed',inset:0,zIndex:22,background:'#211a4333'}}/>}
       {corner&&<div className="dd-world-pop" role="dialog" aria-label={corner.title}>
         <div className="dd-pop-title"><strong>{corner.title}</strong><button className="dd3-btn" onClick={()=>setCornerId(null)}>닫기</button></div>
         <p>{corner.description}</p>
@@ -281,9 +428,31 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
           </div>)}
         </section>
       </div>}
-      {mailOpen&&<div className="dd-world-pop" role="dialog" aria-label="나의 우편함"><div className="dd-pop-title"><strong>나의 우편함</strong><button className="dd3-btn" onClick={()=>setMailOpen(false)}>닫기</button></div><div className="dd-mail-empty"><Mail size={42}/><h3>친구의 편지가 도착하는 곳</h3><p>현재는 로컬 체험입니다. 친구 방문·편지 송수신은 실제 계정 및 권한 연결 후 제공합니다.</p></div></div>}
+      {mailOpen&&<MailboxPanel online={online} onClose={()=>setMailOpen(false)} onToast={text=>setNotice(text)} onOpenInvite={(spaceId)=>{setMailOpen(false);visit(spaceId,true);setNotice('초대받은 모임이 있는 공간으로 이동했어요. 모임 목록에서 열어 보세요.')}}/>}
+      {socialPanel==='friends'&&<FriendsPanel online={online} onClose={()=>setSocialPanel(null)} onVisit={id=>void openFriendHome(id)} onInvite={f=>void inviteFriend(f)} onToast={(text,tone)=>{setNotice(text);if(tone==='success')setBellText(text)}}/>}
+      {socialPanel==='minihome'&&!visiting&&<MiniHomePanel online={online} me={authUser?{nickname:profile.nickname}:null} space={mySpaceView} visiting={null} onClose={()=>setSocialPanel(null)} onVisitClose={()=>setVisiting(null)} onChange={changeMySpace} onToast={text=>setNotice(text)}/>}
+      {visiting&&<MiniHomePanel online={online} me={authUser?{nickname:profile.nickname}:null} space={mySpaceView} visiting={visiting} onClose={()=>setVisiting(null)} onVisitClose={()=>setVisiting(null)} onChange={changeMySpace} onToast={text=>setNotice(text)}/>}
+          {fullRoom&&<div className="dd-world-pop dd-room-full-dialog" role="dialog" aria-label="모임 정원 안내">
+            <div className="dd-pop-title"><strong>정원이 가득 찼어요</strong><button className="dd3-btn" onClick={()=>setFullRoom(null)}>닫기</button></div>
+            <p><strong>{fullRoom.title}</strong> · 지금 {roomCount(fullRoom)}명 / 정원 {fullRoom.capacity}명</p>
+            <p>같은 주제로 다음 호실을 열면 대화가 이어집니다. 새 호실로 바로 들어갑니다.</p>
+            <div className="dd-cal-actions"><button type="button" onClick={()=>void openNextRoom(fullRoom)}>{nextRoomTitle(fullRoom)} 열고 입장 →</button><button type="button" onClick={()=>setFullRoom(null)}>다른 모임 보기</button></div>
+          </div>}
+          {editTopic&&<div className="dd-world-pop dd-edit-dialog" role="dialog" aria-label="내 모임 관리">
+            <div className="dd-pop-title"><strong>내 모임 관리</strong><button className="dd3-btn" onClick={()=>setEditTopic(null)}>닫기</button></div>
+            <p className="dd-edit-sub">{editTopic.title}</p>
+            <div className="dd-edit-body">
+              <label className="dd-field"><span>모임 이름</span><input aria-label="모임 이름 수정" maxLength={60} value={editTitle} onChange={e=>setEditTitle(e.target.value)}/></label>
+              <label className="dd-field"><span>소개</span><textarea aria-label="모임 소개 수정" maxLength={300} value={editDescription} onChange={e=>setEditDescription(e.target.value)}/></label>
+              {editTopic.space==='fandom'&&<div className="dd-fan-fields"><label className="dd-field"><span>아티스트 이름</span><input aria-label="아티스트 이름 수정" maxLength={40} value={editArtist} onChange={e=>setEditArtist(e.target.value)}/></label><label className="dd-field"><span>테마</span><select aria-label="덕질 테마 수정" value={editFan} onChange={e=>setEditFan(e.target.value)}>{FAN_THEMES.map(v=><option key={v} value={v}>{v}</option>)}</select></label></div>}
+              <label className="dd-field"><span>일정 (선택)</span><input type="datetime-local" aria-label="모임 일정 수정" value={editDate} onChange={e=>setEditDate(e.target.value)}/></label>
+              <label className="dd-field"><span>정원</span><input type="number" min={1} max={20} aria-label="모임 정원 수정" value={editCapacity} onChange={e=>setEditCapacity(Number(e.target.value))}/></label>
+              {manageMsg&&<p role="alert" className="dd-create-err">{manageMsg}</p>}
+              <footer className="dd-create-foot"><button type="button" className="dd-x" onClick={()=>void deleteRoom(editTopic)}>모임 삭제</button><button type="button" className="dd-go" onClick={()=>void saveEdit()}>수정 저장</button></footer>
+            </div>
+          </div>}
       <div className={'dd3-layout'+(space?' dd3-with-chat':'')+(space&&space.id!=='home'&&!chatCollapsed?' dd-chat-open':'')+(chatFull&&!chatCollapsed&&space?.id!=='home'?' dd-chat-full':'')}>
-        <Mansion3D homeEditing={space?.id==='home'&&!chatCollapsed} homeSelected={space?.id==='home'&&!chatCollapsed?selectedFurniture:null} onMenu={id=>{if(id==='games-hub'||id==='games-table'){openGame();return}const key=id.slice(7);if(id.startsWith('corner-')&&Object.prototype.hasOwnProperty.call(CORNERS,key)){openCorner(key as CornerId);return}if(id.startsWith('home-select:')){setSelectedFurniture(id.slice(12));return}if(id.startsWith('home-move:')){const [mx,mz]=id.slice(10).split(',').map(Number);if(Number.isFinite(mx)&&Number.isFinite(mz))setHomeMove({x:mx,z:mz,nonce:Date.now()});return}if(id==='home-wardrobe')showPanel('wardrobe');else if(id==='home-profile')onEditProfile();else if(id==='home-mailbox')showPanel('mail');else if(id==='home-decor'){closePanels();setChatCollapsed(false)}else externalMenu(id)}} profile={profile} look={look} home={home} active={space} request={request} toolsOpen={toolsOpen} onToolsChange={toggleTools} onEnter={openSpace} onLeave={()=>{leave();setSpace(null)}} onCapture={image=>{if(!topic){setNotice('모임에 입장한 뒤 촬영해 주세요.');return}cancelPhotoRequest();setPicture(image);setChatCollapsed(false);setNotice('사진 첨부 완료 · 전송을 누르면 로컬 채팅에 저장됩니다.')}} paused={Boolean(game)} favorites={favorites} onlyFavorites={onlyFavorites} onFavorite={id=>setFavorites(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id])}/>
+        <Mansion3D homeEditing={space?.id==='home'&&!chatCollapsed} homeSelected={space?.id==='home'&&!chatCollapsed?selectedFurniture:null} onMenu={id=>{if(id==='games-hub'||id==='games-table'){openGame();return}const key=id.slice(7);if(id.startsWith('corner-')&&Object.prototype.hasOwnProperty.call(CORNERS,key)){openCorner(key as CornerId);return}if(id.startsWith('home-select:')){setSelectedFurniture(id.slice(12));return}if(id.startsWith('home-move:')){const [mx,mz]=id.slice(10).split(',').map(Number);if(Number.isFinite(mx)&&Number.isFinite(mz))setHomeMove({x:mx,z:mz,nonce:Date.now()});return}if(id==='home-wardrobe')showPanel('wardrobe');else if(id==='home-profile')onEditProfile();else if(id==='home-mailbox')showPanel('mail');else if(id==='home-decor'){closePanels();setChatCollapsed(false)}else externalMenu(id)}} profile={profile} look={look} home={home} active={space} request={request} toolsOpen={toolsOpen} onToolsChange={toggleTools} onEnter={openSpace} onLeave={()=>{leave();setSpace(null)}} onCapture={image=>{if(!topic){setNotice('모임에 입장한 뒤 촬영해 주세요.');return}cancelPhotoRequest();setPicture(image);setChatCollapsed(false);setNotice('사진 첨부 완료 · 전송을 누르면 로컬 채팅에 저장됩니다.')}} paused={Boolean(game)} peers={peers} peerPositions={presence.positions} poseRef={poseRef} bubble={peerBubble} selfEmote={selfEmote} favorites={favorites} onlyFavorites={onlyFavorites} onFavorite={id=>setFavorites(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id])}/>
         {space&&access(space.id)==='open'&&<aside role="region" aria-label={space.name} className={"dd3-chat dd-chat-reveal"+(space.id!=="home"&&!chatCollapsed?" dd-messenger":space.id==="home"&&!chatCollapsed?" dd-home-panel"+(homeExpanded?" dd-home-expanded":""):"")}>
       <div className="dd-chat-topbar"><button type="button" className="dd3-collapse" aria-expanded={!chatCollapsed} onClick={()=>{if(chatCollapsed)closePanels();setChatCollapsed(v=>!v)}}>{space.id!=='home'&&<MessageCircle size={18}/>}<span>{space.id==='home'?(chatCollapsed?'집 꾸미기':'집 꾸미기 닫기'):(chatCollapsed?'채팅 펼치기':'채팅 접기')}</span>{!chatCollapsed&&<ChevronDown size={16}/>}</button>{space.id==='home'&&!chatCollapsed&&<button type="button" className="dd-chat-expand" aria-label={homeExpanded?'방 미리보기':'꾸미기 화면 크게'} onClick={()=>setHomeExpanded(v=>!v)}>{homeExpanded?<Minimize2 size={18}/>:<Maximize2 size={18}/>}</button>}{space.id!=='plaza'&&!chatCollapsed&&<button type="button" className="dd-chat-expand" aria-label="채팅에서 광장으로 돌아가기" title="광장으로 돌아가기" onClick={()=>visit('return-hub')}><Map size={18}/></button>}{space.id!=='home'&&!chatCollapsed&&<button className="dd-chat-expand" aria-label={chatFull?'채팅 기본 보기':'채팅 전체 화면'} onClick={()=>setChatFull(v=>!v)}>{chatFull?<Minimize2 size={18}/>:<Maximize2 size={18}/>}</button>}</div>
       <div className={space.id!=='home'&&topic?'dd-chat-body':space.id!=='home'?'dd-lobby-scroll p-4 sm:p-5':'p-4 sm:p-5'} hidden={chatCollapsed}>
@@ -293,12 +462,13 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
         {space.id==='home'&&world&&<div className="dd-lobby-story"><strong>{PLACE_STORIES.home.title}</strong><p>{world.story}</p></div>}
         {space.id==='season' && !topic && <button className="btn btn-outline mb-3" onClick={onParty}>크리스마스 파티 일정 보기</button>}
         {space.id==='home' ? <div className="space-y-4">
-          <HomeEditor home={home} selected={selectedFurniture} onSelect={setSelectedFurniture} onChange={updateHome} onDone={doneHome} onClose={()=>setChatCollapsed(true)} moveTo={homeMove}/><details className="dd-home-profile"><summary>미니홈피와 프로필</summary><MiniHomeJournal/><button className="btn btn-outline" onClick={()=>{leave();setSpace(null);onEditProfile()}}>캐릭터·닉네임·취향 수정</button><label className="block text-sm">미니홈피 소개<textarea className={FIELD} maxLength={160} value={home.intro} onChange={e=>setHome(p=>({...p,intro:e.target.value}))}/></label></details>
+          <HomeEditor home={home} selected={selectedFurniture} onSelect={setSelectedFurniture} onChange={updateHome} onDone={doneHome} onClose={()=>setChatCollapsed(true)} moveTo={homeMove}/><div className="dd-home-profile-card"><div><strong>{mini.title}</strong><small>오늘의 기분 · {mini.mood}</small><p>{mini.intro||'미니홈피에 소개를 남겨 보세요.'}</p></div><div className="dd-row"><button type="button" className="dd3-btn" onClick={()=>showPanel('minihome')}>미니홈피 열기</button><button type="button" className="dd3-btn" onClick={()=>{leave();setSpace(null);onEditProfile()}}>프로필 수정</button></div><label className="dd-status-select">내 상태<select aria-label="내 접속 상태" value={myStatus} onChange={e=>{const v=e.target.value as 'online'|'away'|'dnd';setMyStatusState(v);void setMyStatus(v);setNotice(v==='online'?'접속 중으로 바꿨어요.':v==='away'?'자리비움으로 바꿨어요.':'방해금지로 바꿨어요. 알림 소리를 끕니다.')}}><option value="online">접속 중</option><option value="away">자리비움</option><option value="dnd">방해금지</option></select></label></div>
           <label className="text-sm">미니홈피 공개 범위<select className={FIELD} value={home.visibility} onChange={e=>setHome(p=>({...p,visibility:e.target.value as Visibility}))}>{Object.entries(VISIBILITY).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>
           <p className="text-xs" style={{color:'var(--muted)'}}>벽지·가구·반려동물은 내 3D 집에 적용되고 브라우저에 자동 저장됩니다. 공개 범위는 설정만 저장되며 실제 친구 방문·편지는 계정 연결 전 제공되지 않습니다.</p>
           <button type="button" className="btn btn-outline" onClick={()=>showPanel('memories')}>사진첩·참여 기록</button>
         </div> : autoChat ? null : topic ? <div className="dd-messenger-main">
-          <header className="dd-message-header"><button className="dd-chat-icon" aria-label="모임 목록" onClick={leave}><ChevronLeft size={22}/></button><div><h3>{topic.title}</h3><p>{topic.workTitle&&<>{topic.workTitle} · </>}{space.name}{topic.fanOccasion&&' · '+topic.fanOccasion} <span className="dd-header-dot"/> {online?'실시간 대화':'로컬 연습'}</p><span className={`dd-topic-meter${roomIsFull(topic)?' is-full':''}`} style={{['--p' as string]:Math.min(100,Math.round((roomCount(topic)/Math.max(1,topic.capacity))*100))+'%'}} aria-label={`참여 ${roomCount(topic)}명, 정원 ${topic.capacity}명`}><em>{roomCount(topic)}/{topic.capacity}명{practice?' · 시연':''}</em></span></div><button className="dd-chat-icon" aria-label="채팅 설정" aria-expanded={chatExtras} onClick={()=>setChatExtras(v=>!v)}><MoreHorizontal size={22}/></button></header>
+          <header className="dd-message-header" data-topic-id={topic.id}><button className="dd-chat-icon" aria-label="모임 목록" onClick={leave}><ChevronLeft size={22}/></button><div><h3>{topic.title}</h3><p>{topic.artist&&<>{topic.artist}{topic.fanOccasion?' · '+topic.fanOccasion:''} · </>}{topic.workTitle&&<>{topic.workTitle} · </>}{space.name}{topic.fanOccasion&&!topic.artist&&' · '+topic.fanOccasion}{topic.date&&<> · <span className="dd-user-schedule">이용자 등록 일정</span></>} <span className="dd-header-dot"/> {online?(presence.connected?'실시간 대화':'연결 중'):'로컬 연습'}</p><span className={`dd-topic-meter${roomIsFull(topic)?' is-full':''}`} style={{['--p' as string]:Math.min(100,Math.round((roomCount(topic)/Math.max(1,topic.capacity))*100))+'%'}} aria-label={`참여 ${roomCount(topic)}명, 정원 ${topic.capacity}명`}><em>{roomCount(topic)}/{topic.capacity}명{practice?' · 시연':''}</em></span></div><button className="dd-chat-icon" aria-label="채팅 설정" aria-expanded={chatExtras} onClick={()=>setChatExtras(v=>!v)}><MoreHorizontal size={22}/></button></header>
+          {isOwner(topic)&&<div className="dd-owner-bar" role="group" aria-label="내 모임 관리"><span>내가 연 모임 · 지금 {roomCount(topic)}명 / 정원 {topic.capacity}명</span><button type="button" onClick={()=>openEdit(topic)}>모임 수정</button><button type="button" onClick={()=>void deleteRoom(topic)}>모임 삭제</button></div>}
           {topic.space==='games'&&<details className="ddg-tray" key={topic.id}><summary><span aria-hidden="true">🎲</span> 게임 탁자<small>{GAMES.length}가지 · 눌러서 펼치기</small></summary><GameCorner highlight={gameForTopic(topic.title)} onOpen={id=>openGame(id)}/></details>}
           {chatExtras&&<div className="dd-chat-settings"><p>{topic.description}</p>{topic.space==='games'?<small>게임 질문과 정답은 위의 미니게임에서 입력해 주세요.</small>:<><label><input type="checkbox" checked={practice} onChange={e=>setPractice(e.target.checked)}/> 가상 주민 대화 연습</label><small>켜면 시연용 주민이 응답해요.{online?'':' 실제 이용자와의 대화는 로그인하면 연결돼요.'}</small></>}<label><input type="checkbox" checked={saveHistory} onChange={e=>setSaveHistory(e.target.checked)}/> 나갈 때 참여 기록 저장</label>{saveHistory&&<select className={FIELD} aria-label="참여 기록 공개 범위" value={visibility} onChange={e=>setVisibility(e.target.value as Visibility)}>{Object.entries(VISIBILITY).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select>}<details className="dd-memory-details"><summary>사진첩·후기</summary><MemoryComposer key={topic.id} photos={(messages[topic.id]??[]).filter(m=>!m.by&&m.image&&(!m.spoiler||revealed.includes(m.id))).map(m=>({id:m.id,image:m.image!}))} onSave={saveMemory}/><MemoryAlbum key={topic.id} entries={memories} topicId={topic.id} onDelete={deleteMemory}/></details><button className="dd3-btn" onClick={leave}>모임 나가기</button>{authUser&&<button className="dd3-btn" onClick={()=>void signOut()}>로그아웃</button>}<AdminReports signedIn={!!authUser}/></div>}
           {roomIsFull(topic)&&<div className="dd-room-full" role="status"><div><strong>정원 {topic.capacity}명이 가득 찼어요</strong><span>같은 주제로 새 호실을 열면 대화가 이어집니다.</span></div><button type="button" onClick={()=>openNextRoom(topic)}>{nextRoomTitle(topic)} 열기 →</button></div>}
@@ -321,28 +491,36 @@ export function DingdongSpaces({ profile, onLegacy, onParty, onEditProfile, onMe
           {space.id==='single'&&<p className="text-xs">성인 인증 전이므로 실제 만남이나 DM 연결은 제공하지 않습니다.</p>}
           {world&&<div className="dd-lobby-story"><strong>{PLACE_STORIES[space.id]?.title??space.name}</strong><p>{world.story}</p><details><summary>이 공간의 매너</summary><ul>{world.rules.map(r=><li key={r}>{r}</li>)}</ul></details></div>}
           {world&&(()=>{const pick=todayPick(world.today);return <button type="button" className="dd-today-card" onClick={openToday}><small>TODAY · 오늘의 주제</small><strong>{pick.title}</strong><span>{pick.question}</span><em>이 주제로 방 열기 →</em></button>})()}
+          {online&&<p className="dd-live-strip" role="status"><span className="dd-live-dot" aria-hidden="true"/>{presence.connected?`실시간 접속 ${peers.length+1}명`:'실시간 연결 중…'}<small>같은 공간에 있는 사람의 캐릭터와 말풍선이 3D 화면에 함께 보여요.</small></p>}
+          {space.id==='fandom'&&<div className="dd-fan-banner"><span aria-hidden="true">🎧</span><div><strong>좋아하는 아티스트로 팬 모임 열기</strong><p>아티스트 이름을 적고 9가지 유형(팬 모여라·컴백 파티·최애 생일 파티·콘서트 후기·뮤직비디오 감상회·포토카드 자랑·입덕 이야기·데뷔 기념일·자유 수다) 중 하나를 고르면 그 이름으로 모임이 열립니다. 정원 20명이 차면 다음 호실을 안내합니다.</p></div><button type="button" onClick={()=>{setShowCreate(true);setCreateKind('share')}}>아티스트 입력하기</button></div>}
           <div className="dd-room-section-head"><h3 className="serif text-lg">이 공간의 모임</h3><button type="button" className={showCreate?'dd-room-new is-open':'dd-room-new'} onClick={()=>setShowCreate(v=>!v)}>{showCreate?'닫기':<><Plus size={16}/> 모임 열기</>}</button></div>
           <div className="dd-room-discovery"><div className="dd-search-field"><Search size={18}/><input aria-label="모임 검색" placeholder="작품명·가수·모임 제목 검색" value={roomSearch} onChange={e=>setRoomSearch(e.target.value)}/></div><div className="dd-room-filters" role="group" aria-label="모임 유형">{(['all','saved',...Object.keys(KIND_UI)] as ('all'|'saved'|TopicKind)[]).map(k=><button key={k} aria-pressed={roomFilter===k} onClick={()=>setRoomFilter(k)}>{k==='all'?'전체':k==='saved'?'저장한 방':KIND_UI[k].label}</button>)}</div></div>
-          {showCreate&&<form className="dd-create-meeting" aria-label="모임 개설" onSubmit={e=>{e.preventDefault();if(!title.trim()||!Number.isInteger(capacity)||capacity<1||capacity>20)return;const baseTitle=title.trim();const sameName=topics.filter(t=>t.space===space.id&&t.title.replace(/\s*\d+호실$/,'').trim()===baseTitle.replace(/\s*\d+호실$/,'').trim()&&!t.id.includes('-today-')).length;const finalTitle=sameName?`${baseTitle.replace(/\s*\d+호실$/,'').trim()} ${sameName+1}호실`:baseTitle;const next={id:uuid(),space:space.id,title:finalTitle,description:description.trim(),date,capacity,age,kind:createKind,workTitle:space.id==='cinema'?workTitle.trim()||undefined:undefined};if(online){void createSharedTopic(next).then(err=>{if(err){setCreateErr(err);return}setCreateErr('');addShared(next);setRoomFilter('all');setRoomSearch('');setTitle('');setWorkTitle('');setDescription('');setDate('');setCapacity(20);setShowCreate(false);enter(next)});return}setTopics(p=>[next,...p]);setRoomFilter('all');setRoomSearch('');setTitle('');setWorkTitle('');setDescription('');setDate('');setCapacity(20);setShowCreate(false);enter(next)}}>
+          {showCreate&&<form className="dd-create-meeting" aria-label="모임 개설" onSubmit={e=>{e.preventDefault();const artistNext=artist.trim();const titleNext=title.trim()||(space.id==='fandom'&&artistNext?fanTitle(artistNext,fanOccasion):'');if(!titleNext.trim()||!Number.isInteger(capacity)||capacity<1||capacity>20)return;const base=titleNext.replace(/\s*\d+호실$/,'').trim();const sameName=allSpaceTopics().filter(t=>t.space===space.id&&roomBaseTitle(t)===base&&!t.id.includes('-today-')).length;const finalTitle=sameName?`${base} ${Math.max(2,sameName+1)}호실`:titleNext.trim();const next:Topic={id:uuid(),space:space.id,creatorId:online&&authUser?authUser.id:undefined,title:finalTitle,description:description.trim()||(space.id==='fandom'&&artistNext?`${artistNext} · ${fanOccasion} 이야기를 나눠요.`:''),date,capacity,age,kind:createKind,workTitle:space.id==='cinema'?workTitle.trim()||undefined:undefined,artist:space.id==='fandom'?artistNext||undefined:undefined,fanOccasion:space.id==='fandom'?fanOccasion:undefined};const reset=()=>{setCreateErr('');setRoomFilter('all');setRoomSearch('');setTitle('');setWorkTitle('');setArtist('');setFanOccasion(FAN_THEMES[0]);setDescription('');setDate('');setCapacity(20);setShowCreate(false)};if(online&&authUser){void createSharedTopic({id:next.id,space:next.space,title:next.title,description:next.description,date:next.date,capacity:next.capacity,age:next.age,kind:createKind,workTitle:next.workTitle,artist:next.artist,fanOccasion:next.fanOccasion}).then(err=>{if(err){setCreateErr(err);return}addShared({...next,creatorId:authUser.id});reset();enter(next)});return}setTopics(p=>[next,...p]);reset();enter(next)}}>
             <header className="dd-create-head"><span className="dd-create-lamp" aria-hidden="true"/><div><small className="dd-create-kicker">NEW ROOM · {space.name}</small><h4>새 모임 열기</h4><p>{online?'모든 이용자에게 공개 · ':''}정원이 차면 같은 주제로 다음 호실을 열 수 있어요.</p></div><button type="button" className="dd-create-x" aria-label="모임 만들기 닫기" onClick={()=>setShowCreate(false)}>×</button></header>
             <div className="dd-create-body">
               <label className="dd-field"><span>모임 유형</span><select aria-label="새 모임 유형" value={createKind} onChange={e=>setCreateKind(e.target.value as TopicKind)}>{Object.entries(KIND_UI).map(([k,v])=><option key={k} value={k}>{v.label}</option>)}</select></label>
               {space.id==='cinema'&&<label className="dd-field"><span>작품명 (선택)</span><input maxLength={80} value={workTitle} onChange={e=>setWorkTitle(e.target.value)}/></label>}
-              <label className="dd-field"><span>모임 이름</span><input autoFocus placeholder="예: 금요일 저녁 영화 수다" required maxLength={60} value={title} onChange={e=>setTitle(e.target.value)}/></label>
+              {space.id==='fandom'&&<div className="dd-fan-fields">
+                <label className="dd-field"><span>아티스트 이름</span><input aria-label="아티스트 이름" placeholder="예: ○○ (자유롭게 입력)" maxLength={40} value={artist} onChange={e=>setArtist(e.target.value)}/></label>
+                <label className="dd-field"><span>테마</span><select aria-label="덕질 테마" value={fanOccasion} onChange={e=>setFanOccasion(e.target.value)}>{FAN_THEMES.map(v=><option key={v} value={v}>{v}</option>)}</select></label>
+                <p className="dd-fan-hint">이름을 비우면 모임 이름만으로 방을 열 수 있어요. 아티스트를 적으면 제목을 비워도 <strong>{fanTitle(artist.trim()||'○○',fanOccasion)||'○○ 팬 모여라'}</strong>로 만들어집니다.</p>
+                <div className="dd-fan-chips" role="group" aria-label="정본 덕질 활동">{(((CONTENT_MASTER as { fandom?: { groups?: { category: string; items: string[] }[] } }).fandom?.groups) ?? []).flatMap(g => g.items.map(item => ({ category: g.category, item }))).map(({ category, item }) => <button type="button" key={category + item} aria-label={category + ' ' + item} onClick={() => setTitle(item)}>{item}</button>)}</div>
+              </div>}
+              <label className="dd-field"><span>모임 이름</span><input autoFocus placeholder={space.id==='fandom'?'예: ○○ 팬 모여라':'예: 금요일 저녁 영화 수다'} maxLength={60} value={title} onChange={e=>setTitle(e.target.value)}/></label>
               <label className="dd-field"><span>어떤 이야기를 나눌까요</span><textarea placeholder="함께 나누고 싶은 이야기를 적어 주세요." maxLength={300} value={description} onChange={e=>setDescription(e.target.value)}/></label>
               <label className="dd-field"><span>일정 (선택)</span><input type="datetime-local" value={date} onChange={e=>setDate(e.target.value)}/></label>
               <div className="dd-create-row"><label className="dd-field"><span>목표 인원</span><input type="number" min={1} max={20} required value={capacity} onChange={e=>setCapacity(Number(e.target.value))}/></label><label className="dd-field"><span>연령 그룹</span><select value={age} onChange={e=>setAge(e.target.value)}>{['성인 전체','20대','30대','40대','50대 이상'].map(v=><option key={v}>{v}</option>)}</select></label></div>
               {createErr&&<p role="alert" className="dd-create-err">{createErr}</p>}
-              <footer className="dd-create-foot"><button type="button" className="dd-x" onClick={()=>setShowCreate(false)}>취소</button><button type="submit" className="dd-go" disabled={!title.trim()}>{online?'모임 만들기':'모임 열기'}</button></footer>
+              <footer className="dd-create-foot"><button type="button" className="dd-x" onClick={()=>setShowCreate(false)}>취소</button><button type="submit" className="dd-go" disabled={!title.trim()&&!(space.id==='fandom'&&artist.trim())}>{online?'모임 만들기':'모임 열기'}</button></footer>
             </div>
           </form>}
-          {(()=>{const q=roomSearch.trim().toLocaleLowerCase();const all=[...sharedTopics.filter(t=>t.space===space.id),...topics.filter(t=>t.space===space.id&&!sharedTopics.some(x=>x.id===t.id)),...seedTopics];const filtered=all.filter(t=>(!q||[t.title,t.description,t.workTitle??''].some(v=>v.toLocaleLowerCase().includes(q)))&&(roomFilter==='all'||(roomFilter==='saved'?savedTopics.includes(t.id):kindOf(t)===roomFilter)));return filtered.length?filtered.map(t=><div key={t.id} className="dd-room-list-item"><button className="dd-room-join" onClick={()=>enter(t)}><span><strong>{t.title}</strong><small>{t.workTitle&&<>{t.workTitle} · </>}{t.description}{t.date?' · '+t.date.replace('T',' '):''} · 정원 {t.capacity}명</small></span><span className="dd-kind-badge">{KIND_UI[kindOf(t)].label}</span><ChevronRight size={18}/></button><button className="dd-room-save" aria-label={(savedTopics.includes(t.id)?'저장 해제 ':'모임 저장 ')+t.title} aria-pressed={savedTopics.includes(t.id)} onClick={()=>setSavedTopics(v=>v.includes(t.id)?v.filter(x=>x!==t.id):[...v,t.id])}><Star size={18} fill={savedTopics.includes(t.id)?'currentColor':'none'}/></button></div>):<p className="dd-room-empty">조건에 맞는 모임이 없어요. 검색 조건을 바꾸거나 새로운 방을 열어 보세요.</p>})()}
+          {(()=>{const q=roomSearch.trim().toLocaleLowerCase();const all=[...sharedTopics.filter(t=>t.space===space.id),...topics.filter(t=>t.space===space.id&&!sharedTopics.some(x=>x.id===t.id)),...seedTopics];const filtered=all.filter(t=>(!q||[t.title,t.description,t.workTitle??'',t.artist??''].some(v=>v.toLocaleLowerCase().includes(q)))&&(roomFilter==='all'||(roomFilter==='saved'?savedTopics.includes(t.id):kindOf(t)===roomFilter)));return filtered.length?filtered.map(t=>{const live=roomCount(t);const full=online&&roomIsFull(t);return <div key={t.id} className="dd-room-list-item" data-topic-id={t.id}><button className="dd-room-join" onClick={()=>enter(t)}><span><strong>{t.title}{isOwner(t)&&<em className="dd-room-mine">내 모임</em>}</strong><small>{t.artist&&<>{t.artist}{t.fanOccasion?` · ${t.fanOccasion}`:''} · </>}{t.workTitle&&<>{t.workTitle} · </>}{t.description}{t.date?' · 이용자 등록 일정 '+t.date.replace('T',' '):''} · {online?`지금 ${live}명 / 정원 ${t.capacity}명`:`정원 ${t.capacity}명`}</small></span><span className={full?'dd-kind-badge is-full':'dd-kind-badge'}>{full?'정원 참':KIND_UI[kindOf(t)].label}</span><ChevronRight size={18}/></button>{isOwner(t)&&<span className="dd-room-owner"><button type="button" aria-label={t.title+' 모임 수정'} title="모임 수정" onClick={()=>openEdit(t)}>✎</button><button type="button" aria-label={t.title+' 모임 삭제'} title="모임 삭제" onClick={()=>void deleteRoom(t)}>🗑</button></span>}<button className="dd-room-save" aria-label={(savedTopics.includes(t.id)?'저장 해제 ':'모임 저장 ')+t.title} aria-pressed={savedTopics.includes(t.id)} onClick={()=>setSavedTopics(v=>v.includes(t.id)?v.filter(x=>x!==t.id):[...v,t.id])}><Star size={18} fill={savedTopics.includes(t.id)?'currentColor':'none'}/></button></div>}):<p className="dd-room-empty">조건에 맞는 모임이 없어요. 검색 조건을 바꾸거나 새로운 방을 열어 보세요.</p>})()}
           {space.legacy?.map(id=><button key={id} className="card flex w-full justify-between gap-2 p-4 text-left" onClick={()=>{leave();setSpace(null);onLegacy(id)}}><span>{ROOMS.find(r=>r.id===id)?.name}</span><span className="text-xs">기존 시연방 →</span></button>)}
         </div>}
       </div>
         </aside>}
       </div>
-      {game&&<GameStage game={game} roomLabel={space?.name??'게임 라운지'} onChange={id=>openGame(id)} onClose={()=>setGame(null)}/>}
+      {game&&<GameStage game={game} roomLabel={space?.name??'게임 라운지'} onChange={id=>openGame(id)} onClose={()=>setGame(null)} topicId={topic?.id??null} me={authUser?{id:authUser.id,nickname:profile.nickname}:null} players={topic?[{id:authUser?.id??'',nickname:profile.nickname},...peers.filter(p=>p.topicId===topic.id).map(p=>({id:p.id,nickname:p.nickname}))].filter(p=>p.id):[]}/>}
   </section>
 }
 
@@ -414,10 +592,4 @@ function DailyFestival({onVisit,onCalendar}:{onVisit:(id:string)=>void;onCalenda
    <p role="status">{feedback}</p>
    <button type="button" className="dd3-btn" onClick={()=>onVisit(festival?.space ?? ev.space)}>관련 공간 방문</button>
  </section>
-}
-
-function MiniHomeJournal(){
- const [saved,setSaved]=usePersistentState('dd.minihome.journal.v1',{title:'나의 작은 집',mood:'편안함',note:''})
- const [draft,setDraft]=useState(saved),[status,setStatus]=useState('')
- return <section className="card space-y-3 p-4" aria-label="나의 미니홈피"><h3>{saved.title}</h3><p>오늘의 기분 · {saved.mood}</p><p style={{whiteSpace:'pre-wrap'}}>{saved.note||'아직 남긴 일기가 없어요.'}</p><small>이 기기에만 저장되는 개인 공간입니다. 실제 방문자나 공개 기능은 연결되지 않았어요.</small><label className="block">홈피 제목<input className={FIELD} maxLength={40} value={draft.title} onChange={e=>{setDraft(v=>({...v,title:e.target.value}));setStatus('')}}/></label><label className="block">기분<select className={FIELD} value={draft.mood} onChange={e=>{setDraft(v=>({...v,mood:e.target.value}));setStatus('')}}>{['편안함','설렘','기쁨','차분함','휴식 필요'].map(m=><option key={m}>{m}</option>)}</select></label><label className="block">한 줄 일기<textarea className={FIELD} maxLength={500} value={draft.note} onChange={e=>{setDraft(v=>({...v,note:e.target.value}));setStatus('')}}/></label><button type="button" className="dd3-btn" onClick={()=>{const next={...draft,title:draft.title.trim()||'나의 작은 집'};if(saveJSON('dd.minihome.journal.v1',next)){setSaved(next);setDraft(next);setStatus('저장했어요.')}else setStatus('저장 실패. 다시 시도해 주세요.')}}>미니홈피 저장</button><p role="status">{status}</p></section>
 }
