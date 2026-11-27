@@ -901,3 +901,39 @@
   .dd-world-app .dd3-chat.dd-home-panel .dd-home-save { position: sticky; bottom: 0; }
   .dd-world-app:has(.dd-home-panel) .dd-room-actions { visibility: hidden; }
 }
+
+/* 내 집 패널 닫기 버튼·입력칸도 나무 톤으로 */
+.dd-world-app .dd-home-editor .dd-panel-x {
+  background: linear-gradient(#fff6e4, #f0dbb6);
+  color: #6b4a1e;
+  border: 2px solid #d9bd94;
+  border-radius: 10px;
+  box-shadow: 0 2px 0 #c3a173;
+  width: 34px;
+  height: 34px;
+}
+.dd-world-app .dd-home-editor select,
+.dd-world-app .dd-home-editor input[type='text'],
+.dd-world-app .dd-home-editor textarea {
+  background: #fffaf0;
+  border: 1px solid #d9bd94;
+  color: #4a3320;
+  border-radius: 8px;
+}
+.dd-world-app .dd-home-editor input[type='range'] { accent-color: #b8862f; }
+
+/* 내 집 패널: 프레임 안에서만 스크롤되도록 (저장 바가 패널 아래로 새지 않게) */
+.dd-world-app .dd3-chat.dd-home-panel {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.dd-world-app .dd3-chat.dd-home-panel .dd-chat-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+@media (max-width: 760px) {
+  .dd-world-app .dd3-chat.dd-home-panel .dd-home-save { position: static; }
+}
