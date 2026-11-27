@@ -1644,3 +1644,102 @@
   border-radius: 3px;
   background: #fffdf5;
 }
+
+/* 소품 카드 배경·글자색 (기본 카드 규칙보다 우선) */
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-door {
+  background: repeating-linear-gradient(90deg, #7a4c27 0 13px, #6d4221 13px 15px, #83522b 15px 27px), #6d4221;
+  border-color: #4a2c15;
+  border-radius: 60px 60px 5px 5px;
+  color: #ffe9c4;
+}
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-door h4 { color: #ffeccd; }
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-door p { color: #f3d8b0; }
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-door .dd3-btn { background: #f4e2c2; border-color: #3f2612; color: #3f2612; }
+
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-silent {
+  background: radial-gradient(circle at 84% 16%, #fff6d8 0 26px, #f2e2b8 27px 30px, transparent 31px), linear-gradient(#fbf3e0, #efe1c3);
+  border-style: dashed;
+  border-color: #c2a373;
+  border-radius: 26px;
+}
+
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-ticket {
+  background:
+    radial-gradient(circle at 0 50%, transparent 0 9px, #fdf6e3 9.5px) left / 51% 100% no-repeat,
+    radial-gradient(circle at 100% 50%, transparent 0 9px, #f7e9c8 9.5px) right / 51% 100% no-repeat;
+  border: 0;
+  border-radius: 0;
+  color: #4a2f14;
+}
+
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-fourcut {
+  background:
+    repeating-linear-gradient(90deg, #fff9ec 0 8px, #00000000 8px 20px) top / 100% 10px no-repeat,
+    repeating-linear-gradient(90deg, #fff9ec 0 8px, #00000000 8px 20px) bottom / 100% 10px no-repeat,
+    linear-gradient(#2c241d, #171310);
+  border-color: #0e0b09;
+  color: #f6e9cf;
+}
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-fourcut h4 { color: #fff3da; }
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-fourcut p { color: #cbb79a; }
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-fourcut .dd3-btn { background: #f5e7c9; color: #2c241d; border-color: #8d7550; }
+
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-radio {
+  background: repeating-linear-gradient(0deg, #8d5a2f 0 22px, #7b4c26 22px 24px), #7b4c26;
+  border-color: #48301a;
+  border-radius: 14px 14px 6px 6px;
+  color: #ffeccd;
+}
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-radio h4 { color: #fff0d4; }
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-radio p,
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-radio small,
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-radio .dd-radio-list { color: #f0d4ae; }
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-radio .dd3-btn { background: #f6e6c6; color: #3f2612; border-color: #3f2612; }
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-radio textarea { background: #fffaf0; color: #3f2612; }
+
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-letter {
+  background: linear-gradient(135deg, #fffdf4 0 50%, #f3e6c9 50% 100%) top / 100% 46px no-repeat, #fbf3e0;
+  border-color: #d3bd94;
+}
+
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-box {
+  background: repeating-linear-gradient(0deg, #a4713d 0 38px, #8b5c2e 38px 41px), #8b5c2e;
+  border: 3px solid #5b3718;
+  border-radius: 6px;
+  color: #ffeed2;
+}
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-box h4 { color: #fff1d8; }
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-box p { color: #f0d6b0; }
+
+.dd-world-app .dd-fun-wall .dd-fun-card.dd-prop-frame {
+  background:
+    linear-gradient(#fffdf6, #f7edd7) padding-box,
+    linear-gradient(135deg, #d9b979, #8f6a32 45%, #e3c68d 70%, #8f6a32) border-box;
+  border: 9px solid transparent;
+  box-shadow: 0 8px 20px #2c180836, 0 0 0 2px #67491f inset, 0 0 0 10px #f3e6cb inset;
+}
+
+/* 이름표 구멍은 뚫린 구멍처럼 */
+.dd-tag-hole {
+  background: #40290f;
+  box-shadow: inset 0 1px 2px #000000aa, 0 0 0 2px #fdf4e2;
+}
+
+/* 팝업 안 버튼도 종이 버튼으로 통일 */
+.dd-world-app .dd-world-pop .dd3-btn {
+  background: linear-gradient(#fff9ea, #f0dcb6);
+  color: #5a3a14;
+  border: 1px solid #a9803f;
+  box-shadow: 0 2px 0 #b9905440;
+}
+.dd-world-app .dd-world-pop .dd3-btn:hover { background: #fff3d6; }
+.dd-world-app .dd3-chat .dd3-collapse {
+  background: linear-gradient(#8a5a30, #5d3a20);
+  color: #ffeccc;
+  box-shadow: 0 2px 0 #3f261266;
+}
+.dd-world-app .dd3-chat .dd-chat-expand {
+  background: #f4e4c4;
+  color: #5a3a14;
+  border-left: 1px solid #c9ab7a;
+}
