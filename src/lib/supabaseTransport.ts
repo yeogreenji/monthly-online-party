@@ -110,3 +110,142 @@ export async function unblockUser(blockedId: string) {
   const { error } = await supabase.from('blocks').delete().eq('blocked_id', blockedId)
   return !error
 }
+
+/* ───────── 사용자 모임 공유(topics) ───────── */
+
+export type SharedTopic = {
+  id: string
+  space: string
+  title: string
+  description: string
+  date: string
+  capacity: number
+  age: string
+  kind: 'talk' | 'review' | 'photo' | 'play' | 'share'
+  workTitle?: string
+  creatorId: string
+}
+
+type TopicRow = {
+  id: string
+  space_id: string
+  creator_id: string
+  title: string
+  description: string
+  kind: SharedTopic['kind']
+  work_title: string | null
+  scheduled_at: string | null
+  capacity: number
+  age_group: string
+}
+
+const fromTopicRow = (r: TopicRow): SharedTopic => ({
+  id: r.id,
+  space: r.space_id,
+  title: r.title,
+  description: r.description,
+  date: r.scheduled_at ?? '',
+  capacity: r.capacity,
+  age: r.age_group,
+  kind: r.kind,
+  workTitle: r.work_title ?? undefined,
+  creatorId: r.creator_id,
+})
+
+export async function listSharedTopics(spaceId: string): Promise<SharedTopic[]> {
+  if (!supabase) return []
+  const { data, error } = await supabase
+    .from('topics')
+    .select('id,space_id,creator_id,title,description,kind,work_title,scheduled_at,capacity,age_group')
+    .eq('space_id', spaceId)
+    .order('created_at', { ascending: false })
+    .limit(50)
+  return error || !Array.isArray(data) ? [] : (data as TopicRow[]).map(fromTopicRow)
+}
+
+/** 성공하면 null, 실패하면 사용자에게 보여 줄 문장. */
+export async function createSharedTopic(t: Omit<SharedTopic, 'creatorId'>): Promise<string | null> {
+  if (!supabase) return '서버에 연결되어 있지 않아요.'
+  const { error } = await supabase.from('topics').insert({
+    id: t.id,
+    space_id: t.space,
+    title: t.title,
+    description: t.description,
+    kind: t.kind,
+    work_title: t.workTitle ?? null,
+    scheduled_at: t.date || null,
+    capacity: t.capacity,
+    age_group: t.age,
+  })
+  if (!error) return null
+  if (error.message.includes('too_many_topics')) return '모임을 너무 빨리 만들고 있어요. 잠시 후 다시 시도해 주세요.'
+  if (error.code === '23514') return '제목이나 설명에 연락처 교환이 의심되는 내용이 있어요. 수정해 주세요.'
+  return '모임을 서버에 저장하지 못했어요. 잠시 후 다시 시도해 주세요.'
+}
+
+export async function removeSharedTopic(id: string) {
+  if (!supabase) return false
+  const { error } = await supabase.from('topics').delete().eq('id', id)
+  return !error
+}
+
+export function subscribeSharedTopics(spaceId: string, onTopic: (t: SharedTopic) => void, onRemove: (id: string) => void) {
+  if (!supabase) return () => {}
+  const client = supabase
+  const channel = client
+    .channel(`topics:${spaceId}`)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'topics', filter: `space_id=eq.${spaceId}` }, (p) => onTopic(fromTopicRow(p.new as TopicRow)))
+    .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'topics' }, (p) => onRemove((p.old as { id: string }).id))
+    .subscribe()
+  return () => {
+    void client.removeChannel(channel)
+  }
+}
+
+/* ───────── 운영자 신고 확인 ───────── */
+
+export type AdminReport = {
+  id: string
+  messageId: string | null
+  reason: string
+  note: string | null
+  status: 'open' | 'actioned' | 'dismissed'
+  createdAt: string
+  snapshot: string | null
+  snapshotNickname: string | null
+}
+
+/** 내가 운영자인지(admins 테이블 본인 행 존재 여부). */
+export async function checkAdmin(): Promise<boolean> {
+  if (!supabase) return false
+  const { data, error } = await supabase.from('admins').select('user_id').limit(1)
+  return !error && Array.isArray(data) && data.length > 0
+}
+
+export async function listReports(status: AdminReport['status'] | 'all' = 'open'): Promise<AdminReport[]> {
+  if (!supabase) return []
+  let q = supabase
+    .from('reports')
+    .select('id,message_id,reason,note,status,created_at,snapshot,snapshot_nickname')
+    .order('created_at', { ascending: false })
+    .limit(100)
+  if (status !== 'all') q = q.eq('status', status)
+  const { data, error } = await q
+  if (error || !Array.isArray(data)) return []
+  return (data as { id: string; message_id: string | null; reason: string; note: string | null; status: AdminReport['status']; created_at: string; snapshot: string | null; snapshot_nickname: string | null }[]).map((r) => ({
+    id: r.id,
+    messageId: r.message_id,
+    reason: r.reason,
+    note: r.note,
+    status: r.status,
+    createdAt: r.created_at,
+    snapshot: r.snapshot,
+    snapshotNickname: r.snapshot_nickname,
+  }))
+}
+
+export async function setReportStatus(id: string, status: AdminReport['status']) {
+  if (!supabase) return false
+  const { error } = await supabase.from('reports').update({ status }).eq('id', id)
+  return !error
+}

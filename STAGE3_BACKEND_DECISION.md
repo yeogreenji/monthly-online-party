@@ -46,3 +46,8 @@
 3. 신고·차단 화면, 차단한 사용자의 메시지 숨김
 4. 시연용 주민 응답은 서버 모드에서 ‘시연’ 표시를 유지하거나 대화가 적을 때만 노출
 5. 개인정보 처리방침 확정(`SAFETY_AND_PRIVACY_DRAFT.md`), 성인 공간 연령 확인 방식 결정
+
+## 추가 적용(bri/stage3-more)
+- SQL Editor에서 `supabase/003_topics_admin.sql` 실행(002는 선택, 003은 schema.sql 이후 언제든).
+- 운영자 지정: 같은 SQL Editor에서 `insert into public.admins (user_id) select id from auth.users where email = '본인 이메일';` 한 번 실행. 이후 해당 계정으로 로그인하면 채팅 설정 안에 신고 확인 패널이 나타난다.
+- 한계: 모임을 만든 사람이 직접 지우는 화면은 아직 없다(DB에서 본인·운영자 삭제는 가능).
