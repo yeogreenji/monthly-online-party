@@ -554,3 +554,48 @@
   background: linear-gradient(var(--room-accent), var(--room-dark));
   border-bottom: 2px solid #b89665;
 }
+
+/* Keep the message composer reachable when game and attachment panels compete for height. */
+.dd-world-app .dd-chat-open .dd-messenger .dd-chat-compose {
+  display: flex;
+  flex-direction: column;
+  flex: 0 1 auto;
+  min-height: 62px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.dd-world-app .dd-chat-open .dd-messenger .dd-chat-compose > * {
+  flex-shrink: 0;
+}
+.dd-world-app .dd-chat-open .dd-messenger .dd-message-form {
+  order: 1;
+  position: sticky;
+  bottom: -8px;
+  z-index: 3;
+  padding-block: 4px;
+  background: #fdf3e5;
+}
+.dd-world-app .dd-chat-open .dd-messenger :is(.dd-game-corner, .dd-chat-settings) {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 30% !important;
+  overflow-y: auto;
+}
+@media (max-width: 760px) and (max-height: 600px) {
+  .dd-world-app .dd-chat-open .dd-messenger {
+    height: 85dvh;
+    max-height: 85dvh;
+  }
+  .dd-world-app .dd-chat-open.dd-chat-full .dd-messenger {
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+  .dd-world-app .dd-chat-open .dd3-shell {
+    height: 15dvh;
+    bottom: 85dvh;
+  }
+  .dd-world-app .dd-chat-open .dd-message-log {
+    min-height: 30px;
+    padding-block: 4px;
+  }
+}
