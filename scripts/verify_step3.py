@@ -282,11 +282,13 @@ def run_features(page):
     page.locator('.dd-fun-card[data-fun="exhibit"] input[aria-label="전시 작품 이름"]').fill('겨울 창가')
     page.wait_for_timeout(200)
     page.locator('.dd-fun-card[data-fun="exhibit"] input[aria-label="전시 작품 사진"]').set_input_files(png)
-    try:
-        page.wait_for_selector('.dd-fun-card[data-fun="exhibit"] .dd-exhibit-grid figure', timeout=8000)
-    except Exception:
-        pass
-    exhibit_count = page.locator('.dd-fun-card[data-fun="exhibit"] .dd-exhibit-grid figure').count()
+    # 사진 압축은 기기 성능에 따라 몇 초 걸린다. 화면에 실제로 걸릴 때까지 짧게 기다린다.
+    exhibit_count = 0
+    for _ in range(20):
+        page.wait_for_timeout(700)
+        exhibit_count = page.locator('.dd-fun-card[data-fun="exhibit"] .dd-exhibit-grid figure').count()
+        if exhibit_count:
+            break
     check('작은 전시회 등록', exhibit_count == 1, 'count=%s notice=%s ls=%s' % (exhibit_count, page.locator('.dd-chat-notice').inner_text() if page.locator('.dd-chat-notice').count() else '', (page.evaluate("localStorage.getItem('dd.exhibition.v1')") or '')[:60]))
     shot(page, '10-fun-panel')
     page.locator('.dd-fun-panel .dd3-btn', has_text='닫기').first.click()

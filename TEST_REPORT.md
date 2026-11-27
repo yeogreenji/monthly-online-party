@@ -8,6 +8,7 @@
 - `scripts/verify_step3.py` DD_PHASE=spaces 86/86: 13개 공간 각각 메뉴판 열림·활동 수·메뉴 수·활동 이름·메뉴 이름을 `content-master-v1.json`과 대조(합계 130/48), 잠금 공간 안내, 오늘의 365일 카드가 `dd-11-27`·'겨울 마을 첫 인사'와 일치.
 - `scripts/verify_step3.py` DD_PHASE=features 26/26: 활동 클릭→모임방, 사진 미리보기→전송→말풍선→확대 보기→확대 후 채팅 유지→방 사진첩 1장, 3D 소품 '공간 메뉴판' 클릭으로 메뉴판 열림, 주민 대화 3턴(주제 질문→재질문 후속→짧은 대답 후속, 기억 기본 꺼짐), 365일 패널 12/25 '메리 크리스마스', 크리스마스 카드 8구간·8활동, 재미 요소 8장·티켓 생성·미래 편지 저장·전시 등록, 모바일 메뉴판·활동 10개, 콘솔 오류 0.
 - `scripts/tests/dialogue.test.ts`(esbuild 번들 후 node): 주민 16명·주제 대사 96개, 각 주제 이름으로 질문 매칭·재질문 시 후속·짧은 대답 후속·위기 안내·연속 동일 문장 회피.
+- 생일 축하(미니홈피 생일=오늘) 배너, 문 열어두기(공개 범위 friends 전환), 말없이 함께 있기 토글 저장 확인.
 - 기존 회귀: `npm run verify:chat`(데스크톱·모바일), `scripts/verify_games_e2e.py`(10종, FAILS 0), `scripts/verify_home_wardrobe.py`(FAILS []).
 - 운영 Supabase 006 적용: messages 사진 열 5종, `messages_body_check` 완화, 버킷 `chat-photos`(public=false·1MB·JPEG/PNG/WebP), Storage 정책 3종, 트리거 `messages_photo_owner_trg`, 함수 ACL `{postgres, service_role}`만. authenticated 역할로 본인 폴더 사진 메시지 INSERT 성공(닉네임 자동 채움), 타인 UUID 경로는 `P0001 photo_path_forbidden`로 거부. 테스트 행은 rollback.
 
