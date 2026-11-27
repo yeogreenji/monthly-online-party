@@ -336,7 +336,8 @@
   .dd3-title { border-radius: 16px; padding: 6px 9px; }
   .dd3-title h3 { font-size: 15.5px; }
   .dd3-title p { font-size: 9px; letter-spacing: .12em; }
-  .dd3-title span { display: none; }
+  /* 상태 안내(잠긴 방, 이동 중 등)는 숨기지 않고 최대 2줄로 줄여 보여 준다. 숨기면 모바일에서 잠금 사유가 안 보인다. */
+  .dd3-title span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; max-width: 62vw; font-size: 10.5px; line-height: 1.25; }
   /* 상단 크롬: 제목 아래 한 줄에 아이콘 버튼만 */
   .dd-map-views {
     position: absolute;
