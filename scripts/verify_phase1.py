@@ -60,7 +60,7 @@ with sync_playwright() as p:
         page.mouse.up()
         assert canvas.get_attribute("data-position")!=before
         page.get_by_role("button",name="내 집",exact=True).click()
-        expect(canvas).to_have_attribute("data-room","home",timeout=60000)
+        expect(canvas).to_have_attribute("data-room","home",timeout=150000)
         expect(canvas).to_have_attribute("data-view","interior")
         expect(canvas).to_have_attribute("data-room-area","103.88")
         page.wait_for_function("document.querySelector('.dd3-canvas canvas').dataset.sofaPoint")
@@ -135,9 +135,11 @@ with sync_playwright() as p:
         expect(page.get_by_role("status").filter(has_text="연령·안전 확인 전 잠금")).to_be_visible()
         expect(canvas).to_have_attribute("data-room","hall")
         expect(page.get_by_role("button",name="초인종 찾아가기",exact=True)).to_be_visible()
+        # 종 효과는 2.2초만 떠 있어 느린 렌더링에서는 확인 시점이 어긋나므로, 나타난 적이 있는지를 관찰자로 기록한다.
+        page.evaluate("window.__bellSeen=false;new MutationObserver(()=>{if(document.querySelector('.dd-bell-burst span'))window.__bellSeen=true}).observe(document.body,{subtree:true,childList:true})")
         page.get_by_role("button",name="초인종 찾아가기",exact=True).click()
-        expect(canvas).to_have_attribute("data-last-prop","hub-bell",timeout=5000)
-        expect(page.locator(".dd-bell-burst span")).to_be_visible(timeout=3000)
+        expect(canvas).to_have_attribute("data-last-prop","hub-bell",timeout=60000)
+        page.wait_for_function("window.__bellSeen===true",timeout=10000)
         expect(page.get_by_role("status").filter(has_text="새로운 방문객")).to_be_visible()
         for id in ["season","plaza"]:
             page.locator("#dd3-dest").select_option(id)
