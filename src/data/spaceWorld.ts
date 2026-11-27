@@ -170,6 +170,7 @@ export const SPACE_WORLD: Record<string, SpaceWorld> = {
       { title: '홈카페 레시피', blurb: '집에서 만드는 한 잔', kind: 'share', seed: [{ who: 'cafe', text: '집에서 라떼 거품을 낼 때 우유 온도가 중요해요. 여러분의 비법은요?' }] },
       { title: '창가 독서회', blurb: '창가에서 책 한 권', kind: 'talk', seed: [{ who: 'cafe', text: '창가 자리에서 읽기 좋은 책을 서로 소개해 봐요.' }] },
       { title: '저녁 차 한 잔', blurb: '하루를 마무리하는 시간', kind: 'talk', seed: [{ who: 'cafe', text: '저녁에는 카페인 없는 차가 좋아요. 오늘 하루는 어땠나요?' }] },
+      { title: '도란도란 수다방', blurb: '주제 없이 편하게 도란도란', kind: 'talk', seed: [{ who: 'cafe', text: '오늘은 정해진 주제가 없어요. 사소한 하루 이야기부터 편하게 시작해 보세요.' }] },
     ],
   },
   travel: {
@@ -259,6 +260,7 @@ export const SPACE_WORLD: Record<string, SpaceWorld> = {
       { title: '뜨개질 모임', blurb: '코를 세는 시간', kind: 'talk', seed: [{ who: 'hobby', text: '목도리를 뜨는 분 계신가요? 실 고르는 팁을 나눠 봐요.' }] },
       { title: '책 추천', blurb: '이번 주 추천 도서', kind: 'share', seed: [{ who: 'hobby', text: '누군가에게 선물하고 싶은 책을 한 권 추천해 주세요.' }] },
       { title: '사진 이야기', blurb: '찍고 고르는 이야기', kind: 'photo', seed: [{ who: 'hobby', text: '요즘 찍은 사진 중 가장 마음에 드는 한 장은요?' }] },
+      { title: '반려동물 자랑방', blurb: '언제든 오는 반려동물 자랑', kind: 'photo', seed: [{ who: 'hobby', text: '365일 열려 있는 자랑방이에요. 이름, 나이, 가장 귀여운 버릇을 사진과 함께 소개해 주세요.' }] },
     ],
   },
   fandom: {
