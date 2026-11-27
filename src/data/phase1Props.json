@@ -983,15 +983,26 @@
     "room": "travel",
     "id": "travel-postcards",
     "name": "엽서 진열대",
-    "position": [-1.9, 0, 2.45],
-    "approach": [-0.9, 0, 1.8],
+    "position": [
+      -1.9,
+      0,
+      2.45
+    ],
+    "approach": [
+      -0.9,
+      0,
+      1.8
+    ],
     "message": "여행 엽서 진열대에 도착했어요.",
     "rotation": 0,
     "scale": 1,
     "source": "딩동 자체 제작 기하 모델",
     "interaction": "approach-and-read",
     "menu": "corner-travelPostcards",
-    "bounds": [0.63, 0.25]
+    "bounds": [
+      0.63,
+      0.25
+    ]
   },
   {
     "room": "hobby",
@@ -1047,29 +1058,51 @@
     "room": "hobby",
     "id": "hobby-pets",
     "name": "반려동물 코너",
-    "position": [-2.1, 0, -1.45],
-    "approach": [-1.3, 0, -1.45],
+    "position": [
+      -2.1,
+      0,
+      -1.45
+    ],
+    "approach": [
+      -1.3,
+      0,
+      -1.45
+    ],
     "message": "캣타워 앞 반려동물 코너에 도착했어요.",
     "rotation": 0,
     "scale": 1,
     "source": "딩동 자체 제작 기하 모델",
     "interaction": "approach-and-read",
     "menu": "corner-pets",
-    "bounds": [0.4, 0.4]
+    "bounds": [
+      0.4,
+      0.4
+    ]
   },
   {
     "room": "hobby",
     "id": "hobby-craft",
     "name": "공예 작업대",
-    "position": [1.7, 0, 0.4],
-    "approach": [0.55, 0, 0.4],
+    "position": [
+      1.7,
+      0,
+      0.4
+    ],
+    "approach": [
+      0.55,
+      0,
+      0.4
+    ],
     "message": "실과 도구가 놓인 공예 작업대에 도착했어요.",
     "rotation": 0,
     "scale": 1,
     "source": "딩동 자체 제작 기하 모델",
     "interaction": "approach-and-read",
     "menu": "corner-craft",
-    "bounds": [0.66, 0.66]
+    "bounds": [
+      0.66,
+      0.66
+    ]
   },
   {
     "room": "home",
@@ -1284,5 +1317,30 @@
       0.32,
       0.32
     ]
+  },
+  {
+    "room": "games",
+    "id": "games-table",
+    "name": "게임 탁자",
+    "position": [
+      0,
+      0,
+      0.9
+    ],
+    "approach": [
+      0,
+      0,
+      -0.55
+    ],
+    "message": "픽셀의 게임 탁자 · 10가지 게임이 준비돼 있어요.",
+    "rotation": 0,
+    "scale": 1,
+    "source": "딩동 자체 제작 기하 모델",
+    "interaction": "approach-and-read",
+    "bounds": [
+      1.0,
+      1.0
+    ],
+    "menu": "games-hub"
   }
 ]

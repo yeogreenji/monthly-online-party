@@ -13,7 +13,7 @@ import { salonAudio } from '../lib/audio'
 import { RESIDENTS, WORLD_INTRO, SEASON_STORY, PLACE_STORIES } from '../data/world'
 import { createWorld } from '../lib/mansion3d.js'
 import type { WorldController } from '../lib/mansion3d.js'
-export function Mansion3D({profile,look,home,homeEditing,active,request,toolsOpen,onToolsChange,onEnter,onLeave,onCapture,onMenu,favorites,onFavorite,onlyFavorites}:{profile:Profile;look:Look;home:import('../data/homeDecor').HomeDecor;homeEditing:boolean;active:Space|null;request:{id:string;serial:number;direct?:boolean;preview?:boolean}|null;toolsOpen:boolean;onToolsChange:(v:boolean)=>void;onEnter:(s:Space)=>void;onLeave:()=>void;onCapture:(image:string)=>void;onMenu:(id:string)=>void;favorites:string[];onFavorite:(id:string)=>void;onlyFavorites:boolean}){
+export function Mansion3D({profile,look,home,homeEditing,active,request,toolsOpen,onToolsChange,onEnter,onLeave,onCapture,onMenu,favorites,onFavorite,onlyFavorites,paused}:{profile:Profile;look:Look;home:import('../data/homeDecor').HomeDecor;homeEditing:boolean;active:Space|null;request:{id:string;serial:number;direct?:boolean;preview?:boolean}|null;toolsOpen:boolean;onToolsChange:(v:boolean)=>void;onEnter:(s:Space)=>void;onLeave:()=>void;onCapture:(image:string)=>void;onMenu:(id:string)=>void;favorites:string[];onFavorite:(id:string)=>void;onlyFavorites:boolean;paused?:boolean}){
  const host=useRef<HTMLDivElement>(null),world=useRef<WorldController|null>(null),callbacks=useRef({onEnter,onLeave,onMenu});callbacks.current={onEnter,onLeave,onMenu}
  const [status,setStatus]=useState('중앙 축제광장'),[error,setError]=useState(false),[low,setLow]=useState(false),[destination,setDestination]=useState(''),[story,setStory]=useState(false),[timeMode,setTimeMode]=useState<'auto'|'day'|'sunset'|'night'>('auto'),[sound,setSound]=useState(false),[festive,setFestive]=useState(false),[bellBurst,setBellBurst]=useState(0)
  const [roofsOpen,setRoofsOpen]=useState(true),[overview,setOverview]=useState(false)
@@ -29,6 +29,7 @@ export function Mansion3D({profile,look,home,homeEditing,active,request,toolsOpe
  useEffect(()=>{if(active)setOverview(false)},[active])
  useEffect(()=>{if(!active)world.current?.exit();setResident(null)},[active])
  useEffect(()=>{world.current?.setTime(timeMode)},[timeMode,low])
+ useEffect(()=>{world.current?.setPaused(!!paused)},[paused,low])
  function returnHub(){
    setStory(false)
    setResident(null)
