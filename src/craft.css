@@ -1519,14 +1519,19 @@
 }
 .dd-world-pop button { border-radius: 4px; }
 
-/* ── 모바일 상단 버튼 겹침 해소(390px 필수) ───────────────────────── */
+/* ── 모바일 상단 버튼 겹침 해소(390px 필수) ─────────────────────────
+   좌·우 레일을 y좌표로 분리한다. 제목 띠는 플라자 47px · 실내 60px.
+   오른쪽: 빠른 아이콘 74~108 → 공간 동작 116~
+   왼쪽: 마을 보기 112~144 → 초인종 152~ / 내 집 동작 116~              */
 @media (max-width: 760px) {
   .dd3-title { left: 6px; right: 6px; padding: 5px 8px !important; }
   .dd3-title h3 { font-size: 15px !important; }
   .dd3-title p { font-size: 8.5px !important; letter-spacing: 0.1em; }
   .dd3-title .dd3-btn { min-height: 32px; padding: 3px 9px; font-size: 11px; }
+
+  /* 오른쪽 레일 */
   .dd-quick-links {
-    top: 62px !important;
+    top: 74px !important;
     right: 6px !important;
     gap: 4px !important;
     z-index: 7;
@@ -1540,8 +1545,23 @@
     color: #5d4a33;
   }
   .dd-quick-links button svg { width: 16px; height: 16px; }
+  .dd-room-actions {
+    top: 116px !important;
+    right: 6px !important;
+    left: auto !important;
+    gap: 4px !important;
+    z-index: 6;
+  }
+  .dd-room-actions button {
+    min-height: 36px !important;
+    padding: 0 10px !important;
+    font-size: 11px !important;
+    border-radius: 10px !important;
+  }
+
+  /* 왼쪽 레일 */
   .dd-map-views {
-    top: 104px !important;
+    top: 112px !important;
     left: 6px !important;
     right: auto !important;
     gap: 4px !important;
@@ -1555,18 +1575,73 @@
   }
   .dd-map-views button svg { width: 14px; height: 14px; }
   .dd-bell-shortcut {
-    top: 104px !important;
-    right: 6px !important;
-    left: auto !important;
+    top: 152px !important;
+    left: 6px !important;
+    right: auto !important;
     min-height: 32px !important;
     padding: 3px 9px !important;
     font-size: 10.5px !important;
     border-radius: 9px !important;
   }
   .dd-bell-shortcut small { display: none; }
-  .dd3-world-hint { bottom: 78px !important; max-width: 72%; font-size: 9px !important; }
+  .dd-home-actions {
+    top: 116px !important;
+    left: 6px !important;
+    max-width: calc(100% - 136px) !important;
+    gap: 4px !important;
+  }
+
+  /* 채팅이 펼쳐진 실내: 남는 설정 버튼이 제목 띠를 침범하지 않게 */
+  .dd-world-app:has(.dd-chat-open) .dd-world-nav { top: 74px !important; right: 6px !important; }
+
+  /* 하단: 안내 띠는 왼쪽 정렬(채팅 카드와 분리), 구경 안내는 카메라와 분리 */
+  .dd3-world-hint {
+    left: 8px !important;
+    right: auto !important;
+    transform: none !important;
+    bottom: 86px !important;
+    max-width: calc(100% - 170px);
+    white-space: normal !important;
+    text-align: left;
+    font-size: 9px !important;
+  }
+  .dd-preview-notice { right: auto !important; max-width: calc(100% - 132px) !important; }
+
   .dd-friend-chat { height: min(72dvh, 560px); }
   .dd-fc-emoji { grid-template-columns: repeat(8, 1fr); }
+}
+
+/* ── 패널·메뉴가 열린 동안: 뒤에 깔린 플로팅 버튼이 삐져나와 보이지 않게 ── */
+@media (max-width: 760px) {
+  .dd-world-app:has(.dd3-story) .dd-quick-links,
+  .dd-world-app:has(.dd3-story) .dd-map-views,
+  .dd-world-app:has(.dd3-story) .dd-room-actions,
+  .dd-world-app:has(.dd3-story) .dd-bell-shortcut,
+  .dd-world-app:has(.dd3-story) .dd-home-actions,
+  .dd-world-app:has(.dd3-story) .dd-camera-control,
+  .dd-world-app:has(.dd3-access-menu[open]) .dd-quick-links,
+  .dd-world-app:has(.dd3-access-menu[open]) .dd-map-views,
+  .dd-world-app:has(.dd3-access-menu[open]) .dd-room-actions,
+  .dd-world-app:has(.dd3-access-menu[open]) .dd-bell-shortcut,
+  .dd-world-app:has(.dd3-access-menu[open]) .dd-home-actions,
+  .dd-world-app:has(.dd-home-panel) .dd-quick-links,
+  .dd-world-app:has(.dd-home-panel) .dd-map-views,
+  .dd-world-app:has(.dd-home-panel) .dd-room-actions,
+  .dd-world-app:has(.dd-home-panel) .dd-home-actions,
+  .dd-world-app:has(.dd-world-pop) .dd-quick-links,
+  .dd-world-app:has(.dd-world-pop) .dd-map-views,
+  .dd-world-app:has(.dd-world-pop) .dd-room-actions,
+  .dd-world-app:has(.dd-world-pop) .dd-bell-shortcut,
+  .dd-world-app:has(.dd-world-pop) .dd-home-actions,
+  .dd-world-app:has(.dd-world-pop) .dd-camera-control,
+  .dd-world-app:has(.dd-preview-notice) .dd3-world-hint { visibility: hidden !important; }
+  /* 도구 메뉴가 열리면 접힌 채팅 카드가 메뉴 아래로 삐져나오지 않게 */
+  .dd-world-app:has(.dd3-access-menu[open]) .dd3-chat:has(.dd3-collapse[aria-expanded='false']) { visibility: hidden !important; }
+  /* 화면을 거의 덮는 종이 패널(재미 요소·메뉴판)은 자기 닫기 버튼을 쓰게 하고 하단 탭바를 감춘다 */
+  .dd-world-app:has(.dd-fun-panel) .dd-world-nav,
+  .dd-world-app:has(.dd-space-menu) .dd-world-nav,
+  .dd-world-app:has(.dd-fun-panel) .dd3-world-hint,
+  .dd-world-app:has(.dd-space-menu) .dd3-world-hint { visibility: hidden !important; }
 }
 
 /* 팝업 액자를 조금 더 얇고 종이답게 */
