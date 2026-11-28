@@ -2,7 +2,7 @@
 // 새 메시지는 Supabase Realtime으로 두 화면에 동시에 도착한다.
 import { useEffect, useRef, useState } from 'react'
 import { Camera, ImagePlus, Send, Smile, X } from 'lucide-react'
-import { prepareChatPhoto, uploadChatPhoto, type PreparedPhoto } from '../lib/photoChat'
+import { prepareChatPhoto, uploadChatPhoto, removeChatPhotos, type PreparedPhoto } from '../lib/photoChat'
 import {
   listChatMessages,
   myId,
@@ -39,8 +39,9 @@ export function FriendChatPanel({
   const [state, setState] = useState<'opening' | 'ready' | 'error'>('opening')
   const [error, setError] = useState('')
   const [sending, setSending] = useState(false)
-  const [photo, setPhoto] = useState<PreparedPhoto | null>(null)
+  const [photos, setPhotos] = useState<PreparedPhoto[]>([])
   const [photoNote, setPhotoNote] = useState('')
+  const [photoError, setPhotoError] = useState(false)
   const [emojiOpen, setEmojiOpen] = useState(false)
   const log = useRef<HTMLDivElement>(null)
   const fileInput = useRef<HTMLInputElement>(null)
@@ -89,39 +90,62 @@ export function FriendChatPanel({
 
   async function send() {
     const text = draft.trim()
-    if (!threadId || (!text && !photo)) return
+    if (!threadId || (!text && photos.length === 0)) return
     if (sending) return
     setSending(true)
+    setPhotoError(false)
+    const uploaded: string[] = []
+    const kept = new Set<string>()
     try {
-      let uploaded: { path: string; thumbPath: string } | undefined
-      if (photo) uploaded = await uploadChatPhoto(`friend-${threadId}`, photo, meRef.current)
-      const err = await sendChatMessage(threadId, text, photo && uploaded ? { ...uploaded, width: photo.width, height: photo.height, bytes: photo.bytes } : undefined)
-      if (err) {
-        onToast?.(err)
-        if (/친구가 된 뒤에|로그인/.test(err)) setError(err)
-        return
+      const queue = photos.slice(0, 4)
+      const prepared: { path: string; thumbPath: string; width: number; height: number; bytes: number }[] = []
+      for (const item of queue) {
+        const up = await uploadChatPhoto(`friend-${threadId}`, item, meRef.current)
+        uploaded.push(up.path, up.thumbPath)
+        prepared.push({ ...up, width: item.width, height: item.height, bytes: item.bytes })
+      }
+      const count = Math.max(1, prepared.length)
+      for (let i = 0; i < count; i++) {
+        const err = await sendChatMessage(threadId, i === 0 ? text : '', prepared[i])
+        if (err) {
+          onToast?.(err)
+          if (/친구가 된 뒤에|로그인/.test(err)) setError(err)
+          break
+        }
+        if (prepared[i]) kept.add(prepared[i].path).add(prepared[i].thumbPath)
       }
       setDraft('')
-      setPhoto(null)
+      setPhotos([])
       setPhotoNote('')
       setEmojiOpen(false)
       const fresh = await listChatMessages(threadId)
       setMessages(fresh)
     } catch (e) {
       onToast?.(e instanceof Error ? e.message : '사진을 보내지 못했어요.')
+      setPhotoError(true)
     } finally {
+      // 저장되지 않은 사진은 즉시 지워 고아 파일을 남기지 않는다.
+      const orphans = uploaded.filter((path) => !kept.has(path))
+      if (orphans.length) void removeChatPhotos(orphans)
       setSending(false)
     }
   }
 
-  async function pickPhoto(file: File) {
-    try {
-      const prepared = await prepareChatPhoto(file)
-      setPhoto(prepared)
-      setPhotoNote(`${Math.max(1, Math.round(prepared.full.size / 1024))}KB 사진 준비됨`)
-    } catch (e) {
-      onToast?.(e instanceof Error ? e.message : '사진을 열지 못했어요.')
+  async function pickPhotos(files: File[]) {
+    if (files.length === 0) return
+    const picked = files.slice(0, 4)
+    const prepared: PreparedPhoto[] = []
+    for (const file of picked) {
+      try {
+        prepared.push(await prepareChatPhoto(file))
+      } catch (e) {
+        onToast?.(e instanceof Error ? e.message : '사진을 열지 못했어요.')
+      }
     }
+    if (!prepared.length) return
+    setPhotos(prepared)
+    const total = prepared.reduce((sum, p) => sum + p.full.size, 0)
+    setPhotoNote(`${prepared.length}장 · ${Math.max(1, Math.round(total / 1024))}KB 준비됨`)
   }
 
   const statusText = peer.status === 'away' ? '자리비움' : peer.status === 'dnd' ? '방해금지' : '접속 중'
@@ -169,17 +193,18 @@ export function FriendChatPanel({
         </div>
       )}
 
-      {photo && (
+      {photos.length > 0 && (
         <div className="dd-fc-photo-preview">
           <span>{photoNote}</span>
-          <button type="button" onClick={() => setPhoto(null)}>사진 빼기</button>
+          <button type="button" onClick={() => { setPhotos([]); setPhotoNote('') }}>사진 빼기</button>
         </div>
       )}
+      {photoError && <p className="dd-fc-photo-error" role="alert">사진을 보내지 못했어요. 준비한 사진은 지웠어요. 다시 골라 주세요.</p>}
 
-      <form className="dd-fc-form" aria-label="친구에게 메시지 보내기" onSubmit={(e) => { e.preventDefault(); void send() }}>
+      <form className="dd-fc-form" aria-label="친구에게 메시지 보내기" onSubmit={(e) => { e.preventDefault(); void send() }} onPaste={(e) => { const files = Array.from(e.clipboardData?.files ?? []).filter((f) => f.type.startsWith('image/')); if (files.length) { e.preventDefault(); void pickPhotos(files) } }}>
         <button type="button" className="dd-fc-tool" aria-label="사진 고르기" disabled={state !== 'ready'} onClick={() => fileInput.current?.click()}><ImagePlus size={19} /></button>
         <button type="button" className="dd-fc-tool" aria-label="카메라로 촬영" disabled={state !== 'ready'} onClick={() => fileInput.current?.click()}><Camera size={19} /></button>
-        <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp" hidden aria-label="채팅 사진 고르기" onChange={(e) => { const file = e.target.files?.[0]; e.target.value = ''; if (file) void pickPhoto(file) }} />
+        <input ref={fileInput} type="file" multiple accept="image/jpeg,image/png,image/webp" hidden aria-label="채팅 사진 고르기" onChange={(e) => { const files = Array.from(e.target.files ?? []); e.target.value = ''; if (files.length) void pickPhotos(files) }} />
         <input
           className="dd-fc-input"
           aria-label="메시지"
@@ -190,7 +215,7 @@ export function FriendChatPanel({
           onChange={(e) => setDraft(e.target.value)}
         />
         <button type="button" className="dd-fc-tool" aria-label="이모티콘" aria-expanded={emojiOpen} onClick={() => setEmojiOpen((v) => !v)}><Smile size={19} /></button>
-        <button type="submit" className="dd-fc-go" aria-label="보내기" disabled={state !== 'ready' || sending || (!draft.trim() && !photo)}><Send size={18} /></button>
+        <button type="submit" className="dd-fc-go" aria-label="보내기" disabled={state !== 'ready' || sending || (!draft.trim() && photos.length === 0)}><Send size={18} /></button>
       </form>
     </div>
   )

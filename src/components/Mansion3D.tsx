@@ -18,6 +18,9 @@ export function Mansion3D({profile,look,home,homeEditing,homeSelected,active,req
  const [status,setStatus]=useState('중앙 축제광장'),[error,setError]=useState(false),[low,setLow]=useState(false),[destination,setDestination]=useState(''),[story,setStory]=useState(false),[timeMode,setTimeMode]=useState<'auto'|'day'|'sunset'|'night'>('auto'),[sound,setSound]=useState(false),[festive,setFestive]=useState(false),[bellBurst,setBellBurst]=useState(0)
  const [roofsOpen,setRoofsOpen]=useState(true),[overview,setOverview]=useState(false)
  const [resident,setResident]=useState<string|null>(null);
+ // 조작 안내 띠는 한 번 터치하면 닫히고, 닫힌 상태를 이 기기에 기억한다.
+ const HINT_KEY='dd.hintDismissed.v1'
+ const [hintHidden,setHintHidden]=useState(()=>{try{return window.localStorage.getItem(HINT_KEY)==='1'}catch{return false}})
  const soundRef=useRef(sound);soundRef.current=sound
  useEffect(()=>{if(low||!host.current)return;try{const w=createWorld(host.current,{spaces:SPACES,residents:RESIDENTS,avatar:profile.avatar,look,access,onResident:id=>setResident(id),onBell:()=>{try{salonAudio.doorbell()}catch{/* audio unavailable */}setBellBurst(v=>v+1)},onMenu:id=>callbacks.current.onMenu(id),onEnter:id=>{const s=SPACES.find(v=>v.id===id);if(s)callbacks.current.onEnter(s)},onLeave:()=>callbacks.current.onLeave(),onStatus:s=>{setStatus(s);if(soundRef.current&&s.includes('문 열림')){try{salonAudio.chime()}catch{/* optional */}}}});world.current=w;return()=>{w.dispose();world.current=null}}catch(e){console.error('3D 초기화 실패',e);setError(true)}},[low])
  useEffect(()=>{world.current?.setAvatar(profile.avatar,look)},[profile.avatar,look,low])
@@ -71,6 +74,6 @@ export function Mansion3D({profile,look,home,homeEditing,homeSelected,active,req
   <p className="dd3-hint">의자·소파를 직접 터치해 앉기 · 다시 터치하거나 이동해 일어나기 · 바닥 터치로 걷기 · 문 또는 간판을 터치해 입장 · 한 손가락 드래그로 걷기 · 회전 버튼으로 시점 변경 · 방향키/WASD 이동. 목적지 안내도 실제 캐릭터 이동 경로를 따라갑니다.</p>
   </details>
   {active&&access(active.id)==='locked'&&<div className="dd-preview-notice"><strong>공간 구경 중</strong><span>실제 모임·채팅은 연령 및 안전 확인 후 이용할 수 있어요.</span></div>}{active&&!error&&!low&&<div className="dd-room-actions"><button onClick={()=>world.current?.exit()}>거리로 나가기</button>{access(active.id)==='open'&&<><button onClick={()=>world.current?.stand()}>일어나기</button><button onClick={()=>world.current?.releaseItem()}>소품 놓기</button></>}</div>}
-  <div className="dd3-world-hint">바닥을 터치해 걷기 · 문과 안내판을 터치 · 드래그로 걷기 · 주민을 클릭해 대화</div>
+  {!hintHidden&&<button type="button" className="dd3-world-hint" aria-label="조작 안내 닫기" onClick={()=>{setHintHidden(true);try{window.localStorage.setItem(HINT_KEY,'1')}catch{/* 저장 못 해도 이번 화면에서는 닫힌다 */}}}>바닥을 터치해 걷기 · 문과 안내판을 터치 · 드래그로 걷기 · 주민을 클릭해 대화<span className="dd3-hint-close" aria-hidden="true">✕ 닫기</span></button>}
  </div>
 }

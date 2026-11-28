@@ -116,3 +116,34 @@ export async function deleteChatPhoto(path: string, thumbPath?: string): Promise
   const { error } = await supabase.storage.from(PHOTO_BUCKET).remove([path, ...(thumbPath ? [thumbPath] : [])])
   return !error
 }
+
+/** 올리다 만 사진들을 한 번에 지운다(메시지 저장 실패 시 롤백). */
+export async function removeChatPhotos(paths: string[]): Promise<void> {
+  if (!supabase || paths.length === 0) return
+  await supabase.storage.from(PHOTO_BUCKET).remove(paths.slice(0, 20))
+}
+
+/**
+ * 고아 사진 정리: 내 폴더 안에서 메시지가 가리키지 않는 사진 중 10분이 지난 것을 지운다.
+ * 업로드 도중 창을 닫거나 앱이 멈춰 남은 파일을 방을 열 때 조용히 치운다.
+ */
+export async function sweepOrphanPhotos(topicSegment: string, userId: string, referenced: string[]): Promise<number> {
+  if (!supabase) return 0
+  const dir = `${userId}/${topicSegment}`
+  const { data, error } = await supabase.storage.from(PHOTO_BUCKET).list(dir, { limit: 100 })
+  if (error || !Array.isArray(data)) return 0
+  const keep = new Set(referenced)
+  const now = Date.now()
+  const doomed: string[] = []
+  for (const item of data) {
+    if (!item.name) continue
+    const path = `${dir}/${item.name}`
+    if (keep.has(path)) continue
+    const stamp = item.created_at ? Date.parse(item.created_at) : NaN
+    if (Number.isFinite(stamp) && now - stamp < 10 * 60 * 1000) continue
+    doomed.push(path)
+  }
+  if (doomed.length === 0) return 0
+  const { error: rmError } = await supabase.storage.from(PHOTO_BUCKET).remove(doomed)
+  return rmError ? 0 : doomed.length
+}

@@ -18,6 +18,8 @@ export interface TransportMessage {
   imageHeight?: number
   place?: { name: string; url?: string }
   spoiler?: boolean
+  /** 답장 대상 메시지 id(같은 방 메시지만). */
+  replyTo?: string
 }
 
 export interface ChatTransport {

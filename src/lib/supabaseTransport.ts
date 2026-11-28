@@ -16,10 +16,11 @@ type Row = {
   image_thumb_path?: string | null
   image_width?: number | null
   image_height?: number | null
+  reply_to?: string | null
 }
 
 const MESSAGE_COLUMNS =
-  'id,topic_id,user_id,nickname,body,place_name,place_url,spoiler,created_at,image_path,image_thumb_path,image_width,image_height'
+  'id,topic_id,user_id,nickname,body,place_name,place_url,spoiler,created_at,image_path,image_thumb_path,image_width,image_height,reply_to'
 const MESSAGE_COLUMNS_BASIC = 'id,topic_id,user_id,nickname,body,place_name,place_url,spoiler,created_at'
 
 const fromRow = (r: Row, urls: Record<string, string> = {}): TransportMessage => ({
@@ -36,6 +37,7 @@ const fromRow = (r: Row, urls: Record<string, string> = {}): TransportMessage =>
   imageHeight: r.image_height ?? undefined,
   place: r.place_name ? { name: r.place_name, url: r.place_url ?? undefined } : undefined,
   spoiler: r.spoiler,
+  replyTo: r.reply_to ?? undefined,
 })
 
 /** 006 마이그레이션 전 서버(사진 열 없음)에서도 대화가 비지 않도록 한 번 더 시도한다. */
@@ -77,6 +79,7 @@ export function createSupabaseTransport(): ChatTransport {
         place_name: message.place?.name ?? null,
         place_url: message.place?.url ?? null,
         spoiler: message.spoiler ?? false,
+        reply_to: message.replyTo ?? null,
       }
       const withPhoto = message.imagePath
         ? {
@@ -95,6 +98,13 @@ export function createSupabaseTransport(): ChatTransport {
       if (error) {
         if (error.message.includes('too_many_messages')) throw new Error('너무 빨리 보내고 있어요. 잠시 후 다시 보내 주세요.')
         if (error.message.includes('profile_required')) throw new Error('닉네임을 먼저 정해 주세요.')
+        if (error.message.includes('room_membership_required')) {
+          const err = new Error('방 자리가 만료됐어요. 다시 입장한 뒤 보내 주세요.')
+          err.name = 'room_membership_required'
+          throw err
+        }
+        if (error.message.includes('reply_not_in_room')) throw new Error('답장할 메시지가 이 방에 없어요.')
+        if (error.message.includes('photo_topic_mismatch')) throw new Error('이 방 사진이 아니에요. 사진을 다시 골라 주세요.')
         if (error.code === '23514') throw new Error('보낼 수 없는 내용이에요. 연락처나 외부 연락 요청은 보낼 수 없어요.')
         throw new Error('메시지를 보내지 못했어요. 잠시 후 다시 시도해 주세요.')
       }
@@ -119,6 +129,25 @@ export function createSupabaseTransport(): ChatTransport {
       }
     },
   }
+}
+
+/** 이 방 메시지가 가리키는 Storage 경로들(고아 사진 정리용). */
+export async function listRoomPhotoPaths(topicId: string, limit = 200): Promise<string[]> {
+  if (!supabase) return []
+  const { data, error } = await supabase
+    .from('messages')
+    .select('image_path,image_thumb_path')
+    .eq('topic_id', topicId)
+    .not('image_path', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  if (error || !Array.isArray(data)) return []
+  const out: string[] = []
+  for (const row of data as { image_path: string | null; image_thumb_path: string | null }[]) {
+    if (row.image_path) out.push(row.image_path)
+    if (row.image_thumb_path) out.push(row.image_thumb_path)
+  }
+  return out
 }
 
 /** 방 사진첩: 이 방의 사진 메시지만 모아 최근 순으로 돌려준다. */
@@ -390,4 +419,113 @@ export async function setReportStatus(id: string, status: AdminReport['status'])
   if (!supabase) return false
   const { error } = await supabase.from('reports').update({ status }).eq('id', id)
   return !error
+}
+
+/* ───────── 방 멤버십·서버 정원(008) ───────── */
+
+/** join_room RPC 결과. assigned=true면 정원이 차서 다음 호실로 배정된 것이다. */
+export type RoomJoin = {
+  roomId: string
+  capacity: number
+  count: number
+  assigned: boolean
+  full: boolean
+  topic?: SharedTopic
+}
+
+/** 서버가 정원을 판정하고 자리를 배정한다. 정원이 차 있으면 다음 호실을 만들어 준다. */
+export async function joinRoom(topicId: string, space?: string, title?: string): Promise<RoomJoin | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase.rpc('join_room', {
+    p_topic: topicId,
+    p_space: space ?? null,
+    p_title: title ?? null,
+  })
+  if (error || !data) return null
+  const r = data as { room_id: string; capacity: number; count: number; assigned: boolean; full?: boolean; topic?: TopicRow }
+  return {
+    roomId: r.room_id,
+    capacity: r.capacity,
+    count: r.count,
+    assigned: Boolean(r.assigned),
+    full: Boolean(r.full),
+    topic: r.topic ? fromTopicRow(r.topic) : undefined,
+  }
+}
+
+/** 45초마다 내 자리를 갱신하고 방별 인원을 받는다. */
+export async function heartbeatRooms(topicIds: string[]): Promise<{ rooms: Record<string, number>; mine: string[] } | null> {
+  if (!supabase || topicIds.length === 0) return null
+  const { data, error } = await supabase.rpc('heartbeat_room', { p_topics: topicIds.slice(0, 60) })
+  if (error || !data) return null
+  const r = data as { rooms?: Record<string, number>; mine?: string[] }
+  return { rooms: r.rooms ?? {}, mine: r.mine ?? [] }
+}
+
+/** 방에서 나간다(자리를 비운 것으로 표시). */
+export async function leaveRoom(topicId: string): Promise<void> {
+  if (!supabase) return
+  await supabase.rpc('leave_room', { p_topic: topicId })
+}
+
+/** 여러 방의 인원을 한 번에 읽는다(모임 목록 표시용). */
+export async function roomCounts(topicIds: string[]): Promise<Record<string, number>> {
+  if (!supabase || topicIds.length === 0) return {}
+  const { data, error } = await supabase.rpc('room_counts', { p_topics: topicIds.slice(0, 100) })
+  return error || !data ? {} : (data as Record<string, number>)
+}
+
+/* ───────── 메시지 이모지 반응(008) ───────── */
+
+export type ReactionRow = { messageId: string; emoji: string; userId: string }
+
+/** 이 방 메시지들의 반응을 한 번에 읽는다. */
+export async function listReactions(messageIds: string[]): Promise<Record<string, ReactionRow[]>> {
+  if (!supabase || messageIds.length === 0) return {}
+  const ids = messageIds.slice(0, 100).join(',')
+  const { data, error } = await supabase
+    .from('message_reactions')
+    .select('message_id,emoji,user_id')
+    .in('message_id', messageIds.slice(0, 100))
+  void ids
+  if (error || !Array.isArray(data)) return {}
+  const out: Record<string, ReactionRow[]> = {}
+  for (const row of data as { message_id: string; emoji: string; user_id: string }[]) {
+    ;(out[row.message_id] ??= []).push({ messageId: row.message_id, emoji: row.emoji, userId: row.user_id })
+  }
+  return out
+}
+
+/** 반응을 켜고 끈다. 성공하면 true. */
+export async function setReaction(messageId: string, emoji: string, on: boolean): Promise<boolean> {
+  if (!supabase) return false
+  if (on) {
+    const { error } = await supabase.from('message_reactions').insert({ message_id: messageId, emoji })
+    return !error || error.code === '23505'
+  }
+  const { data: me } = await supabase.auth.getUser()
+  if (!me.user) return false
+  const { error } = await supabase
+    .from('message_reactions')
+    .delete()
+    .eq('message_id', messageId)
+    .eq('emoji', emoji)
+    .eq('user_id', me.user.id)
+  return !error
+}
+
+export function subscribeReactions(topicMessageIds: () => string[], onRow: (row: ReactionRow, removed: boolean) => void) {
+  if (!supabase) return () => {}
+  const client = supabase
+  const channel = client
+    .channel('dd-reactions')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'message_reactions' }, (payload) => {
+      const row = (payload.new ?? payload.old) as { message_id?: string; emoji?: string; user_id?: string }
+      if (!row?.message_id || !topicMessageIds().includes(row.message_id)) return
+      onRow({ messageId: row.message_id, emoji: row.emoji ?? '', userId: row.user_id ?? '' }, payload.eventType === 'DELETE')
+    })
+    .subscribe()
+  return () => {
+    void client.removeChannel(channel)
+  }
 }

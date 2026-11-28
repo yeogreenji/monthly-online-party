@@ -1818,3 +1818,85 @@
   color: #5a3a14;
   border-left: 1px solid #c9ab7a;
 }
+
+/* ── 안정성 개편(2026-11-28): 조작 안내 닫기·답장·이모지 반응·다중 사진 ── */
+/* 조작 안내 띠: 띠 자체를 터치하면 닫힌다(닫힌 상태는 기기에 기억). */
+.dd-world-app .dd3-world-hint {
+  pointer-events: auto !important;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  max-width: calc(100% - 24px);
+  padding: 5px 11px;
+  border: 1px solid #d8c39a;
+  border-radius: 999px;
+  background: #f8eed7f2;
+  color: #5d4326;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: normal;
+  text-align: left;
+  box-shadow: 0 2px 0 #d9c7a5, 0 6px 16px #2c1a0a2e;
+  z-index: 4;
+}
+.dd-world-app .dd3-world-hint:active { transform: translateX(-50%) translateY(1px); }
+.dd3-hint-close {
+  flex: none;
+  font-size: 10px;
+  color: #8a6a3a;
+  border-left: 1px solid #d8c39a;
+  padding-left: 7px;
+  white-space: nowrap;
+}
+
+/* 메시지 반응 */
+.dd-react-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 5px; max-width: 100%; }
+.dd-react-chip {
+  display: inline-flex; align-items: center; gap: 3px;
+  min-height: 28px; padding: 2px 8px; border-radius: 999px;
+  border: 1px solid #d9c7a5; background: #fffaf0; color: #5d4326; font-size: 12px;
+}
+.dd-react-chip span { font-size: 10px; font-weight: 800; color: #8a6a3a; }
+.dd-react-chip.is-mine { background: #f3e3c4; border-color: #b07d2c; font-weight: 800; }
+.dd-react-add {
+  width: 30px; height: 30px; border-radius: 999px; border: 1px dashed #c8b18b;
+  background: #fffaf0; color: #8a6a3a; font-size: 13px; line-height: 1;
+}
+.dd-react-picker {
+  display: flex; gap: 2px; padding: 3px 5px; border-radius: 999px;
+  border: 1px solid #d9c7a5; background: #fffaf0; box-shadow: 0 6px 18px #2c1a0a26;
+}
+.dd-react-picker button { width: 32px; height: 32px; font-size: 17px; border-radius: 999px; }
+.dd-react-picker button:active { background: #f3e3c4; }
+
+/* 답장 미리보기(말풍선 안·작성창 위) */
+.dd-quote {
+  display: flex; align-items: baseline; gap: 6px; max-width: 88%;
+  margin: 0 0 3px; padding: 5px 9px; border-radius: 8px;
+  border-left: 3px solid #b07d2c; background: #f3e3c4b3;
+  font-size: 11px; color: #6d5433; overflow: hidden;
+}
+.dd-quote strong { flex: none; color: #8a5b16; }
+.dd-quote span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dd-own-message .dd-quote { align-self: flex-end; border-left: 0; border-right: 3px solid #b07d2c; }
+.dd-reply-bar, .dd-retry-bar {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 5px;
+  padding: 6px 9px; border-radius: 10px; font-size: 12px;
+}
+.dd-reply-bar { background: #f3e3c4; border: 1px solid #dcc9a3; color: #5d4326; }
+.dd-reply-bar span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dd-reply-bar button { flex: none; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; background: #fffaf0; color: #8a6a3a; }
+.dd-retry-bar { background: #fbe6df; border: 1px solid #e2b4a7; color: #8a3325; }
+.dd-retry-bar span { flex: 1; min-width: 0; }
+.dd-retry-bar button { flex: none; min-height: 34px; padding: 4px 12px; border-radius: 999px; background: #a33a2c; color: #fff; font-weight: 800; }
+
+/* 여러 장 사진 첨부 */
+.dd-chat-attachments { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; }
+.dd-chat-attachments .dd-chat-attachment { flex: none; flex-direction: column; align-items: stretch; padding: 0; gap: 3px; }
+.dd-chat-attachments .dd-chat-attachment img { height: 64px; border-radius: 10px; }
+.dd-chat-attachments .dd3-btn { font-size: 10px; min-height: 26px; }
+.dd-fc-photo-error { font-size: 11px; color: #8a3325; padding: 2px 4px; }
