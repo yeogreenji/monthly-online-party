@@ -1,0 +1,280 @@
+{
+  "version": "1.0",
+  "date": "2026-11-28",
+  "status": "PLANNING_NOT_RUN",
+  "notes": [
+    "기존 56개 출시 시나리오에 연결하는 집중 재검증 카드이며 기존 계획 삭제 아님.",
+    "실제 이용자 정보 또는 유해 이미지 사용 금지. 실제 서비스 대상으로 무단 부하 시험 금지. 운영자 승인/테스트 환경 분리.",
+    "의견 수집은 공개·수집 목적·보관 정책 및 동의 확인 후 시행. 설문은 익명 또는 최소 가명, 모든 항목 선택, 연락처/주소/대화 원문/실제 사진 미수집.",
+    "별도 신고 경로가 실제 제공되기 전 설문을 공개하지 않는다."
+  ],
+  "cases": [
+    {
+      "id": "B01",
+      "requirement": "Q09",
+      "title": "사진 방 권한",
+      "setup": "A/B는 같은 방, C는 비참여 계정",
+      "steps": "A가 무해한 테스트 사진 전송; B 수신; C가 방 메시지와 객체 및 URL 발급 조회 시도",
+      "expected": "B만 허용 범위 내 수신, C 거부; 공개 정책과 일치",
+      "status": "NOT_RUN",
+      "actual": "",
+      "evidence": "",
+      "tested_commit": "",
+      "environment": "",
+      "owner": "피클·브리"
+    },
+    {
+      "id": "B02",
+      "requirement": "Q07/Q09",
+      "title": "1:1 채팅 권한",
+      "setup": "A/B 친구, C 별도 계정",
+      "steps": "별도 수신 동의 전/후 A 전송, B 수신, C가 해당 스레드 및 사진 접근 시도",
+      "expected": "동의 전 새 전송 거부; 동의 후 당사자만 접근",
+      "status": "NOT_RUN",
+      "actual": "",
+      "evidence": "",
+      "tested_commit": "",
+      "environment": "",
+      "owner": "피클·브리"
+    },
+    {
+      "id": "B03",
+      "requirement": "Q07/Q09",
+      "title": "차단·동의 철회",
+      "setup": "A/B 개인대화 허용 후 B 차단",
+      "steps": "A 재전송/재구독/새 URL 발급/방문·선물 요청 시도",
+      "expected": "정책에 따른 신규 접근 거부, 기존 서명 URL 만료 및 재접근 정책 기록",
+      "status": "NOT_RUN",
+      "actual": "",
+      "evidence": "",
+      "tested_commit": "",
+      "environment": "",
+      "owner": "피클·브리"
+    },
+    {
+      "id": "B04",
+      "requirement": "Q08/Q11",
+      "title": "실제 사진 전송",
+      "setup": "A/B 로그인 독립 브라우저",
+      "steps": "사진만, 텍스트+사진, 모바일 카메라, PC 사진 첨부 각각 전송",
+      "expected": "정확한 방의 상대에게 수신, 원본/썸네일 표시 및 개인정보 메타데이터 제거",
+      "status": "NOT_RUN",
+      "actual": "",
+      "evidence": "",
+      "tested_commit": "",
+      "environment": "",
+      "owner": "피클·브리"
+    },
+    {
+      "id": "B05",
+      "requirement": "Q10/Q11",
+      "title": "전송 장애",
+      "setup": "테스트 환경 및 모의 실패",
+      "steps": "업로드 중 네트워크 차단/방 이동/재시도/메시지 저장 실패",
+      "expected": "중복·다른 방 전송 없음, 고아 객체 정리 및 오류 표시",
+      "status": "NOT_RUN",
+      "actual": "",
+      "evidence": "",
+      "tested_commit": "",
+      "environment": "",
+      "owner": "피클·브리"
+    },
+    {
+      "id": "B06",
+      "requirement": "Q11",
+      "title": "사진 입력 검증",
+      "setup": "격리 테스트 환경",
+      "steps": "허용 포맷/상한 경계/위조 확장자·비정상 형식의 무해한 테스트 파일",
+      "expected": "서버에서 비허용 거부, 앱 정상 유지",
+      "status": "NOT_RUN",
+      "actual": "",
+      "evidence": "",
+      "tested_commit": "",
+      "environment": "",
+      "owner": "피클·브리"
+    },
+    {
+      "id": "B07",
+      "requirement": "Q12",
+      "title": "20명 원자적 정원",
+      "setup": "20명 정원 테스트 방, 테스트 세션 21개",
+      "steps": "19명 입장 후 2명 동시 입장, 가득 찬 방에 추가 요청",
+      "expected": "최대 20명, 나머지 자동 호실 또는 명확한 대기, 중복 호실 없음",
+      "status": "NOT_RUN",
+      "actual": "",
+      "evidence": "",
+      "tested_commit": "",
+      "environment": "",
+      "owner": "피클·브리"
+    },
+    {
+      "id": "B08",
+      "requirement": "Q04",
+      "title": "공유 기기 계정 격리",
+      "setup": "A/B 같은 브라우저 순차 로그인",
+      "steps": "A 비공개 방·코디·사진 저장 후 로그아웃, B 로그인",
+      "expected": "A 개인 기록 노출·B 서버 덮어쓰기 없음",
+      "status": "NOT_RUN",
+      "actual": "",
+      "evidence": "",
+      "tested_commit": "",
+      "environment": "",
+      "owner": "피클·브리"
+    },
+    {
+      "id": "B09",
+      "requirement": "Q05/Q22",
+      "title": "친구 권한 철회",
+      "setup": "A/B 친구 및 공개 범위 설정",
+      "steps": "방문·방명록·선물 확인 후 친구 해제 또는 차단",
+      "expected": "권한 없는 재조회/쓰기/요청 거부",
+      "status": "NOT_RUN",
+      "actual": "",
+      "evidence": "",
+      "tested_commit": "",
+      "environment": "",
+      "owner": "피클·브리"
+    },
+    {
+      "id": "B10",
+      "requirement": "Q22",
+      "title": "연령 및 신고",
+      "setup": "일반/잠금/운영자 테스트 계정",
+      "steps": "성인 공간 잠금 및 직접 접근 검증, 무해한 신고용 콘텐츠 제출",
+      "expected": "안전 조건 전 잠금, 일반 계정 관리자 데이터 접근 불가",
+      "status": "NOT_RUN",
+      "actual": "",
+      "evidence": "",
+      "tested_commit": "",
+      "environment": "",
+      "owner": "피클·브리"
+    },
+    {
+      "id": "B11",
+      "requirement": "Q22",
+      "title": "계정 삭제",
+      "setup": "별도 테스트 계정 A",
+      "steps": "삭제 요청·확인·세션 철회, 남은 객체/기록 정책 확인",
+      "expected": "재로그인 및 직접 접근 정책 준수, 보존 예외와 삭제 결과 기록",
+      "status": "NOT_RUN",
+      "actual": "",
+      "evidence": "",
+      "tested_commit": "",
+      "environment": "",
+      "owner": "피클·브리"
+    },
+    {
+      "id": "B12",
+      "requirement": "Q23",
+      "title": "실기기 UX",
+      "setup": "Android/iOS/PC 실제 기기",
+      "steps": "입장→키보드 입력→카메라→채팅 확장→친구→내 집→복귀",
+      "expected": "입력 가림/조작 오류 없음, 프레임·메모리·발열 관측 기록",
+      "status": "NOT_RUN",
+      "actual": "",
+      "evidence": "",
+      "tested_commit": "",
+      "environment": "",
+      "owner": "피클·브리"
+    },
+    {
+      "id": "B13",
+      "requirement": "Q18",
+      "title": "공동 게임",
+      "setup": "A/B/C 독립 세션",
+      "steps": "10종 각 게임 차례·종료·재입장, 방장 퇴장",
+      "expected": "동기화와 복구, 임의 행동·중복 차례 거부",
+      "status": "NOT_RUN",
+      "actual": "",
+      "evidence": "",
+      "tested_commit": "",
+      "environment": "",
+      "owner": "피클·브리"
+    },
+    {
+      "id": "B14",
+      "requirement": "Q24",
+      "title": "운영 중단·복구",
+      "setup": "승인된 테스트 환경",
+      "steps": "연결/저장 한도 경보, 장애 공지, 신규 입장 제한, 복구",
+      "expected": "승인 없는 비용 증가 없음, 기존 기록 보존과 복구 확인",
+      "status": "NOT_RUN",
+      "actual": "",
+      "evidence": "",
+      "tested_commit": "",
+      "environment": "",
+      "owner": "피클·브리"
+    }
+  ],
+  "survey": [
+    {
+      "id": "S01",
+      "prompt": "처음 입장할 때 어떤 부분이 가장 헷갈렸나요?",
+      "type": "optional_text",
+      "required": false
+    },
+    {
+      "id": "S02",
+      "prompt": "이용한 공간을 골라 주세요.",
+      "type": "optional_multi",
+      "required": false
+    },
+    {
+      "id": "S03",
+      "prompt": "채팅·사진 보내기는 얼마나 편했나요?",
+      "type": "optional_rating_1_to_5",
+      "required": false
+    },
+    {
+      "id": "S04",
+      "prompt": "친구 맺기와 미니룸은 사용하기 쉬웠나요?",
+      "type": "optional_rating_1_to_5_with_na",
+      "required": false
+    },
+    {
+      "id": "S05",
+      "prompt": "가장 마음에 든 활동이나 공간은 무엇인가요?",
+      "type": "optional_text",
+      "required": false
+    },
+    {
+      "id": "S06",
+      "prompt": "불편하거나 안전하지 않다고 느낀 점이 있었나요? (개인정보를 적지 마세요. 긴급 신고는 별도 경로)",
+      "type": "optional_text",
+      "required": false
+    },
+    {
+      "id": "S07",
+      "prompt": "다시 방문한다면 어떤 활동을 해보고 싶나요?",
+      "type": "optional_text",
+      "required": false
+    },
+    {
+      "id": "S08",
+      "prompt": "다시 이용할 의향이 있나요?",
+      "type": "optional_choice_yes_unsure_no",
+      "required": false
+    },
+    {
+      "id": "S09",
+      "prompt": "이용한 기기를 골라 주세요.",
+      "type": "optional_choice_android_ios_pc_tablet_other",
+      "required": false
+    },
+    {
+      "id": "S10",
+      "prompt": "기타 개선 의견",
+      "type": "optional_text",
+      "required": false
+    }
+  ],
+  "feedback_record_fields": [
+    "optional_pseudonym",
+    "device_category",
+    "consent_version",
+    "answers",
+    "submitted_at"
+  ],
+  "release_gate": "P0 unresolved => no external beta",
+  "publication_enabled": false
+}
